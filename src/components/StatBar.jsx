@@ -2,15 +2,20 @@
 export default function StatBar({ total, matched, favCount, compareCount }) {
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#f2eee1] via-[#f7f5ef] to-[#edf1e7] px-6 py-8 ring-1 ring-stone-200/60 sm:px-10 sm:py-10">
-      {/* 背景装饰大字 */}
-      <span className="font-display pointer-events-none absolute -right-6 -top-12 select-none text-[190px] leading-none text-stone-900/[0.05]">
-        慢
-      </span>
-      <p className="text-[11px] tracking-[0.35em] text-stone-400">低 成 本 旅 居 指 南</p>
-      <h2 className="font-display mt-2.5 text-[30px] font-bold leading-snug text-stone-900 sm:text-[36px]">
+      {/* 右侧艺术水印：大号「慢」+ 竖排「低成本旅居指南」融为一体 */}
+      <div className="pointer-events-none absolute -right-2 -top-10 flex select-none items-start gap-1 text-stone-900/[0.05] sm:right-2">
+        <span
+          className="font-display mt-12 text-[18px] tracking-[0.35em] sm:text-[22px]"
+          style={{ writingMode: 'vertical-rl' }}
+        >
+          低成本旅居指南
+        </span>
+        <span className="font-display text-[190px] leading-none">慢</span>
+      </div>
+      <h2 className="font-display mt-1 text-[30px] font-bold leading-snug text-stone-900 sm:text-[36px]">
         人间烟火气，最抚躺平人
       </h2>
-      <p className="mt-3 max-w-xl text-[13px] leading-6 text-stone-500">
+      <p className="mt-5 max-w-xl text-[13px] leading-6 text-stone-500">
         林泉无俗物，此心安处是吾乡。不趋喧嚣，不困红尘，择一处安顿身心。
       </p>
       <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12.5px] text-stone-500">
