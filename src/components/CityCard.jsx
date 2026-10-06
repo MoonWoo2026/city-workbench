@@ -1,4 +1,5 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award } from 'lucide-react'
+import dataset from '../data/cities_full.json'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
 
@@ -62,6 +63,25 @@ export function MedBadge({ med, size = 'sm' }) {
   )
 }
 
+// 专科强院徽标：仅当专科筛选激活且本市有该专科全国 Top10 强院时显示
+export function SpecBadge({ city, specKey, size = 'sm' }) {
+  if (!specKey || !city.spec) return null
+  const es = city.spec.filter(s => s[0] === specKey)
+  if (!es.length) return null
+  const best = es.reduce((a, b) => (a[1] <= b[1] ? a : b))
+  const specName = dataset.specialties?.specs?.[specKey]?.name || ''
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return (
+    <span
+      title={`${specName}（复旦 2023 专科声誉榜）：${es.map(e => `${e[2]} 全国第${e[1]}`).join('、')}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-amber-50 font-medium text-amber-800 ring-1 ring-amber-500/25 ${cls}`}
+    >
+      <Award size={size === 'xs' ? 10 : 11} />
+      {specName}全国第{best[1]} · {best[2]}
+    </span>
+  )
+}
+
 export const yuan = n => `¥${Number(n).toLocaleString('zh-CN')}`
 
 function FavButton({ fav, onToggle }) {
@@ -108,7 +128,7 @@ function MetaLine({ city }) {
 }
 
 // ---------- 网格卡片 ----------
-export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen, onShare }) {
+export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleCompare, onOpen, onShare }) {
   return (
     <article
       onClick={() => onOpen(city.id)}
@@ -144,6 +164,7 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
         <CleanBadge clean={city.clean50} />
         <UniBadge uni={city.uni_town} />
         <MedBadge med={city.med} />
+        <SpecBadge city={city} specKey={specKey} />
         {city.tags.slice(0, 3).map(t => <TagChip key={t} tag={t} />)}
         {city.tags.length > 3 && <span className="text-[10px] text-stone-400">+{city.tags.length - 3}</span>}
       </div>
@@ -190,7 +211,7 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
 }
 
 // ---------- 列表行 ----------
-export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen, onShare }) {
+export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCompare, onOpen, onShare }) {
   return (
     <article
       onClick={() => onOpen(city.id)}
@@ -215,6 +236,7 @@ export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, on
           <CleanBadge clean={city.clean50} size="xs" />
           <UniBadge uni={city.uni_town} size="xs" />
           <MedBadge med={city.med} size="xs" />
+          <SpecBadge city={city} specKey={specKey} size="xs" />
           {city.tags.slice(0, 2).map(t => <TagChip key={t} tag={t} size="xs" />)}
         </div>
       </div>

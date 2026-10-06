@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross,
+  Share2, Loader2, Cross, Award,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -101,6 +101,40 @@ function MedBlock({ city }) {
           {expanded ? '收起' : `展开全部 ${names.length} 家`}
         </button>
       )}
+    </Block>
+  )
+}
+
+// 全国专科强院卡：本市拥有的复旦 2023 专科声誉榜 Top10 科室（按名次升序）
+function SpecBlock({ city }) {
+  if (!city.spec?.length) return null
+  const specs = dataset.specialties?.specs || {}
+  // 按专科分组：同专科多家医院合并为一行
+  const groups = []
+  for (const [key, rank, short] of city.spec) {
+    let g = groups.find(x => x.key === key)
+    if (!g) { g = { key, rank, hosps: [] }; groups.push(g) }
+    g.hosps.push({ rank, short })
+    if (rank < g.rank) g.rank = rank
+  }
+  groups.sort((a, b) => a.rank - b.rank)
+  return (
+    <Block icon={<Award size={14} className="text-amber-600" />} title={`全国专科强院（本市 ${groups.length} 个科室上榜）`}>
+      <ul className="space-y-1.5">
+        {groups.map(g => (
+          <li key={g.key} className="flex items-start gap-1.5">
+            <Award size={12} className="mt-[6px] flex-none text-amber-500" />
+            <span>
+              <b className="text-stone-700">{specs[g.key]?.name || g.key}</b>
+              <span className="ml-1 rounded bg-amber-50 px-1 py-px text-[11px] font-medium text-amber-800 ring-1 ring-amber-500/20">全国第{g.rank}</span>
+              <span className="ml-1 text-stone-500">{g.hosps.map(h => h.short).join('、')}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] leading-4 text-stone-400">
+        来源：{dataset.specialties?.source || '复旦版中国医院专科声誉排行榜'}。看对应疾病，优先选这些医院所在的城市。
+      </p>
     </Block>
   )
 }
@@ -321,6 +355,9 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
 
           {/* 三甲医院名单（名单超 3 家自动折叠） */}
           <MedBlock city={city} />
+
+          {/* 全国专科强院（复旦 2023 专科声誉榜 Top10） */}
+          <SpecBlock city={city} />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Block icon={<CheckCircle2 size={14} className="text-emerald-600" />} title="优势" tone="green">

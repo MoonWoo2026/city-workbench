@@ -5,6 +5,7 @@ import { applyFilters, splitBudget } from './store.js'
 import { PREF_RANK } from './constants.js'
 
 const ALL_CITIES = dataset.cities
+const SPECS = dataset.specialties?.specs || {} // 复旦 2023 专科声誉榜：key → { name, alias, list }
 
 // 房租档区间（整租典型价边界，用于自然语言预算映射）
 const BANDS = [
@@ -89,6 +90,7 @@ export const SUGGESTIONS = [
   '安静慢节奏的小城',
   '有高铁、气候温和的三线城市',
   '数字游民友好的南方县城',
+  '胃不好，去哪些城市看病强',
 ]
 
 // ---------- 文本预处理 ----------
@@ -293,6 +295,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       tags: [],
       cleanOnly: false,
       uniOnly: false,
+      spec: null, // 点名城市时退出专科强院模式
       q: city.name,
     })
     items.push({ k: 'q', label: '搜索', value: city.name })
@@ -391,6 +394,33 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'medOff', label: '医疗', value: '三甲不限' })
   }
 
+  // 8.8) 看病需求：疾病口语词 → 复旦专科声誉榜强院城市（硬过滤，全国排名靠前在前）
+  if (/取消专科|不限专科|看病不限|取消看病|不看专科/.test(text)) {
+    next.spec = null
+    items.push({ k: 'specOff', label: '看病', value: '不限专科' })
+  } else {
+    let specHit = null, specWord = ''
+    const lt = text.toLowerCase()
+    outer: for (const [key, s] of Object.entries(SPECS)) {
+      const words = [...(s.alias || []), s.name].sort((a, b) => b.length - a.length)
+      for (const w of words) {
+        if (lt.includes(w.toLowerCase())) { specHit = { key, s }; specWord = w; break outer }
+      }
+    }
+    if (specHit) {
+      if (isNegated(text, specWord)) {
+        next.spec = null
+        items.push({ k: 'specOff', label: '看病', value: '不限专科' })
+      } else {
+        next.spec = specHit.key
+        next.q = '' // 疾病词不作关键词二次过滤
+        items.push({ k: 'spec', label: '看病需求', value: `${specHit.s.name}强院城市（复旦榜）` })
+        const top3 = specHit.s.list.slice(0, 3).map(h => `${h.short}（${h.city}）`).join('、')
+        items.push({ k: 'specTop', label: '全国前列', value: top3 })
+      }
+    }
+  }
+
   // 8.6) 生活偏好（影响推荐排序打分，不改筛选）
   const prefHits = PREF_RULES.filter(r => r.words.test(text))
   if (prefHits.length) {
@@ -432,6 +462,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
+    { when: () => !!next.spec, run: () => { next.spec = null; relaxed.push('该专科强院城市与其他条件无交集，已取消专科限制') } },
     { when: () => !!next.budget, run: () => { next.budget = null; relaxed.push('预算内没有完全住得起的，已关闭预算限制') } },
   ]
   for (const step of relaxSteps) {
@@ -447,6 +478,15 @@ export function rankResults(matched, f) {
   const arr = matched.map(c => {
     let score = 0
     const why = []
+    // 专科强院模式：全国排名越靠前分越高
+    if (f.spec && SPECS[f.spec]) {
+      const es = (c.spec || []).filter(s => s[0] === f.spec)
+      if (es.length) {
+        const r = Math.min(...es.map(s => s[1]))
+        score += (11 - r) * 3
+        why.push(`${SPECS[f.spec].name}全国第${r}`)
+      }
+    }
     for (const t of f.tags || []) if (c.tags.includes(t)) { score += 3; why.push(t) }
     if ((f.types || []).length && f.types.includes(c.type)) score += 1
     if (c.clean50) { score += 1; if (f.cleanOnly) why.push('50km 无重污染') }

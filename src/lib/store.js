@@ -38,6 +38,7 @@ export function defaultFilters() {
     uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
     medOnly: false,           // 有三甲医院（本市或母城市区）
     medExcl: false,           // 排除有三甲医院的城市（AI 微调「不要三甲」）
+    spec: null,               // 专科强院筛选：复旦 2023 专科声誉榜 key（如 xiaohua=消化病），只看有全国 Top10 强院的城市
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
     excl: [],                 // 微调排除：[{ label:'排除北方', provinces:[...] }]，可叠加多条
@@ -100,6 +101,7 @@ export function encodeFilters(f) {
   if (f.cleanOnly) p.set('clean', '1')
   if (f.medOnly) p.set('med', '1')
   if (f.medExcl) p.set('medx', '1')
+  if (f.spec) p.set('sp', f.spec)
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
   if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
@@ -120,6 +122,7 @@ export function decodeFilters(search) {
   f.cleanOnly = p.get('clean') === '1'
   f.medOnly = p.get('med') === '1'
   f.medExcl = p.get('medx') === '1'
+  f.spec = p.get('sp') || null
   f.uniOnly = p.get('uni') === '1'
   f.sort = p.get('sort') || f.sort // 未指定时用默认（explore）
   if (p.has('b')) {
@@ -162,8 +165,19 @@ export function matchQuery(city, q) {
     TYPE_ALIASES[city.type] || '',
     ...(city.areas || []),
     ...(city.tags || []),
+    city.spectext || '', // 专科强院搜索文本（疾病别名+专科名+医院短名，构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)
+}
+
+// ---------- 专科强院 ----------
+// c.spec 条目：[specKey, rank, 医院短名]（同城同专科多家时有多条）
+export function specEntries(city, key) {
+  return (city.spec || []).filter(s => s[0] === key).sort((a, b) => a[1] - b[1])
+}
+export function specRank(city, key) {
+  const es = specEntries(city, key)
+  return es.length ? es[0][1] : 999
 }
 
 // ---------- 多维筛选 ----------
@@ -174,14 +188,15 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
   }))
   return cities.filter(c => {
     if (f.excl?.length && f.excl.some(e => e.provinces.includes(c.province))) return false // 微调排除优先
-    if (f.levels.length && !f.q && !f.budget && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算模式时放开房租档位（更明确的意图）
+    if (f.levels.length && !f.q && !f.budget && !f.spec && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算/专科模式时放开房租档位（更明确的意图）
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
     if (f.cleanOnly && !c.clean50) return false
     if (f.medOnly && !(c.med && (c.med.n > 0 || c.med.p > 0))) return false // 有三甲（本市或市区）
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲
-    if (f.uniOnly && !f.q && !f.budget && !c.uni_town) return false // 有关键词搜索/预算模式时放开大学城限制
+    if (f.spec && !(c.spec && c.spec.some(s => s[0] === f.spec))) return false // 专科强院所在城市（全国 Top10）
+    if (f.uniOnly && !f.q && !f.budget && !f.spec && !c.uni_town) return false // 有关键词搜索/预算/专科模式时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false
     if (f.q && !matchQuery(c, f.q)) return false
     if (f.budget && !matchBudget(c, f.budget)) return false

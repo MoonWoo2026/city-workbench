@@ -6,7 +6,7 @@ import { Search, SlidersHorizontal, LayoutGrid, List, Share2, Scale, X,
 import dataset from './data/cities_full.json'
 import { SORTS, DEFAULT_LEVELS, PREFS } from './lib/constants.js'
 import {
-  defaultFilters, decodeFilters, encodeFilters, applyFilters, sortCities, prefScore,
+  defaultFilters, decodeFilters, encodeFilters, applyFilters, sortCities, prefScore, specRank,
   loadFavs, saveFavs, loadNotes, saveNotes,
 } from './lib/store.js'
 import * as sync from './lib/sync.js'
@@ -215,13 +215,22 @@ export default function App() {
   }
 
   const results = useMemo(() => {
-    const list = sortCities(applyFilters(all, filters, { favs, favOnly }), filters.sort)
-    if (!filters.prefs?.length) return list
-    // 生活偏好加权：命中偏好多的排前面（稳定排序，同分保持原排序结果）
+    let list = sortCities(applyFilters(all, filters, { favs, favOnly }), filters.sort)
+    if (filters.prefs?.length) {
+      // 生活偏好加权：命中偏好多的排前面（稳定排序，同分保持原排序结果）
+      list = list
+        .map((c, i) => ({ c, i, s: prefScore(c, filters.prefs) }))
+        .sort((a, b) => b.s - a.s || a.i - b.i)
+        .map(x => x.c)
+    }
+    // 专科强院模式：全国排名靠前在前（稳定，同排名保持原序）
+    if (filters.spec) {
+      list = list
+        .map((c, i) => ({ c, i, r: specRank(c, filters.spec) }))
+        .sort((a, b) => a.r - b.r || a.i - b.i)
+        .map(x => x.c)
+    }
     return list
-      .map((c, i) => ({ c, i, s: prefScore(c, filters.prefs) }))
-      .sort((a, b) => b.s - a.s || a.i - b.i)
-      .map(x => x.c)
   }, [all, filters, favs, favOnly])
   const uniMatched = results.filter(c => c.uni_town).length
 
@@ -264,6 +273,9 @@ export default function App() {
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
     if (filters.medOnly) chips.push({ k: 'med', label: '有三甲医院', clear: () => patch({ medOnly: false }) })
     if (filters.medExcl) chips.push({ k: 'medx', label: '排除有三甲', clear: () => patch({ medExcl: false }) })
+    if (filters.spec && dataset.specialties?.specs?.[filters.spec]) {
+      chips.push({ k: 'spec', label: `${dataset.specialties.specs[filters.spec].name}强院城市`, clear: () => patch({ spec: null }) })
+    }
     if (filters.budget) chips.push({ k: 'budget', label: `预算 ¥${budgetTotal(filters.budget)}/月（${filters.budget.mode === 'shared' ? '合租' : '整租'}）`, clear: () => patch({ budget: null }) })
     if (filters.prefs?.length) {
       const labels = filters.prefs.map(id => PREFS.find(p => p.id === id)?.label || id)
@@ -293,6 +305,7 @@ export default function App() {
     if (filters.cleanOnly) n++
     if (filters.uniOnly) n++
     if (filters.medOnly) n++
+    if (filters.spec) n++
     if (filters.prefs?.length) n++
     if (filters.levels.length !== DEFAULT_LEVELS.length || filters.levels.some(l => !DEFAULT_LEVELS.includes(l))) n++
     return n
@@ -706,6 +719,7 @@ export default function App() {
                       city={c}
                       fav={favs.has(c.id)}
                       comparing={compareIds.includes(c.id)}
+                      specKey={filters.spec}
                       onToggleFav={() => toggleFav(c.id)}
                       onToggleCompare={() => toggleCompare(c.id)}
                       onOpen={setDetailId}
@@ -722,6 +736,7 @@ export default function App() {
                     city={c}
                     fav={favs.has(c.id)}
                     comparing={compareIds.includes(c.id)}
+                    specKey={filters.spec}
                     onToggleFav={() => toggleFav(c.id)}
                     onToggleCompare={() => toggleCompare(c.id)}
                     onOpen={setDetailId}
