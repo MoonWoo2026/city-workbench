@@ -369,10 +369,26 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'clean', label: '空气', value: '仅 50km 内无重污染' })
   }
 
-  // 8.5) 生活成本/物价
+  // 8.6) 生活成本/物价
   if (/物价低|消费低|生活成本低|吃饭便宜|菜价便宜|日常开销低/.test(text)) {
     next.sort = 'total'
     items.push({ k: 'sort', label: '倾向', value: '优先月总支出低的' })
+  }
+
+  // 8.7) 三甲医院硬过滤：「有三甲的城市」= 只看有三甲；「不要三甲」= 排除有三甲
+  const MED_WORD = /三甲|大医院|好医院/
+  if (MED_WORD.test(text)) {
+    const i = text.search(MED_WORD)
+    const before = text.slice(Math.max(0, i - 6), i)
+    const neg = /不要|不用|不看|排除|去掉|别去|无需|不需要|没有|没/.test(before)
+    next.medOnly = !neg
+    next.medExcl = neg
+    items.push({ k: 'med', label: '医疗', value: neg ? '排除有三甲的城市' : '只看有三甲（本市或市区）' })
+  }
+  if (/取消三甲|不限三甲|三甲无所谓|三甲都行/.test(text)) {
+    next.medOnly = false
+    next.medExcl = false
+    items.push({ k: 'medOff', label: '医疗', value: '三甲不限' })
   }
 
   // 8.6) 生活偏好（影响推荐排序打分，不改筛选）
@@ -486,6 +502,9 @@ export function refineInterpret(rawText, currentFilters) {
     }
     const provs = findProvinces(raw)
     if (provs.length) return { next: addExcl(currentFilters, `排除${provs.join('、')}`, provs), chip: `排除${provs.join('、')}` }
+    if (/三甲|大医院|好医院/.test(mEx[1])) {
+      return { next: { ...currentFilters, medOnly: false, medExcl: true }, chip: '排除有三甲' }
+    }
     if (/工业|污染|雾霾|厂/.test(mEx[1])) {
       return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }
     }
@@ -506,6 +525,9 @@ export function refineInterpret(rawText, currentFilters) {
     }
     const provs = findProvinces(raw)
     if (provs.length) return { next: { ...currentFilters, provinces: provs, excl: [] }, chip: `只要${provs.join('、')}` }
+    if (/三甲|大医院|好医院/.test(mOnly[1])) {
+      return { next: { ...currentFilters, medOnly: true, medExcl: false }, chip: '只看有三甲' }
+    }
     if (/县城|小镇/.test(raw)) return { next: { ...currentFilters, types: ['E'] }, chip: '只要县城/小镇' }
   }
   return null
