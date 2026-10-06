@@ -293,34 +293,49 @@ export default function App() {
                 <span className="hidden sm:inline">复制分享链接</span>
                 <Link2 size={12} className="sm:hidden" />
               </button>
-              <button
-                onClick={() => setShowBudget(true)}
-                title="按预算查找：房租/餐饮/杂费/交通/其他逐项设限，匹配住得起的城市"
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[12px] font-medium transition
-                  ${filters.budget
-                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
-              >
-                <Wallet size={14} />
-                <span className="hidden sm:inline">按预算查找</span>
-              </button>
-              <button
-                onClick={toggleFilterOpen}
-                className={`hidden lg:flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[12px] font-medium transition
-                  ${filterOpen
-                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
-              >
-                <MapPinned size={14} />
-                按区域查找
-                {activeFilterCount > 0 && (
-                  <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold
-                    ${filterOpen ? 'bg-white/25 text-white' : 'bg-emerald-600 text-white'}`}>
-                    {activeFilterCount}
-                  </span>
-                )}
-                {filterOpen && <ChevronUp size={13} />}
-              </button>
+              {/* 三大查找入口：连体胶囊组（预算 | 区域 | 地图），与右侧工具区分开 */}
+              <div className="flex items-center overflow-hidden rounded-full border border-stone-200 bg-white shadow-sm">
+                <button
+                  onClick={() => setShowBudget(true)}
+                  title="按预算查找：房租/餐饮/杂费/交通/其他逐项设限，匹配住得起的城市"
+                  className={`flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-medium transition
+                    ${filters.budget ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:bg-stone-50'}`}
+                >
+                  <Wallet size={14} />
+                  <span className="hidden sm:inline">按预算查找</span>
+                </button>
+                <div className="hidden h-4 w-px bg-stone-200 lg:block" />
+                <button
+                  onClick={toggleFilterOpen}
+                  title="按区域查找：大区/省份/城市级别/租金档/气候标签"
+                  className={`hidden lg:flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-medium transition
+                    ${filterOpen ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:bg-stone-50'}`}
+                >
+                  <MapPinned size={14} />
+                  按区域查找
+                  {activeFilterCount > 0 && (
+                    <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold
+                      ${filterOpen ? 'bg-white/25 text-white' : 'bg-emerald-600 text-white'}`}>
+                      {activeFilterCount}
+                    </span>
+                  )}
+                  {filterOpen && <ChevronUp size={13} />}
+                </button>
+                <div className="h-4 w-px bg-stone-200" />
+                <button
+                  onClick={() => {
+                    const v = view === 'map' ? 'grid' : 'map'
+                    setView(v)
+                    localStorage.setItem('cw:view', v)
+                  }}
+                  title={view === 'map' ? '返回城市卡片' : '按图查找：在地图上看全国小城分布'}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-medium transition
+                    ${view === 'map' ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:bg-stone-50'}`}
+                >
+                  <MapIcon size={14} />
+                  <span className="hidden sm:inline">{view === 'map' ? '返回列表' : '按图查找'}</span>
+                </button>
+              </div>
               <button
                 onClick={() => setMobileFilter(true)}
                 className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-2 text-[12px] text-stone-600 lg:hidden"
