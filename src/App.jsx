@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import {
-  Search, SlidersHorizontal, LayoutGrid, List, Share2, Scale, X,
+import { Search, SlidersHorizontal, LayoutGrid, List, Share2, Scale, X,
   Heart, GraduationCap, Compass, MapPinned, ChevronUp, Map as MapIcon,
-  Cloud, CloudOff, RefreshCw, Wallet, Flame, HelpCircle,
+  Cloud, CloudOff, RefreshCw, Wallet, Flame, Sparkles, Undo2, HelpCircle,
 } from 'lucide-react'
 import dataset from './data/cities_full.json'
 import { SORTS, DEFAULT_LEVELS, PREFS } from './lib/constants.js'
@@ -12,7 +11,6 @@ import {
 } from './lib/store.js'
 import * as sync from './lib/sync.js'
 import FilterPanel from './components/FilterPanel.jsx'
-import RefineBar from './components/RefineBar.jsx'
 import StatBar from './components/StatBar.jsx'
 import { CityCard, CityRow, yuan } from './components/CityCard.jsx'
 import CityDetailModal from './components/CityDetailModal.jsx'
@@ -24,6 +22,7 @@ import ShareGate from './components/ShareGate.jsx'
 import Onboarding from './components/Onboarding.jsx'
 import CursorFollower from './components/CursorFollower.jsx'
 import { budgetTotal } from './lib/store.js'
+import { interpret, refineInterpret } from './lib/assistant.js'
 import { useCityShare } from './components/useCityShare.jsx'
 
 const PAGE_SIZE = 60
@@ -52,6 +51,9 @@ export default function App() {
   const [batchPaused, setBatchPaused] = useState(false)
   const [toast, setToast] = useState('')
   const [syncStatus, setSyncStatus] = useState('off')
+  // 智能搜索：AI 理解后的回显（词条列表 + 撤销快照）
+  const [aiEcho, setAiEcho] = useState(null) // { items, count, raw }
+  const aiUndoRef = useRef(null) // AI 应用前的 filters 快照
 
   // ---- 云端同步（收藏/备忘录/筛选偏好 → value-invest /api/city） ----
   const applyingRemote = useRef(false)
@@ -131,7 +133,54 @@ export default function App() {
   }, [])
 
   const patch = useCallback(p => setFilters(f => ({ ...f, ...p })), [])
-  const resetAll = useCallback(() => { setFilters(defaultFilters()); setFavOnly(false); setLimit(PAGE_SIZE) }, [])
+  const resetAll = useCallback(() => { setFilters(defaultFilters()); setFavOnly(false); setLimit(PAGE_SIZE); setAiEcho(null) }, [])
+
+  // 智能搜索：打字 = 即时关键词过滤；回车/点 ✨ = 小助理理解整句话并转成筛选条件
+  const smartSearch = useCallback(() => {
+    const q = filters.q.trim()
+    if (!q) return
+    // 微调句式（排除/只要/去掉…）优先走微调引擎，避免被 interpret 的标签否定规则抢答
+    const isRefine = /^(?:排除|不要|去掉|不看|滤掉|踢掉|别去|别选|剔除|屏蔽|只要|只看|只留|仅要|就看|取消|清除|撤销|再来|换成|改成)/.test(q)
+    const r = interpret(q, filters)
+    // 撤销快照：恢复到 AI 前的筛选，但清空输入框（那句自然语言作为关键词搜不出东西，留着无用）
+    const snapshot = { ...filters, q: '' }
+    const tryRefine = () => {
+      const rr = refineInterpret(q, filters)
+      if (!rr) return false
+      aiUndoRef.current = snapshot
+      setFilters({ ...rr.next, q: '' }) // 清掉输入框里的自然语言，避免被当关键词二次过滤
+      setAiEcho({ items: rr.chip ? [{ label: '微调', value: rr.chip }] : [], raw: q })
+      return true
+    }
+    if (isRefine && tryRefine()) return
+    // 微调句被 interpret 抢答成「纯关闭标签」时视为无效（tags 本来就是空的，等于没变）
+    if (r.kind === 'plan' && (!isRefine || r.items.some(i => i.k !== 'tagOff'))) {
+      aiUndoRef.current = snapshot
+      setFilters(r.next)
+      setAiEcho({ items: r.items, count: r.count, relaxed: r.relaxed, raw: q })
+      if (r.count === 0) fireToast('条件太苛刻啦，已尽量放宽，再换个说法试试')
+    } else if (r.kind === 'reset') {
+      aiUndoRef.current = filters
+      resetAll()
+      setAiEcho(null)
+      fireToast('已清空全部条件，回到全国')
+    } else if (r.kind === 'help') {
+      fireToast('直接说需求就行，如「云南带温泉的县城」「排除北方城市」')
+    } else if (tryRefine()) {
+      // 微调引擎兜底（排除北方/只要南方/去掉有工业的…）
+    } else {
+      // 彻底没听懂：保持关键词搜索结果
+      fireToast(`没找到「${q}」相关条件，已按关键词搜索`)
+    }
+  }, [filters, resetAll])
+
+  const undoAI = useCallback(() => {
+    if (aiUndoRef.current) {
+      setFilters(aiUndoRef.current)
+      aiUndoRef.current = null
+    }
+    setAiEcho(null)
+  }, [])
 
   const fireToast = msg => {
     setToast(msg)
@@ -219,6 +268,12 @@ export default function App() {
       const labels = filters.prefs.map(id => PREFS.find(p => p.id === id)?.label || id)
       chips.push({ k: 'prefs', label: `偏好：${labels.join('、')}`, clear: () => patch({ prefs: [] }) })
     }
+    // 微调排除项（原微调条能力，并入智能搜索后可在此单独移除）
+    filters.excl?.forEach((e, i) => chips.push({
+      k: `x:${e.label}`,
+      label: e.label,
+      clear: () => patch({ excl: filters.excl.filter((_, j) => j !== i) }),
+    }))
     return chips
   }, [filters, patch])
 
@@ -278,13 +333,31 @@ export default function App() {
                 <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   value={filters.q}
-                  onChange={e => patch({ q: e.target.value })}
-                  placeholder="搜城市 / 拼音 / 省份 / 县区 / 标签，如 腾冲、kunming、温泉"
-                  className="w-full rounded-full border border-stone-200 bg-white py-2 pl-9 pr-8 text-[13px] text-stone-700 shadow-sm outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+                  onChange={e => { patch({ q: e.target.value }); if (aiEcho) setAiEcho(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') smartSearch() }}
+                  placeholder="搜城市名，或直接说需求，回车让小助理理解"
+                  className="w-full rounded-full border border-stone-200 bg-white py-2 pl-9 pr-16 text-[13px] text-stone-700 shadow-sm outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
                 />
                 {filters.q && (
-                  <button onClick={() => patch({ q: '' })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500">
+                  <button onClick={() => { patch({ q: '' }); setAiEcho(null) }} className="absolute right-9 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500">
                     <X size={14} />
+                  </button>
+                )}
+                <button
+                  onClick={smartSearch}
+                  title="让小助理理解这句话（也可直接回车）"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-600 transition hover:text-emerald-700"
+                >
+                  <Sparkles size={15} />
+                </button>
+                {/* 无结果时的 AI 引导：搜不到的时刻恰好是需要小助理的时刻 */}
+                {filters.q.trim() && results.length === 0 && (
+                  <button
+                    onClick={smartSearch}
+                    className="absolute left-0 top-full z-10 mt-1.5 flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] text-white shadow-md transition hover:bg-emerald-700"
+                  >
+                    <Sparkles size={11} />
+                    关键词没搜到？按 Enter 让小助理理解「{filters.q.trim().slice(0, 16)}{filters.q.trim().length > 16 ? '…' : ''}」
                   </button>
                 )}
               </div>
@@ -441,9 +514,36 @@ export default function App() {
         <div className="mt-5 flex gap-6">
           {/* 结果区 */}
           <section className="min-w-0 flex-1">
-            {/* 小助理微调条：筛完后直接说「排除北方城市」，不用打开聊天面板 */}
-            {view !== 'map' && results.length > 0 && (
-              <RefineBar filters={filters} onApply={next => patch(next)} />
+            {/* 智能搜索回显条：小助理理解后的条件摘要，可一键撤销 */}
+            {view !== 'map' && aiEcho && (
+              <div className="animate-fade-in mb-3 rounded-2xl border border-emerald-600/20 bg-emerald-50/70 px-3.5 py-2.5">
+                <div className="flex items-start gap-2.5">
+                  <Sparkles size={14} className="mt-0.5 flex-none text-emerald-700" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] text-stone-700">
+                      小助理已理解：<b className="text-stone-900">「{aiEcho.raw.length > 24 ? aiEcho.raw.slice(0, 24) + '…' : aiEcho.raw}」</b>
+                      {aiEcho.count != null && <span className="ml-1.5 text-stone-500">→ {aiEcho.count} 个城市</span>}
+                    </p>
+                    {aiEcho.items?.length > 0 && (
+                      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-emerald-800">
+                        {aiEcho.items.map((it, i) => (
+                          <span key={i}><span className="text-stone-400">{it.label}</span> {it.value}</span>
+                        ))}
+                      </p>
+                    )}
+                    {aiEcho.relaxed?.length > 0 && (
+                      <p className="mt-1 text-[11px] text-amber-700">{aiEcho.relaxed.join('；')}</p>
+                    )}
+                    <p className="mt-1 text-[11px] text-stone-400">继续说需求可以再调整，如「排除北方城市」「只要有高铁的」</p>
+                  </div>
+                  <button
+                    onClick={undoAI}
+                    className="flex flex-none items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1 text-[11px] text-stone-500 transition hover:border-stone-300 hover:text-stone-700"
+                  >
+                    <Undo2 size={11} /> 撤销
+                  </button>
+                </div>
+              </div>
             )}
             {/* 工具条 */}
             <div className="mb-3 flex flex-wrap items-center gap-2">
