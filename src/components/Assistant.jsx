@@ -3,10 +3,17 @@ import { Sparkles, X, Send, Bot, Undo2, RotateCcw, Trophy, ExternalLink } from '
 import { interpret, rankResults, SUGGESTIONS } from '../lib/assistant.js'
 import { applyFilters, defaultFilters, encodeFilters } from '../lib/store.js'
 
+const SEEN_TIP_KEY = 'cw:seen-assistant-tip'
+
 // 躺平小助手：自然语言 → 自动筛选（纯前端识别）
 export default function Assistant({ cities, filters, favs, favOnly, lifted, onApplyFilters, onSetFavOnly, onReset, onOpen }) {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
+  // 首次访问展示引导气泡（轮播示例话术），点过/打开过面板后不再出现
+  const [showTip, setShowTip] = useState(() => {
+    try { return !localStorage.getItem(SEEN_TIP_KEY) } catch { return false }
+  })
+  const [tipIdx, setTipIdx] = useState(0)
   const [history, setHistory] = useState([]) // 筛选快照栈（供撤销）
   const [messages, setMessages] = useState(() => [{
     id: 'greet',
@@ -25,6 +32,13 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, open])
+
+  // 引导气泡示例轮播（每 5 秒换一句）
+  useEffect(() => {
+    if (!showTip) return
+    const t = setInterval(() => setTipIdx(i => (i + 1) % 3), 5000)
+    return () => clearInterval(t)
+  }, [showTip])
 
   const pushMsg = msg => setMessages(prev => [...prev, { id: nextId(), ...msg }])
 
@@ -111,14 +125,50 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
 
   return (
     <>
-      {/* 悬浮入口按钮 */}
-      <button
-        onClick={() => { setOpen(v => !v); setTimeout(() => inputRef.current?.focus(), 80) }}
-        title="躺平小助手 · 说句话就帮你筛"
-        className={`fixed z-40 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-700/25 transition hover:scale-105 active:scale-95 ${lifted ? 'bottom-24' : 'bottom-5'} right-4 sm:right-6`}
-      >
-        {open ? <X size={20} /> : <Sparkles size={20} />}
-      </button>
+      {/* 悬浮入口按钮：带文字 + 呼吸光环 */}
+      <div className={`fixed z-40 ${lifted ? 'bottom-24' : 'bottom-5'} right-4 sm:right-6`}>
+        {/* 首次引导气泡（轮播 5 秒后自动切换） */}
+        {showTip && !open && (
+          <div
+            onClick={() => {
+              try { localStorage.setItem(SEEN_TIP_KEY, '1') } catch {}
+              setShowTip(false)
+              setOpen(true)
+              setTimeout(() => inputRef.current?.focus(), 80)
+            }}
+            className="absolute bottom-full right-0 mb-2.5 w-[260px] cursor-pointer rounded-2xl bg-stone-900 px-3.5 py-2.5 text-white shadow-xl ring-1 ring-stone-800 transition hover:scale-[1.02]"
+          >
+            <p className="flex items-center gap-1.5 text-[13px] font-semibold">
+              <Sparkles size={14} className="text-amber-300" /> 试试对我说
+            </p>
+            <p className="mt-0.5 text-[12px] leading-[1.5] text-stone-300">
+              {['"云南 1500 以下有温泉的县城"', '"海边空气好的小城市"', '"过冬暖和又便宜的地方"'][tipIdx]}
+            </p>
+            <div className="absolute -bottom-1.5 right-4 h-3 w-3 rotate-45 bg-stone-900" />
+          </div>
+        )}
+        <button
+          onClick={() => {
+            setOpen(v => !v)
+            if (!open) {
+              try { localStorage.setItem(SEEN_TIP_KEY, '1') } catch {}
+              setShowTip(false)
+            }
+            setTimeout(() => inputRef.current?.focus(), 80)
+          }}
+          className="group relative flex items-center gap-2 rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 pl-4 pr-4 py-2.5 text-white shadow-lg shadow-emerald-700/25 transition hover:scale-105 active:scale-95"
+        >
+          {/* 呼吸光环 */}
+          <span className="absolute inset-0 -z-10 rounded-full bg-emerald-500/40 animate-ping" />
+          <span className="absolute -inset-0.5 -z-10 rounded-full bg-emerald-400/20" />
+          {open ? <X size={18} /> : <Sparkles size={18} className="text-amber-200" />}
+          <span className="text-[13px] font-semibold tracking-wide">{open ? '关闭' : '找城市'}</span>
+          {/* 悬停提示（桌面端） */}
+          <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-lg bg-stone-900 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+            说句话就能帮你找城市
+          </span>
+        </button>
+      </div>
 
       {/* 聊天面板 */}
       {open && (
