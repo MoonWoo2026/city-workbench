@@ -1,0 +1,17 @@
+# Render 静态站点部署蓝图
+# 推送代码到 GitHub 后，在 Render 控制台 New > Blueprint，选本仓库即可自动识别并部署。
+# 产物为纯静态文件（Vite dist）；收藏/备忘录等云端同步走 value-invest 的 /api/city（CORS 已放行 *）。
+# 注意：免费实例 15 分钟无访问会休眠，冷启动数秒。
+services:
+  - type: web
+    name: city-workbench
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 22.20.0

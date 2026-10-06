@@ -1,0 +1,211 @@
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap } from 'lucide-react'
+import { CLIMATE_TAGS } from '../lib/constants.js'
+
+export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
+
+export function TagChip({ tag, size = 'sm' }) {
+  const cls = size === 'xs'
+    ? 'px-1.5 py-0.5 text-[10px]'
+    : 'px-2 py-0.5 text-[11px]'
+  return (
+    <span className={`inline-flex items-center gap-0.5 rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-600/10 ${cls}`}>
+      <span>{TAG_ICON[tag] ?? '·'}</span>
+      {tag}
+    </span>
+  )
+}
+
+export function CleanBadge({ clean, size = 'sm' }) {
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return clean ? (
+    <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-50 font-medium text-emerald-700 ring-1 ring-emerald-600/15 ${cls}`}>
+      <ShieldCheck size={size === 'xs' ? 10 : 11} />
+      50km 无重污染
+    </span>
+  ) : (
+    <span className={`inline-flex items-center gap-1 rounded-full bg-rose-50 font-medium text-rose-600 ring-1 ring-rose-500/15 ${cls}`}>
+      <ShieldAlert size={size === 'xs' ? 10 : 11} />
+      周边有工业
+    </span>
+  )
+}
+
+export function UniBadge({ uni, size = 'sm' }) {
+  if (!uni) return null
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return (
+    <span
+      title={uni.areas[0]}
+      className={`inline-flex items-center gap-1 rounded-full bg-indigo-50 font-medium text-indigo-700 ring-1 ring-indigo-500/15 ${cls}`}
+    >
+      <GraduationCap size={size === 'xs' ? 10 : 11} />
+      大学城周边
+    </span>
+  )
+}
+
+export const yuan = n => `¥${Number(n).toLocaleString('zh-CN')}`
+
+function FavButton({ fav, onToggle }) {
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); onToggle() }}
+      aria-label={fav ? '取消收藏' : '收藏 / 想去'}
+      className={`flex h-8 w-8 items-center justify-center rounded-full transition
+        ${fav ? 'bg-rose-50 text-rose-500' : 'text-stone-300 hover:bg-stone-100 hover:text-rose-400'}`}
+    >
+      <Heart size={17} fill={fav ? 'currentColor' : 'none'} />
+    </button>
+  )
+}
+
+function CompareToggle({ comparing, onToggle }) {
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); onToggle() }}
+      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition
+        ${comparing
+          ? 'border-amber-500/60 bg-amber-50 text-amber-700'
+          : 'border-stone-200 text-stone-500 hover:border-amber-400/60 hover:text-amber-600'}`}
+    >
+      <span className={`flex h-3.5 w-3.5 items-center justify-center rounded-[5px] border
+        ${comparing ? 'border-amber-500 bg-amber-500 text-white' : 'border-stone-300'}`}>
+        {comparing && <Check size={9} strokeWidth={3.4} />}
+      </span>
+      {comparing ? '已加入对比' : '加入对比'}
+    </button>
+  )
+}
+
+function MetaLine({ city }) {
+  return (
+    <div className="mt-0.5 flex items-center gap-1 text-[11px] text-stone-400">
+      <span>{city.province}</span>
+      <span>·</span>
+      <span className="truncate">{city.parent || city.region}</span>
+      <span>·</span>
+      <span className="truncate">{city.type}</span>
+    </div>
+  )
+}
+
+// ---------- 网格卡片 ----------
+export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen }) {
+  return (
+    <article
+      onClick={() => onOpen(city.id)}
+      className="card-lift group flex cursor-pointer flex-col rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-1.5 text-[17px] font-semibold tracking-tight text-stone-800">
+            <span className="truncate">{city.name}</span>
+            {city.hot && (
+              <span title="旅居热门" className="flex-none text-amber-500">
+                <Flame size={14} fill="currentColor" />
+              </span>
+            )}
+          </h3>
+          <MetaLine city={city} />
+        </div>
+        <FavButton fav={fav} onToggle={onToggleFav} />
+      </div>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-1">
+        <CleanBadge clean={city.clean50} />
+        <UniBadge uni={city.uni_town} />
+        {city.tags.slice(0, 3).map(t => <TagChip key={t} tag={t} />)}
+        {city.tags.length > 3 && <span className="text-[10px] text-stone-400">+{city.tags.length - 3}</span>}
+      </div>
+
+      {city.uni_town && (
+        <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-indigo-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-indigo-700/90 ring-1 ring-indigo-500/10">
+          <GraduationCap size={12} className="mt-0.5 flex-none" />
+          <span className="line-clamp-1">{city.uni_town.areas[0]}</span>
+        </div>
+      )}
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-stone-50 px-3 py-2">
+          <div className="flex items-center gap-1 text-[10px] text-stone-400">
+            <BedDouble size={10} />主卧合租
+          </div>
+          <div className="mt-0.5 text-[15px] font-semibold text-stone-700">{yuan(city.rent_shared)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">/月</span></div>
+        </div>
+        <div className="rounded-xl bg-stone-50 px-3 py-2">
+          <div className="flex items-center gap-1 text-[10px] text-stone-400">
+            <HomeIcon size={10} />单人整租
+          </div>
+          <div className="mt-0.5 text-[15px] font-semibold text-stone-700">{yuan(city.rent_single)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">/月</span></div>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between rounded-xl bg-emerald-50/80 px-3 py-2 ring-1 ring-emerald-600/10">
+        <span className="flex items-center gap-1 text-[11px] text-emerald-700">
+          <Wallet size={12} />预估月总支出
+        </span>
+        <span className="text-[16px] font-bold tracking-tight text-emerald-800">
+          {yuan(city.monthly_total)}
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-2.5">
+        <CompareToggle comparing={comparing} onToggle={onToggleCompare} />
+        <span className="flex items-center gap-0.5 text-[11px] text-stone-400 transition group-hover:text-emerald-700">
+          查看详情 <ChevronRight size={13} />
+        </span>
+      </div>
+    </article>
+  )
+}
+
+// ---------- 列表行 ----------
+export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen }) {
+  return (
+    <article
+      onClick={() => onOpen(city.id)}
+      className="card-lift flex cursor-pointer flex-col gap-3 rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-sm sm:flex-row sm:items-center sm:gap-4"
+    >
+      <div className="min-w-0 sm:w-48 sm:flex-none">
+        <div className="flex items-center gap-2">
+          <h3 className="truncate text-[15px] font-semibold text-stone-800">{city.name}</h3>
+          {city.hot && <Flame size={13} className="flex-none text-amber-500" fill="currentColor" />}
+          <button
+            onClick={e => { e.stopPropagation(); onToggleFav() }}
+            className={`ml-auto flex h-7 w-7 items-center justify-center rounded-full sm:hidden
+              ${fav ? 'bg-rose-50 text-rose-500' : 'text-stone-300'}`}
+          >
+            <Heart size={15} fill={fav ? 'currentColor' : 'none'} />
+          </button>
+        </div>
+        <div className="mt-0.5 truncate text-[11px] text-stone-400">
+          {city.province} · {city.parent || city.region} · {city.type}
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          <CleanBadge clean={city.clean50} size="xs" />
+          <UniBadge uni={city.uni_town} size="xs" />
+          {city.tags.slice(0, 2).map(t => <TagChip key={t} tag={t} size="xs" />)}
+        </div>
+      </div>
+
+      <div className="grid flex-1 grid-cols-3 gap-2">
+        <div>
+          <div className="text-[10px] text-stone-400">主卧合租</div>
+          <div className="text-[14px] font-semibold text-stone-700">{yuan(city.rent_shared)}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-stone-400">单人整租</div>
+          <div className="text-[14px] font-semibold text-stone-700">{yuan(city.rent_single)}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-emerald-700/70">月总支出</div>
+          <div className="text-[14px] font-bold text-emerald-800">{yuan(city.monthly_total)}</div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 sm:justify-end">
+        <CompareToggle comparing={comparing} onToggle={onToggleCompare} />
+        <FavButton fav={fav} onToggle={onToggleFav} />
+      </div>
+    </article>
+  )
+}

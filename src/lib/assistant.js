@@ -1,0 +1,369 @@
+// 躺平小助手：自然语言指令 → 筛选条件（纯本地识别，无需联网）
+// 支持：省份/大区、租金预算、气候标签、居住类型、空气、大学城、排序、重置、撤销、收藏
+import dataset from '../data/cities_full.json'
+import { applyFilters } from './store.js'
+
+const ALL_CITIES = dataset.cities
+
+// 房租档区间（整租典型价边界，用于自然语言预算映射）
+const BANDS = [
+  { key: 'under_1000', min: 0, max: 1000 },
+  { key: '1000_1700', min: 1000, max: 1700 },
+  { key: '1700_3000', min: 1700, max: 3000 },
+  { key: '3000_5000', min: 3000, max: 5000 },
+  { key: 'above_5000', min: 5000, max: Infinity },
+]
+
+// 大区 → 省份
+const REGION_TO_PROVINCES = Object.fromEntries(
+  dataset.regions.map(r => [r.region, r.provinces.map(p => p.province)]),
+)
+
+// 省份别名（单字简称易撞地名，用数据驱动的黑名单兜底）
+const PROV_ALIASES = {
+  北京: ['京'], 上海: ['沪'], 天津: ['津'], 重庆: ['渝'],
+  四川: ['川', '蜀'], 云南: ['滇'], 贵州: ['黔'],
+  陕西: ['陕', '秦'], 甘肃: ['甘', '陇'], 广西: ['桂'],
+  西藏: ['藏'], 内蒙古: ['内蒙'],
+}
+// 单字简称在「外省城市名」里出现时，视为撞名，不当作省份
+const ALIAS_DENY = {}
+for (const [prov, aliases] of Object.entries(PROV_ALIASES)) {
+  for (const a of aliases) {
+    if (a.length !== 1) continue
+    ALIAS_DENY[a] = new Set(
+      ALL_CITIES.filter(c => c.province !== prov && c.name.includes(a)).map(c => c.name),
+    )
+  }
+}
+
+// 城市/区县名（长名优先；与省份同名的跳过——北京/上海等由省份规则处理）
+const CITY_NAMES = [...new Set(ALL_CITIES.map(c => c.name))]
+  .filter(n => n.length >= 2 && !REGION_TO_PROVINCES[n] && !Object.values(REGION_TO_PROVINCES).flat().includes(n))
+  .sort((a, b) => b.length - a.length)
+const PINYIN_SET = new Set(ALL_CITIES.map(c => c.pinyin).filter(p => p && p.length >= 4))
+
+const TAG_RULES = [
+  { key: '天然温泉', words: ['温泉', '泡汤', '热海', '汤泉'] },
+  { key: '海滨沿海', words: ['海边', '海滨', '沿海', '滨海', '海景', '看海', '大海', '海岛', '近海', '赶海', '海钓'] },
+  { key: '高原避暑', words: ['避暑', '凉快', '凉爽', '不热', '不闷热', '高原', '夏天舒服'] },
+  { key: '南方湿润', words: ['湿润', '潮湿', '江南', '水乡', '梅雨', '不干燥', '南方'] },
+  { key: '北方干燥', words: ['干燥', '干爽', '不潮湿', '怕潮', '北方'] },
+  { key: '供暖充沛', words: ['暖气', '供暖', '集中供', '取暖', '有暖'] },
+]
+
+const TYPE_RULES = [
+  { codes: ['B', 'C'], words: ['郊区', '市郊', '卫星城', '城郊'] },
+  { codes: ['E'], words: ['县城', '小镇', '小城', '乡镇', '镇上', '村镇', '古镇'] },
+  { codes: ['D'], words: ['三四线', '地级市'] },
+  { codes: ['A'], words: ['一二线', '一线城市', '二线城市', '大城市', '省会', '大都市', '都市圈'] },
+]
+
+const WARM_PROVINCES = ['海南', '云南', '广西', '广东', '福建']
+
+export const SUGGESTIONS = [
+  '云南 1500 以下有温泉的县城',
+  '海边空气好的小城市',
+  '过冬暖和又便宜的地方',
+  '三四线城市，整租最便宜',
+  '东北有暖气的地方',
+]
+
+// ---------- 文本预处理 ----------
+function normalize(raw) {
+  return raw
+    .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/\s+/g, '')
+    .trim()
+}
+
+// 关键词前若干字内是否有否定/排除语气
+function isNegated(text, word, look = 6) {
+  const i = text.indexOf(word)
+  if (i < 0) return false
+  const before = text.slice(Math.max(0, i - look), i)
+  return /不要|不用|不看|不考虑|排除|去掉|除了|别去|别选|不想去|非/.test(before)
+}
+
+function findProvinces(text) {
+  const found = new Set()
+  const deniedAlias = new Set()
+  for (const prov of Object.values(REGION_TO_PROVINCES).flat()) {
+    if (text.includes(prov)) found.add(prov)
+  }
+  for (const [prov, aliases] of Object.entries(PROV_ALIASES)) {
+    for (const a of aliases) {
+      if (!text.includes(a)) continue
+      if (a.length === 1 && [...(ALIAS_DENY[a] || [])].some(name => text.includes(name))) {
+        deniedAlias.add(a)
+        continue
+      }
+      found.add(prov)
+    }
+  }
+  return [...found]
+}
+
+function findRegions(text) {
+  const hits = []
+  for (const r of Object.keys(REGION_TO_PROVINCES)) {
+    if (text.includes(r)) hits.push(r)
+  }
+  if (/东三省|东北三省/.test(text)) hits.push('东北')
+  return [...new Set(hits)]
+}
+
+function findCity(text, raw) {
+  for (const name of CITY_NAMES) {
+    if (text.includes(name)) {
+      const c = ALL_CITIES.find(x => x.name === name)
+      return { name, province: c.province }
+    }
+  }
+  // 拼音（按非字母切词，整词匹配）
+  const tokens = raw.toLowerCase().split(/[^a-z]+/).filter(Boolean)
+  for (const t of tokens) {
+    if (PINYIN_SET.has(t)) {
+      const c = ALL_CITIES.find(x => x.pinyin === t)
+      return { name: c.name, province: c.province }
+    }
+  }
+  return null
+}
+
+// 预算 → 租金档
+function findLevels(text) {
+  const num = '(\\d{3,5})'
+  // 区间：1000到2000 / 1500-2500
+  let m = text.match(new RegExp(num + '(?:元|块|米)?(?:到|至|~|-|—|–|—)' + num))
+  if (m) {
+    const a = Math.min(+m[1], +m[2]), b = Math.max(+m[1], +m[2])
+    return {
+      keys: BANDS.filter(x => x.min < b && x.max > a).map(x => x.key),
+      label: `月租 ${a}–${b} 元`,
+    }
+  }
+  // 以上
+  m = text.match(new RegExp(num + '(?:元|块|米)?(?:以上|及以上|往上|不低于|高于|大于|≥|>=)'))
+  if (m) {
+    const v = +m[1]
+    return { keys: BANDS.filter(x => x.max >= v).map(x => x.key), label: `月租 ${v} 元以上` }
+  }
+  // 以下 / 以内 / 预算
+  m = text.match(new RegExp(num + '(?:元|块|米)?(?:以下|以内|之内|以内|不超过|不高于|低于|小于|≤|<=|上下)'))
+    || text.match(new RegExp('(?:预算|月租|租金|房租|花费|价位|大概)\\s*' + num + '(?:元|块|米)?'))
+  if (m) {
+    const v = +m[1]
+    return { keys: BANDS.filter(x => x.min <= v).map(x => x.key), label: `月租 ${v} 元以内` }
+  }
+  // 左右
+  m = text.match(new RegExp(num + '(?:元|块|米)?(?:左右|附近|上下)'))
+  if (m) {
+    const v = +m[1]
+    return {
+      keys: BANDS.filter(x => x.min < v * 1.2 && x.max > v * 0.8).map(x => x.key),
+      label: `月租 ${v} 元左右`,
+    }
+  }
+  return null
+}
+
+function findTags(text) {
+  const add = [], remove = []
+  for (const rule of TAG_RULES) {
+    const hit = rule.words.find(w => text.includes(w))
+    if (!hit) continue
+    if (isNegated(text, hit)) remove.push(rule.key)
+    else add.push(rule.key)
+  }
+  return { add: [...new Set(add)], remove: [...new Set(remove)] }
+}
+
+function findTypes(text) {
+  const add = new Set(), remove = new Set()
+  for (const rule of TYPE_RULES) {
+    const hit = rule.words.find(w => text.includes(w))
+    if (!hit) continue
+    const neg = isNegated(text, hit)
+    for (const code of rule.codes) neg ? remove.add(code) : add.add(code)
+  }
+  return { add: [...add], remove: [...remove] }
+}
+
+const TYPE_LABEL = { A: '一二线城市', B: '一线郊区', C: '二线郊区', D: '三四线城市', E: '县城/小镇' }
+
+// ---------- 主入口 ----------
+// 返回 { kind: 'plan'|'reset'|'undo'|'fav'|'help'|'unknown', ... }
+export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
+  const text = normalize(rawText)
+  const rawLower = rawText.toLowerCase()
+  if (!text) return { kind: 'unknown' }
+
+  // 帮助
+  if (/^(你好|您好|hi|hello|在吗|哈喽|嗨)/.test(text)
+    || /帮助|怎么用|你会|能干|功能|指令|会什么|怎么说|教教我/.test(text)) {
+    return { kind: 'help' }
+  }
+  // 撤销
+  if (/撤销|回退|上一步|返回上一|退回去|刚才的/.test(text)) return { kind: 'undo' }
+  // 重置
+  if (/重置|重新开始|重新筛选|清空条件|清除条件|恢复默认|全部城市|所有城市|看全部|全国都看|不筛选|全部重来/.test(text)) {
+    return { kind: 'reset' }
+  }
+  // 收藏
+  if (/只看收藏|我的收藏|收藏夹|收藏的(?:城市|地方)/.test(text)) {
+    return { kind: 'fav', favOnly: true }
+  }
+  if (/看全部(?:城市|地方|结果)?|不看收藏/.test(text) && favOnly) {
+    return { kind: 'fav', favOnly: false }
+  }
+
+  const next = {
+    ...currentFilters,
+    provinces: [...currentFilters.provinces],
+    levels: [...currentFilters.levels],
+    types: [...currentFilters.types],
+    tags: [...currentFilters.tags],
+  }
+  const items = [] // 识别到的条件（用于回复气泡展示）
+  const additive = /也|还|再加|加上|另外|同时|顺便/.test(text)
+
+  // 1) 大区
+  const regions = findRegions(text)
+  let provinces = []
+  if (regions.length) {
+    provinces = [...new Set(regions.flatMap(r => REGION_TO_PROVINCES[r] || []))]
+    items.push({ k: 'region', label: '大区', value: regions.join('、') })
+  }
+
+  // 2) 省份（叠加在大区之上）
+  const provHits = findProvinces(text)
+  if (provHits.length) {
+    provinces = [...new Set([...provinces, ...provHits])]
+    if (!regions.length) items.push({ k: 'provinces', label: '省份', value: provHits.join('、') })
+  }
+
+  // 3) 暖冬地区（无显式省份/大区时才整体替换为暖冬省份群）
+  if (!provinces.length && /过冬|暖冬|冬天暖和|冬天不冷|怕冷|避寒|猫冬|越冬/.test(text)) {
+    provinces = [...WARM_PROVINCES]
+    items.push({ k: 'warm', label: '暖冬地区', value: WARM_PROVINCES.join('、') })
+  }
+  if (provinces.length) {
+    // 否定省份：不要/不看 X
+    const neg = /(?:不要|不用|不看|不考虑|排除|去掉|除了|别去)([一-龥]{2,4}?)(?:省|市|自治区|$)/.exec(text)
+    if (neg) {
+      const negProv = findProvinces(neg[1])
+      provinces = provinces.filter(p => !negProv.includes(p))
+    }
+    next.provinces = additive
+      ? [...new Set([...next.provinces, ...provinces])]
+      : provinces
+  }
+
+  // 4) 具体城市/区县名（点名某个地方 = 纯名称搜索，清掉其他维度以免被默认条件挡住）
+  const city = findCity(text, rawLower)
+  if (city) {
+    Object.assign(next, {
+      provinces: [],
+      levels: BANDS.map(b => b.key),
+      types: [],
+      tags: [],
+      cleanOnly: false,
+      uniOnly: false,
+      q: city.name,
+    })
+    items.push({ k: 'q', label: '搜索', value: city.name })
+  } else {
+    next.q = '' // 换话题时清掉旧的城市搜索
+  }
+
+  // 5) 租金预算
+  const lv = findLevels(text)
+  let levelTouched = false
+  if (lv) {
+    next.levels = lv.keys
+    items.push({ k: 'levels', label: '租金', value: lv.label })
+    levelTouched = true
+  } else if (/越便宜|最便宜|最低价|最省钱|最划算|便宜|划算/.test(text)) {
+    next.levels = ['under_1000', '1000_1700', '1700_3000']
+    items.push({ k: 'levels', label: '租金', value: '优先便宜档位' })
+    levelTouched = true
+  }
+  // 换到新地域/新偏好时的租金档处理：在标签/类型解析后统一判断（见下）
+
+  // 6) 标签（新一轮未说「也/还」时替换旧标签，避免跨话题 AND 残留）
+  const tags = findTags(text)
+  if (tags.remove.length) {
+    next.tags = next.tags.filter(t => !tags.remove.includes(t))
+    items.push({ k: 'tagOff', label: '移除标签', value: tags.remove.join('、') })
+  }
+  if (tags.add.length) {
+    next.tags = additive
+      ? [...new Set([...next.tags, ...tags.add])]
+      : tags.add
+    for (const t of tags.add) items.push({ k: 'tag', label: '标签', value: t })
+  }
+
+  // 7) 居住类型
+  const types = findTypes(text)
+  if (types.remove.length) {
+    next.types = next.types.filter(c => !types.remove.includes(c))
+    items.push({ k: 'typeOff', label: '移除类型', value: types.remove.map(c => TYPE_LABEL[c]).join('、') })
+  }
+  if (types.add.length) {
+    next.types = additive
+      ? [...new Set([...next.types, ...types.add])]
+      : types.add
+    items.push({ k: 'types', label: '类型', value: types.add.map(c => TYPE_LABEL[c]).join('、') })
+  }
+
+  // 7.5) 换到新地域/新偏好且本轮没提预算 = 租金不限制（避免上一轮预算档残留导致零结果）
+  if (!levelTouched && !additive
+      && (provinces.length || city || tags.add.length || types.add.length)) {
+    next.levels = BANDS.map(b => b.key)
+  }
+
+  // 8) 空气
+  if (/不限(?:制)?(?:空气|环境)|空气(?:无所谓|都行|不限)/.test(text)) {
+    next.cleanOnly = false
+    items.push({ k: 'clean', label: '空气', value: '不限' })
+  } else if (/空气(?:好|清新|新鲜|质量好|干净)|无污染|没污染|远离污染|生态好|环境好|蓝天白云|天空蓝/.test(text)) {
+    next.cleanOnly = true
+    items.push({ k: 'clean', label: '空气', value: '仅 50km 内无重污染' })
+  }
+
+  // 9) 大学城
+  if (/大学城|高校|大学周边|学院(?:附近|周边)/.test(text)) {
+    const off = isNegated(text, '大学城') || /不限|不要|不用|去掉|所有区域|全部都看/.test(text)
+    next.uniOnly = !off
+    items.push({ k: 'uni', label: '大学城', value: off ? '不限' : '优先大学城周边' })
+  }
+
+  // 10) 排序
+  const sortWords = /越便宜|最便宜|最省钱|最低价|按价格|按租金|按房租|按月总支出|价格从低到高|从便宜到贵|按名字|名称排序/.source
+  if (new RegExp(sortWords).test(text)) {
+    if (/合租|主卧|床位/.test(text)) { next.sort = 'shared'; items.push({ k: 'sort', label: '排序', value: '合租价格从低到高' }) }
+    else if (/整租|单租|单间|房租|租金|房价|按价格|按租金/.test(text)) { next.sort = 'single'; items.push({ k: 'sort', label: '排序', value: '整租价格从低到高' }) }
+    else if (/名字|名称/.test(text)) { next.sort = 'name'; items.push({ k: 'sort', label: '排序', value: '城市名称 A-Z' }) }
+    else { next.sort = 'total'; items.push({ k: 'sort', label: '排序', value: '月总支出从低到高' }) }
+  }
+
+  if (!items.length) return { kind: 'unknown', raw: rawText }
+
+  // 零结果自动放宽（按「隐藏默认条件 → 地域 → 明确偏好」顺序，尽量保住用户显式意图）
+  const calc = () => applyFilters(ALL_CITIES, next, { favs: null, favOnly: false }).length
+  let count = calc()
+  const relaxed = []
+  const relaxSteps = [
+    { when: () => next.uniOnly, run: () => { next.uniOnly = false; relaxed.push('已自动放宽「优先大学城」') } },
+    { when: () => next.provinces.length > 0, run: () => { next.provinces = []; relaxed.push('限定省份没有匹配，已扩大到全国') } },
+    { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
+    { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
+    { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
+  ]
+  for (const step of relaxSteps) {
+    if (count > 0) break
+    if (step.when()) { step.run(); count = calc() }
+  }
+  return { kind: 'plan', next, items, count, relaxed }
+}
