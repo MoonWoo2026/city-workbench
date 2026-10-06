@@ -134,7 +134,17 @@ export function decodeFilters(search) {
   return f
 }
 
-// ---------- 模糊搜索：城市名 / 拼音 / 省份 / 县区 / 推荐区域 / 标签 ----------
+// 城市类型的可搜索别名：数据里存的是「一二线城市」这类合并名，
+// 用户搜「一线」「三线城市」「小镇」等口语词时也能命中
+const TYPE_ALIASES = {
+  一二线城市: '一线 一线城市 二线城市 一二线 一线城 二线城 大城市 省会 大都市',
+  一线郊区: '一线郊区 郊区 市郊 卫星城 城郊 一线 一线城市',
+  二线郊区: '二线郊区 郊区 市郊 卫星城 城郊 二线 二线城市',
+  三四线城市: '三线 三线城市 四线城市 三四线 三线城 四线城 五线 五线城市 中小城市 地级市',
+  '县城/小镇': '县城 小镇 小城 乡镇 古镇 县镇 村里',
+}
+
+// ---------- 模糊搜索：城市名 / 拼音 / 省份 / 县区 / 推荐区域 / 标签 / 城市线级 ----------
 export function matchQuery(city, q) {
   if (!q) return true
   const kw = q.trim().toLowerCase()
@@ -146,6 +156,7 @@ export function matchQuery(city, q) {
     city.parent,
     city.region,
     city.type,
+    TYPE_ALIASES[city.type] || '',
     ...(city.areas || []),
     ...(city.tags || []),
   ].join(' ').toLowerCase()
