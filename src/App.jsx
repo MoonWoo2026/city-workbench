@@ -18,6 +18,7 @@ import CityDetailModal from './components/CityDetailModal.jsx'
 import CompareModal from './components/CompareModal.jsx'
 import MapView from './components/MapView.jsx'
 import Assistant from './components/Assistant.jsx'
+import { useCityShare } from './components/useCityShare.jsx'
 
 const PAGE_SIZE = 60
 
@@ -29,6 +30,8 @@ export default function App() {
   const [notes, setNotes] = useState(() => loadNotes())
   const [compareIds, setCompareIds] = useState([])
   const [detailId, setDetailId] = useState(null)
+  // 卡片分享：生成 PNG 图片（可转发微信），列表/网格卡片共用这一个控制器
+  const shareCtl = useCityShare()
   const [showCompare, setShowCompare] = useState(false)
   const [view, setView] = useState(() => localStorage.getItem('cw:view') || 'grid')
   const [favOnly, setFavOnly] = useState(false)
@@ -449,6 +452,7 @@ export default function App() {
                     onToggleFav={() => toggleFav(c.id)}
                     onToggleCompare={() => toggleCompare(c.id)}
                     onOpen={setDetailId}
+                    onShare={shareCtl.start}
                   />
                 ))}
               </div>
@@ -463,6 +467,7 @@ export default function App() {
                     onToggleFav={() => toggleFav(c.id)}
                     onToggleCompare={() => toggleCompare(c.id)}
                     onOpen={setDetailId}
+                    onShare={shareCtl.start}
                   />
                 ))}
               </div>
@@ -576,6 +581,9 @@ export default function App() {
         onReset={resetAll}
         onOpen={setDetailId}
       />
+
+      {/* 卡片分享：离屏渲染 + PNG 预览层（portal 到 body） */}
+      {shareCtl.node}
 
       {/* Toast */}
       {toast && (

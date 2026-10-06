@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap, Share2 } from 'lucide-react'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
@@ -90,7 +90,7 @@ function MetaLine({ city }) {
 }
 
 // ---------- 网格卡片 ----------
-export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen }) {
+export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen, onShare }) {
   return (
     <article
       onClick={() => onOpen(city.id)}
@@ -108,7 +108,17 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
           </h3>
           <MetaLine city={city} />
         </div>
-        <FavButton fav={fav} onToggle={onToggleFav} />
+        <div className="flex flex-none items-center gap-0.5">
+          <button
+            onClick={e => { e.stopPropagation(); onShare(city) }}
+            aria-label="生成分享图片"
+            title="生成分享图片（可转发微信）"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
+          >
+            <Share2 size={15} />
+          </button>
+          <FavButton fav={fav} onToggle={onToggleFav} />
+        </div>
       </div>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-1">
@@ -159,7 +169,7 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
 }
 
 // ---------- 列表行 ----------
-export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen }) {
+export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, onOpen, onShare }) {
   return (
     <article
       onClick={() => onOpen(city.id)}
@@ -204,6 +214,14 @@ export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, on
 
       <div className="flex items-center justify-between gap-2 sm:justify-end">
         <CompareToggle comparing={comparing} onToggle={onToggleCompare} />
+        <button
+          onClick={e => { e.stopPropagation(); onShare(city) }}
+          aria-label="生成分享图片"
+          title="生成分享图片（可转发微信）"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
+        >
+          <Share2 size={15} />
+        </button>
         <FavButton fav={fav} onToggle={onToggleFav} />
       </div>
     </article>
