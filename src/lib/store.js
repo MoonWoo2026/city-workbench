@@ -36,7 +36,7 @@ export function defaultFilters() {
     tags: [],                 // 标签之间为 AND（交集）
     cleanOnly: false,
     uniOnly: true,            // 个人偏好：优先大学城周边住宿
-    sort: 'total',
+    sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
   }
 }
 
@@ -110,6 +110,17 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
   })
 }
 
+// 确定性伪随机（每日种子，同一天内结果稳定，跨天自动换一批）
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 export function sortCities(list, sort) {
   const arr = [...list]
   switch (sort) {
@@ -119,6 +130,29 @@ export function sortCities(list, sort) {
       return arr.sort((a, b) => a.rent_shared - b.rent_shared)
     case 'name':
       return arr.sort((a, b) => a.pinyin.localeCompare(b.pinyin))
+    case 'explore': {
+      // 探索模式：省份交错 + 每日轮换种子。便宜仍然是主旋律，但各省轮流上前排，首页不再固定
+      const seed = Math.floor(Date.now() / 86400000)
+      const rnd = mulberry32(seed)
+      const scored = arr.map(c => ({ c, k: c.monthly_total * (0.85 + rnd() * 0.3) }))
+      const byProv = new Map()
+      for (const s of scored) {
+        const p = s.c.province
+        if (!byProv.has(p)) byProv.set(p, [])
+        byProv.get(p).push(s)
+      }
+      const groups = [...byProv.values()]
+      for (const g of groups) g.sort((a, b) => a.k - b.k)
+      groups.sort((a, b) => a[0].k - b[0].k) // 省份按各自最优价排序
+      const out = []
+      let i = 0, alive = true
+      while (alive) {
+        alive = false
+        for (const g of groups) if (i < g.length) { out.push(g[i].c); alive = true }
+        i++
+      }
+      return out
+    }
     case 'total':
     default:
       return arr.sort((a, b) => a.monthly_total - b.monthly_total)

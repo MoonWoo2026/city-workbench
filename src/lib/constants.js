@@ -37,6 +37,7 @@ export const TYPE_CODE_BY_NAME = Object.fromEntries(LIVING_TYPES.map(t => [t.lab
 export const TYPE_NAME_BY_CODE = Object.fromEntries(LIVING_TYPES.map(t => [t.key, t.label]))
 
 export const SORTS = [
+  { key: 'explore', label: '✨ 探索模式（每日轮换）' },
   { key: 'total', label: '月总支出 从低到高' },
   { key: 'single', label: '整租价格 从低到高' },
   { key: 'shared', label: '合租价格 从低到高' },
