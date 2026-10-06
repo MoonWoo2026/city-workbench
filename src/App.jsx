@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   Search, SlidersHorizontal, LayoutGrid, List, Share2, Scale, X,
   Heart, GraduationCap, Compass, MapPinned, ChevronUp, Map as MapIcon,
-  Cloud, CloudOff, RefreshCw, Wallet, Flame,
+  Cloud, CloudOff, RefreshCw, Wallet, Flame, HelpCircle,
 } from 'lucide-react'
 import dataset from './data/cities_full.json'
 import { SORTS, DEFAULT_LEVELS, PREFS } from './lib/constants.js'
@@ -747,6 +747,16 @@ export default function App() {
 
       {/* 分享访客新手指引（首次打开欢迎卡 + 聚光灯导览） */}
       <Onboarding />
+
+      {/* 新手指引重放入口：左下角低调的 ? 按钮（行业惯例的帮助位，不抢视线） */}
+      <button
+        onClick={() => window.dispatchEvent(new Event('cw:replay-tour'))}
+        title="再看一次新手指引"
+        aria-label="再看一次新手指引"
+        className="fixed bottom-5 left-5 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-stone-200/80 bg-white/70 text-stone-400 shadow-sm backdrop-blur-sm transition hover:border-emerald-300 hover:text-emerald-700"
+      >
+        <HelpCircle size={16} />
+      </button>
 
       {/* 躺平光标跟随：柔和光晕 + 飘动的叶子（仅桌面端） */}
       <CursorFollower />

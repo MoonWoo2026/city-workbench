@@ -50,6 +50,13 @@ export default function Onboarding() {
     if (isGuest && !done) setPhase('ask')
   }, [])
 
+  // 「再看一次」入口：左下角 ? 按钮派发 cw:replay-tour，直接进导览（不再问是否首次）
+  useEffect(() => {
+    const replay = () => setPhase('tour')
+    window.addEventListener('cw:replay-tour', replay)
+    return () => window.removeEventListener('cw:replay-tour', replay)
+  }, [])
+
   const finish = useCallback(() => {
     try { localStorage.setItem(KEY, '1') } catch { /* ignore */ }
     setPhase('done')
@@ -93,8 +100,12 @@ function AskCard({ onYes, onNo }) {
 function Tour({ onDone }) {
   const [i, setI] = useState(0)
   const [rect, setRect] = useState(null)
-  const step = STEPS[i]
+  const isGuest = new URLSearchParams(window.location.search).get('s') === '1'
   const last = i === STEPS.length - 1
+  // 重播者多半是主人本人：最后一步的「访客 30 分钟」提示换成通用文案
+  const step = last && !isGuest
+    ? { ...STEPS[i], desc: '看中哪里，点卡片上的爱心收藏，慢慢挑。祝你找到心安之处。' }
+    : STEPS[i]
 
   useEffect(() => {
     if (!step.selector) { setRect(null); return }
