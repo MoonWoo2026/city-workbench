@@ -162,7 +162,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
           <span className="absolute inset-0 -z-10 rounded-full bg-emerald-500/40 animate-ping" />
           <span className="absolute -inset-0.5 -z-10 rounded-full bg-emerald-400/20" />
           {open ? <X size={18} /> : <Sparkles size={18} className="text-amber-200" />}
-          <span className="text-[13px] font-semibold tracking-wide">{open ? '关闭' : '找城市'}</span>
+          <span className="text-[13px] font-semibold tracking-wide">{open ? '关闭小助手' : '找城市'}</span>
           {/* 悬停提示（桌面端） */}
           <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-lg bg-stone-900 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
             说句话就能帮你找城市
