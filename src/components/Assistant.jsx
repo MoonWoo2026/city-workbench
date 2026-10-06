@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Sparkles, X, Send, Bot, Undo2, RotateCcw } from 'lucide-react'
-import { interpret, SUGGESTIONS } from '../lib/assistant.js'
-import { applyFilters, defaultFilters } from '../lib/store.js'
+import { Sparkles, X, Send, Bot, Undo2, RotateCcw, Trophy, ExternalLink } from 'lucide-react'
+import { interpret, rankResults, SUGGESTIONS } from '../lib/assistant.js'
+import { applyFilters, defaultFilters, encodeFilters } from '../lib/store.js'
 
 // 躺平小助手：自然语言 → 自动筛选（纯前端识别）
-export default function Assistant({ cities, filters, favs, favOnly, lifted, onApplyFilters, onSetFavOnly, onReset }) {
+export default function Assistant({ cities, filters, favs, favOnly, lifted, onApplyFilters, onSetFavOnly, onReset, onOpen }) {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [history, setHistory] = useState([]) // 筛选快照栈（供撤销）
@@ -31,6 +31,15 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
   // 计算当前筛选下真实命中数（考虑只看收藏）
   const countOf = f => applyFilters(cities, f, { favs, favOnly }).length
 
+  // 点城市名：收起面板并打开详情弹窗
+  const openCity = id => { setOpen(false); onOpen?.(id) }
+
+  // 新页面查看同一筛选视图（复用分享链接的 URL 编码）
+  const openInNewPage = f => {
+    const qs = encodeFilters(f)
+    window.open(`${window.location.pathname}${qs ? `?${qs}` : ''}`, '_blank')
+  }
+
   const send = raw => {
     const text = raw.trim()
     if (!text) return
@@ -42,8 +51,10 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
     if (r.kind === 'plan') {
       setHistory(h => [...h, { filters, favOnly }])
       onApplyFilters(r.next)
-      const count = applyFilters(cities, r.next, { favs, favOnly }).length
-      pushMsg({ role: 'bot', kind: 'plan', items: r.items, count, relaxed: r.relaxed || [] })
+      const matched = applyFilters(cities, r.next, { favs, favOnly })
+      const count = matched.length
+      const ranked = count ? rankResults(matched, r.next) : []
+      pushMsg({ role: 'bot', kind: 'plan', items: r.items, count, relaxed: r.relaxed || [], ranked, filtersNext: r.next })
       return
     }
     if (r.kind === 'reset') {
@@ -188,9 +199,58 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                           </p>
                         )}
                         {m.count > 0 ? (
-                          <p className="mt-1.5 text-[12.5px] text-stone-500">
-                            为你找到 <b className="text-emerald-700">{m.count}</b> 个地方，关掉面板就能看结果～
-                          </p>
+                          <div className="mt-2 space-y-2">
+                            {/* 最优选 + 理由 */}
+                            <div className="rounded-xl bg-amber-50/90 px-2.5 py-2 ring-1 ring-amber-200/70">
+                              <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-700">
+                                <Trophy size={11} /> 最优选
+                              </p>
+                              <button onClick={() => openCity(m.ranked[0].city.id)} className="mt-0.5 text-left transition hover:text-emerald-700">
+                                <span className="text-[14px] font-semibold text-stone-800">{m.ranked[0].city.name}</span>
+                                <span className="ml-1 text-[11px] font-normal text-stone-400">{m.ranked[0].city.province} · 点我看详情</span>
+                              </button>
+                              <p className="mt-0.5 text-[11.5px] leading-[1.5] text-stone-500">{m.ranked[0].reason}</p>
+                            </div>
+                            {/* 备选 */}
+                            {m.ranked.length > 1 && (
+                              <div className="space-y-1">
+                                {m.ranked.slice(1, 3).map(r => (
+                                  <button key={r.city.id} onClick={() => openCity(r.city.id)} className="block w-full rounded-lg bg-stone-50 px-2.5 py-1.5 text-left ring-1 ring-stone-200/60 transition hover:bg-emerald-50/70">
+                                    <span className="text-[12.5px] font-medium text-stone-700">{r.city.name}</span>
+                                    <span className="ml-1.5 text-[11px] text-stone-400">整租 ¥{r.city.rent_single} · 月支 ¥{r.city.monthly_total}</span>
+                                    {r.why.length > 0 && <span className="ml-1.5 text-[10.5px] text-emerald-600">{r.why.join(' · ')}</span>}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            {/* 完整合集 */}
+                            <div>
+                              <p className="text-[12px] text-stone-500">完整合集 · 共 <b className="text-emerald-700">{m.count}</b> 个地方：</p>
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {(m.count <= 15 ? m.ranked : m.ranked.slice(0, 15)).map(r => (
+                                  <button key={r.city.id} onClick={() => openCity(r.city.id)} className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] text-stone-600 transition hover:bg-emerald-100 hover:text-emerald-800">
+                                    {r.city.name}
+                                  </button>
+                                ))}
+                                {m.count > 15 && <span className="self-center text-[11px] text-stone-400">等 {m.count} 个…</span>}
+                              </div>
+                            </div>
+                            {/* 两种查看方式 */}
+                            <div className="flex gap-1.5 pt-0.5">
+                              <button
+                                onClick={() => openInNewPage(m.filtersNext)}
+                                className="flex flex-1 items-center justify-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1.5 text-[11.5px] font-medium text-white transition hover:bg-emerald-700"
+                              >
+                                <ExternalLink size={11} /> 新页面看全部
+                              </button>
+                              <button
+                                onClick={() => setOpen(false)}
+                                className="flex flex-1 items-center justify-center gap-1 rounded-full bg-stone-900 px-2.5 py-1.5 text-[11.5px] font-medium text-white transition hover:bg-stone-700"
+                              >
+                                关掉面板看结果
+                              </button>
+                            </div>
+                          </div>
                         ) : (
                           <div className="mt-2">
                             <p className="text-[12px] text-stone-500">试试放宽预算，或说「不限制大学城」「重置」。</p>

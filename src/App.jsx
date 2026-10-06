@@ -574,6 +574,7 @@ export default function App() {
         onApplyFilters={setFilters}
         onSetFavOnly={setFavOnly}
         onReset={resetAll}
+        onOpen={setDetailId}
       />
 
       {/* Toast */}

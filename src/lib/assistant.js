@@ -367,3 +367,28 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   }
   return { kind: 'plan', next, items, count, relaxed }
 }
+
+// ---------- 结果打分与推荐理由（用于「穷尽合集 + 最优选」回复） ----------
+// 透明打分：用户显式条件命中加分多；空气好/大学城小幅加分；同分按总支出低优先
+export function rankResults(matched, f) {
+  const arr = matched.map(c => {
+    let score = 0
+    const why = []
+    for (const t of f.tags || []) if (c.tags.includes(t)) { score += 3; why.push(t) }
+    if ((f.types || []).length && f.types.includes(c.type)) score += 1
+    if (c.clean50) { score += 1; if (f.cleanOnly) why.push('50km 无重污染') }
+    if (f.uniOnly && c.uni_town) { score += 1; why.push('大学城周边') }
+    return { c, score, why }
+  })
+  arr.sort((a, b) => b.score - a.score || a.c.monthly_total - b.c.monthly_total)
+  return arr.map(({ c, score, why }) => ({ city: c, score, why, reason: reasonOf(c, why) }))
+}
+
+function reasonOf(c, why) {
+  const parts = []
+  if (why.length) parts.push(`命中偏好：${why.join('、')}`)
+  parts.push(`整租 ¥${c.rent_single}/月、月总支出约 ¥${c.monthly_total}`)
+  if (!why.includes('50km 无重污染') && c.clean50) parts.push('50km 无重污染')
+  if (!why.length && c.uni_town) parts.push('大学城周边')
+  return parts.join('；')
+}
