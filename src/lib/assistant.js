@@ -407,3 +407,60 @@ function reasonOf(c, why) {
   if (!why.length && c.uni_town) parts.push('大学城周边')
   return parts.join('；')
 }
+
+// ---------- 结果微调（微调条专用）：在现有筛选上做排除/限定，不重置其他维度 ----------
+// 北方 = 秦岭淮河以北常见口径；南方 = 其余省份（不含港澳台）
+const NORTH = ['北京','天津','河北','山西','内蒙古','辽宁','吉林','黑龙江','山东','河南','陕西','甘肃','青海','宁夏','新疆']
+const SOUTH = ['上海','江苏','浙江','安徽','福建','江西','湖北','湖南','广东','广西','海南','重庆','四川','贵州','云南','西藏']
+
+function addExcl(filters, label, provinces) {
+  const excl = [...(filters.excl || [])].filter(e => e.label !== label)
+  excl.push({ label, provinces })
+  return { ...filters, excl }
+}
+
+// 返回 { next, chip } 或 null（识别不了就返回 null，让前端提示换个说法）
+export function refineInterpret(rawText, currentFilters) {
+  const text = normalize(rawText)
+  if (!text) return null
+
+  // 撤销微调：把所有排除项清掉
+  if (/取消|撤销|清除|删掉|去掉所有|全部取消/.test(text) && /排除|微调|限制/.test(text)) {
+    return { next: { ...currentFilters, excl: [] }, chip: null }
+  }
+
+  // 排除 X
+  const mEx = text.match(/(?:排除|不要|去掉|不看|滤掉|踢掉|别去|剔除|屏蔽)(.+)$/)
+  if (mEx) {
+    const raw = mEx[1].replace(/的|城市|地方|省份|们|都|全部|所有|了/g, '')
+    if (/北方/.test(raw)) return { next: addExcl(currentFilters, '排除北方', NORTH), chip: '排除北方' }
+    if (/南方/.test(raw)) return { next: addExcl(currentFilters, '排除南方', SOUTH), chip: '排除南方' }
+    for (const [r, provs] of Object.entries(REGION_TO_PROVINCES)) {
+      if (raw.includes(r)) return { next: addExcl(currentFilters, `排除${r}`, provs), chip: `排除${r}` }
+    }
+    const provs = findProvinces(raw)
+    if (provs.length) return { next: addExcl(currentFilters, `排除${provs.join('、')}`, provs), chip: `排除${provs.join('、')}` }
+    if (/工业|污染|雾霾|厂/.test(mEx[1])) {
+      return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }
+    }
+    if (/海边|海滨|沿海|海景/.test(raw)) {
+      return { next: { ...currentFilters, tags: currentFilters.tags.filter(t => t !== '海滨沿海') }, chip: '不看海边' }
+    }
+    return null
+  }
+
+  // 只要 / 只看 X（限定）
+  const mOnly = text.match(/(?:只要|只看|只留|仅要|就看)(.+)$/)
+  if (mOnly) {
+    const raw = mOnly[1].replace(/的|城市|地方|省份|们|都|全部|所有/g, '')
+    if (/北方/.test(raw)) return { next: { ...currentFilters, provinces: [...NORTH], excl: [] }, chip: '只要北方' }
+    if (/南方/.test(raw)) return { next: { ...currentFilters, provinces: [...SOUTH], excl: [] }, chip: '只要南方' }
+    for (const [r, provs] of Object.entries(REGION_TO_PROVINCES)) {
+      if (raw.includes(r)) return { next: { ...currentFilters, provinces: [...provs], excl: [] }, chip: `只要${r}` }
+    }
+    const provs = findProvinces(raw)
+    if (provs.length) return { next: { ...currentFilters, provinces: provs, excl: [] }, chip: `只要${provs.join('、')}` }
+    if (/县城|小镇/.test(raw)) return { next: { ...currentFilters, types: ['E'] }, chip: '只要县城/小镇' }
+  }
+  return null
+}

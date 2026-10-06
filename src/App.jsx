@@ -12,6 +12,7 @@ import {
 } from './lib/store.js'
 import * as sync from './lib/sync.js'
 import FilterPanel from './components/FilterPanel.jsx'
+import RefineBar from './components/RefineBar.jsx'
 import StatBar from './components/StatBar.jsx'
 import { CityCard, CityRow, yuan } from './components/CityCard.jsx'
 import CityDetailModal from './components/CityDetailModal.jsx'
@@ -425,6 +426,10 @@ export default function App() {
         <div className="mt-5 flex gap-6">
           {/* 结果区 */}
           <section className="min-w-0 flex-1">
+            {/* 小助理微调条：筛完后直接说「排除北方城市」，不用打开聊天面板 */}
+            {view !== 'map' && results.length > 0 && (
+              <RefineBar filters={filters} onApply={next => patch(next)} />
+            )}
             {/* 工具条 */}
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1.5 text-[13px] text-stone-500">

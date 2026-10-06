@@ -38,6 +38,7 @@ export function defaultFilters() {
     uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
+    excl: [],                 // 微调排除：[{ label:'排除北方', provinces:[...] }]，可叠加多条
   }
 }
 
@@ -97,6 +98,7 @@ export function encodeFilters(f) {
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
   if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
+  if (f.excl?.length) p.set('x', f.excl.map(e => `${e.label}@${e.provinces.join('.')}`).join('|'))
   return p.toString()
 }
 
@@ -116,6 +118,12 @@ export function decodeFilters(search) {
     const [mode, ...nums] = p.get('b').split('~')
     const [rent, food, utils, transit, other] = nums.map(n => +n || 0)
     f.budget = { mode: mode === 'shared' ? 'shared' : 'single', rent, food, utils, transit, other }
+  }
+  if (p.has('x')) {
+    f.excl = p.get('x').split('|').filter(Boolean).map(seg => {
+      const [label, provs] = seg.split('@')
+      return { label, provinces: (provs || '').split('.').filter(Boolean) }
+    }).filter(e => e.provinces.length)
   }
   return f
 }
@@ -145,6 +153,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     return byCode[code] || code
   }))
   return cities.filter(c => {
+    if (f.excl?.length && f.excl.some(e => e.provinces.includes(c.province))) return false // 微调排除优先
     if (f.levels.length && !f.q && !f.budget && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算模式时放开房租档位（更明确的意图）
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
