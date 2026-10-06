@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   Search, SlidersHorizontal, LayoutGrid, List, Share2, Link2, Scale, X,
   Heart, GraduationCap, Compass, MapPinned, ChevronUp, Map as MapIcon,
-  Cloud, CloudOff, RefreshCw, Wallet,
+  Cloud, CloudOff, RefreshCw, Wallet, Flame,
 } from 'lucide-react'
 import dataset from './data/cities_full.json'
 import { SORTS, DEFAULT_LEVELS } from './lib/constants.js'
@@ -13,7 +13,7 @@ import {
 import * as sync from './lib/sync.js'
 import FilterPanel from './components/FilterPanel.jsx'
 import StatBar from './components/StatBar.jsx'
-import { CityCard, CityRow } from './components/CityCard.jsx'
+import { CityCard, CityRow, yuan } from './components/CityCard.jsx'
 import CityDetailModal from './components/CityDetailModal.jsx'
 import CompareModal from './components/CompareModal.jsx'
 import MapView from './components/MapView.jsx'
@@ -324,9 +324,14 @@ export default function App() {
                 <div className="h-4 w-px bg-stone-200" />
                 <button
                   onClick={() => {
-                    const v = view === 'map' ? 'grid' : 'map'
-                    setView(v)
-                    localStorage.setItem('cw:view', v)
+                    if (view === 'map') {
+                      setView('grid'); localStorage.setItem('cw:view', 'grid')
+                      return
+                    }
+                    // 进入地图模式：收起筛选面板、回到顶部，让地图立刻占满首屏
+                    setView('map'); localStorage.setItem('cw:view', 'map')
+                    setFilterOpen(false); localStorage.setItem('cw:filterOpen', '0')
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
                   }}
                   title={view === 'map' ? '返回城市卡片' : '按图查找：在地图上看全国小城分布'}
                   className={`flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-medium transition
@@ -353,12 +358,15 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
-        <StatBar
-          total={dataset.total}
-          matched={results.length}
-          favCount={favs.size}
-          compareCount={compareIds.length}
-        />
+        {/* 地图模式下隐藏诗意横幅，让地图成为绝对主角 */}
+        {view !== 'map' && (
+          <StatBar
+            total={dataset.total}
+            matched={results.length}
+            favCount={favs.size}
+            compareCount={compareIds.length}
+          />
+        )}
 
         {/* 桌面端：顶部下拉横幅式筛选面板 */}
         {filterOpen && (
@@ -475,7 +483,56 @@ export default function App() {
                 </button>
               </div>
             ) : view === 'map' ? (
-              <MapView cities={results} onOpen={setDetailId} />
+              <>
+                <MapView cities={results} onOpen={setDetailId} heightClass="h-[74vh]" />
+                {/* 地图下方精选推荐：横滑 6 个，末尾一键看全部 */}
+                <div className="mt-5">
+                  <div className="mb-2.5 flex items-center justify-between">
+                    <span className="text-[12px] text-stone-400">
+                      为你精选 · 当前排序下最推荐的 {Math.min(6, results.length)} 个
+                    </span>
+                    <button
+                      onClick={() => { setView('grid'); localStorage.setItem('cw:view', 'grid') }}
+                      className="text-[12px] font-medium text-emerald-700 hover:text-emerald-800"
+                    >
+                      查看全部 {results.length} 个 →
+                    </button>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {results.slice(0, 6).map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => setDetailId(c.id)}
+                        className="card-lift w-44 flex-none rounded-2xl border border-stone-200/60 bg-white p-3.5 text-left shadow-sm"
+                      >
+                        <div className="flex items-baseline justify-between gap-1">
+                          <span className="font-display truncate text-[15px] font-semibold text-stone-800">{c.name}</span>
+                          {c.hot && <Flame size={12} className="flex-none text-amber-500" fill="currentColor" />}
+                        </div>
+                        <div className="mt-0.5 truncate text-[11px] text-stone-400">
+                          {c.province}{c.parent && c.parent !== c.province ? ` · ${c.parent}` : ''}
+                        </div>
+                        <div className="mt-2 text-[18px] font-bold tracking-tight text-emerald-800">
+                          {yuan(c.monthly_total)}<span className="text-[10px] font-normal text-stone-400">/月</span>
+                        </div>
+                        {c.tags[0] && (
+                          <span className="mt-1.5 inline-block rounded-full bg-stone-50 px-2 py-0.5 text-[10px] text-stone-500 ring-1 ring-stone-200/60">
+                            {c.tags[0]}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                    {/* 末尾「看全部」卡 */}
+                    <button
+                      onClick={() => { setView('grid'); localStorage.setItem('cw:view', 'grid') }}
+                      className="flex w-28 flex-none flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-stone-300 bg-white/50 text-stone-400 transition hover:border-emerald-400 hover:text-emerald-700"
+                    >
+                      <LayoutGrid size={18} />
+                      <span className="text-[11px] font-medium">全部 {results.length} 个</span>
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : view === 'grid' ? (
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {results.slice(0, limit).map(c => (

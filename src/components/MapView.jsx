@@ -49,7 +49,7 @@ function loadSel(key, defs) {
   return new Set(defs.map(b => b.key))
 }
 
-export default function MapView({ cities, onOpen }) {
+export default function MapView({ cities, onOpen, heightClass = 'h-[68vh]' }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
@@ -192,7 +192,7 @@ export default function MapView({ cities, onOpen }) {
     <div className="relative">
       <div
         ref={containerRef}
-        className="relative z-0 h-[68vh] w-full overflow-hidden rounded-2xl border border-stone-200/70 shadow-sm"
+        className={`relative z-0 ${heightClass} w-full overflow-hidden rounded-2xl border border-stone-200/70 shadow-sm`}
       />
       {/* 价位图例（漂浮在地图上；拖拽/缩放时自动半透明，可手动收起） */}
       <div className={`absolute bottom-4 left-3 z-[500] select-none transition-opacity duration-200 ${dimmed ? 'pointer-events-none opacity-20' : 'opacity-100'}`}>
