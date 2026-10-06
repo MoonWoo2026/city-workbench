@@ -126,7 +126,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
   return (
     <>
       {/* 悬浮入口按钮：带文字 + 呼吸光环 */}
-      <div className={`fixed z-40 ${lifted ? 'bottom-24' : 'bottom-5'} right-4 sm:right-6`}>
+      <div className={`fixed z-40 ${lifted ? 'bottom-24' : 'bottom-5'} right-4 sm:right-6`} data-tour="assistant">
         {/* 首次引导气泡（轮播 5 秒后自动切换） */}
         {showTip && !open && (
           <div

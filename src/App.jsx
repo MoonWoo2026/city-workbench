@@ -20,6 +20,7 @@ import MapView from './components/MapView.jsx'
 import Assistant from './components/Assistant.jsx'
 import BudgetModal from './components/BudgetModal.jsx'
 import ShareGate from './components/ShareGate.jsx'
+import Onboarding from './components/Onboarding.jsx'
 import CursorFollower from './components/CursorFollower.jsx'
 import { budgetTotal } from './lib/store.js'
 import { useCityShare } from './components/useCityShare.jsx'
@@ -235,7 +236,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="order-3 w-full sm:order-none sm:ml-2 sm:w-auto sm:flex-1 sm:max-w-md">
+            <div className="order-3 w-full sm:order-none sm:ml-2 sm:w-auto sm:flex-1 sm:max-w-md" data-tour="search">
               <div className="relative">
                 <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
@@ -294,7 +295,7 @@ export default function App() {
                 <Link2 size={12} className="sm:hidden" />
               </button>
               {/* 三大查找入口：连体胶囊组（预算 | 区域 | 地图），与右侧工具区分开 */}
-              <div className="flex items-center overflow-hidden rounded-full border border-stone-200 bg-white shadow-sm">
+              <div className="flex items-center overflow-hidden rounded-full border border-stone-200 bg-white shadow-sm" data-tour="trio">
                 <button
                   onClick={() => setShowBudget(true)}
                   title="按预算查找：房租/餐饮/杂费/交通/其他逐项设限，匹配住得起的城市"
@@ -535,17 +536,18 @@ export default function App() {
               </>
             ) : view === 'grid' ? (
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {results.slice(0, limit).map(c => (
-                  <CityCard
-                    key={c.id}
-                    city={c}
-                    fav={favs.has(c.id)}
-                    comparing={compareIds.includes(c.id)}
-                    onToggleFav={() => toggleFav(c.id)}
-                    onToggleCompare={() => toggleCompare(c.id)}
-                    onOpen={setDetailId}
-                    onShare={shareCtl.start}
-                  />
+                {results.slice(0, limit).map((c, idx) => (
+                  <div key={c.id} className="h-full [&>article]:h-full" {...(idx === 0 ? { 'data-tour': 'card' } : {})}>
+                    <CityCard
+                      city={c}
+                      fav={favs.has(c.id)}
+                      comparing={compareIds.includes(c.id)}
+                      onToggleFav={() => toggleFav(c.id)}
+                      onToggleCompare={() => toggleCompare(c.id)}
+                      onOpen={setDetailId}
+                      onShare={shareCtl.start}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -670,6 +672,9 @@ export default function App() {
           previewCount={b => applyFilters(all, { ...filters, budget: b }, { favs, favOnly }).length}
         />
       )}
+
+      {/* 分享访客新手指引（首次打开欢迎卡 + 聚光灯导览） */}
+      <Onboarding />
 
       {/* 躺平光标跟随：柔和光晕 + 飘动的叶子（仅桌面端） */}
       <CursorFollower />
