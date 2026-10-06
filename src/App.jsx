@@ -270,6 +270,7 @@ export default function App() {
     filters.provinces.forEach(p => chips.push({ k: `p:${p}`, label: p, clear: () => patch({ provinces: filters.provinces.filter(x => x !== p) }) }))
     filters.tags.forEach(t => chips.push({ k: `t:${t}`, label: t, clear: () => patch({ tags: filters.tags.filter(x => x !== t) }) }))
     ;(filters.tagExcl || []).forEach(t => chips.push({ k: `tx:${t}`, label: `排除${t}`, clear: () => patch({ tagExcl: filters.tagExcl.filter(x => x !== t) }) }))
+    if (filters.cityOnly?.length) chips.push({ k: 'cy', label: `只看 ${filters.cityOnly.join('、')}`, clear: () => patch({ cityOnly: [] }) })
     filters.types.forEach(ty => chips.push({ k: `ty:${ty}`, label: { A: '一二线', B: '一线郊区', C: '二线郊区', D: '三四线', E: '县城/小镇' }[ty], clear: () => patch({ types: filters.types.filter(x => x !== ty) }) }))
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
     if (filters.medOnly) chips.push({ k: 'med', label: '有三甲医院', clear: () => patch({ medOnly: false }) })
@@ -303,6 +304,7 @@ export default function App() {
   // 筛选按钮上的已选条件计数（搜索词/排序不计）
   const activeFilterCount = useMemo(() => {
     let n = filters.provinces.length + filters.tags.length + filters.types.length + (filters.tagExcl?.length || 0)
+    if (filters.cityOnly?.length) n++
     if (filters.cleanOnly) n++
     if (filters.uniOnly) n++
     if (filters.medOnly) n++

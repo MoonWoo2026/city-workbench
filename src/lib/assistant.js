@@ -253,13 +253,39 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     types: [...currentFilters.types],
     tags: [...currentFilters.tags],
     tagExcl: [...(currentFilters.tagExcl || [])],
+    cityOnly: [...(currentFilters.cityOnly || [])],
     prefs: [...(currentFilters.prefs || [])],
   }
   const items = [] // 识别到的条件（用于回复气泡展示）
   const additive = /也|还|再加|加上|另外|同时|顺便/.test(text)
 
+  // 0.5) 城市白名单：「除了南昌九江其他江西的不要」「江西除了南昌和九江都不要」= 只看这些城市（含下辖县/区）
+  let cityOnlyHit = null
+  const mExcept = text.match(/除了(.+?)(?:其他|其它|剩下|别|都)/)
+  if (mExcept && /不要|不看|不去|别去|排除|去掉/.test(text)) {
+    const names = []
+    for (const name of CITY_NAMES) { // CITY_NAMES 已按长度降序，长名先占位（南昌县 先于 南昌）
+      if (mExcept[1].includes(name) && !names.some(n => n.includes(name))) names.push(name)
+    }
+    if (names.length) {
+      cityOnlyHit = names
+      Object.assign(next, {
+        cityOnly: names,
+        provinces: [],
+        levels: BANDS.map(b => b.key),
+        types: [],
+        tags: [],
+        cleanOnly: false,
+        uniOnly: false,
+        spec: null,
+        q: '',
+      })
+      items.push({ k: 'cityOnly', label: '只看城市', value: `${names.join('、')}（含下辖县/区）` })
+    }
+  }
+
   // 1) 大区
-  const regions = findRegions(text)
+  const regions = cityOnlyHit ? [] : findRegions(text)
   let provinces = []
   if (regions.length) {
     provinces = [...new Set(regions.flatMap(r => REGION_TO_PROVINCES[r] || []))]
@@ -267,7 +293,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   }
 
   // 2) 省份（叠加在大区之上）
-  const provHits = findProvinces(text)
+  const provHits = cityOnlyHit ? [] : findProvinces(text)
   if (provHits.length) {
     provinces = [...new Set([...provinces, ...provHits])]
     if (!regions.length) items.push({ k: 'provinces', label: '省份', value: provHits.join('、') })
@@ -291,7 +317,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   }
 
   // 4) 具体城市/区县名（点名某个地方 = 纯名称搜索，清掉其他维度以免被默认条件挡住）
-  const city = findCity(text, rawLower)
+  const city = cityOnlyHit ? null : findCity(text, rawLower)
   if (city) {
     Object.assign(next, {
       provinces: [],

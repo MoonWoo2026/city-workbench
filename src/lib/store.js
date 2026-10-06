@@ -35,6 +35,7 @@ export function defaultFilters() {
     types: [],                // 空数组 = 全选
     tags: [],                 // 标签之间为 AND（交集）
     tagExcl: [],              // 排除的标签（如「高原不要」→ 排除高原避暑城市）
+    cityOnly: [],             // 城市白名单（如「除了南昌九江其他江西的不要」→ 只看这些城市及下辖县/区）
     cleanOnly: false,
     uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
     medOnly: false,           // 有三甲医院（本市或母城市区）
@@ -100,6 +101,7 @@ export function encodeFilters(f) {
   if (f.types.length) p.set('ty', f.types.join(','))
   if (f.tags.length) p.set('tag', f.tags.join(','))
   if (f.tagExcl?.length) p.set('tagx', f.tagExcl.join(','))
+  if (f.cityOnly?.length) p.set('cy', f.cityOnly.join(','))
   if (f.cleanOnly) p.set('clean', '1')
   if (f.medOnly) p.set('med', '1')
   if (f.medExcl) p.set('medx', '1')
@@ -122,6 +124,7 @@ export function decodeFilters(search) {
   f.types = split('ty')
   f.tags = split('tag')
   f.tagExcl = split('tagx')
+  f.cityOnly = split('cy')
   f.cleanOnly = p.get('clean') === '1'
   f.medOnly = p.get('med') === '1'
   f.medExcl = p.get('medx') === '1'
@@ -192,7 +195,12 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
   }))
   return cities.filter(c => {
     if (f.excl?.length && f.excl.some(e => e.provinces.includes(c.province))) return false // 微调排除优先
-    if (f.levels.length && !f.q && !f.budget && !f.spec && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算/专科模式时放开房租档位（更明确的意图）
+    if (f.cityOnly?.length) { // 城市白名单：命中本市/下辖县区（parent 命名不统一：南昌 vs 南昌市 vs 大理白族自治州，用 startsWith 兼容）
+      const inWhite = f.cityOnly.includes(c.name) || f.cityOnly.some(n =>
+        (c.parent || '').startsWith(n) || (c.name.startsWith(n) && c.name.length - n.length <= 1))
+      if (!inWhite) return false
+    }
+    if (f.levels.length && !f.q && !f.budget && !f.spec && !f.cityOnly?.length && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算/专科/白名单时放开房租档位（更明确的意图）
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
@@ -201,7 +209,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.medOnly && !(c.med && (c.med.n > 0 || c.med.p > 0))) return false // 有三甲（本市或市区）
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲
     if (f.spec && !(c.spec && c.spec.some(s => s[0] === f.spec))) return false // 专科强院所在城市（全国 Top10）
-    if (f.uniOnly && !f.q && !f.budget && !f.spec && !c.uni_town) return false // 有关键词搜索/预算/专科模式时放开大学城限制
+    if (f.uniOnly && !f.q && !f.budget && !f.spec && !f.cityOnly?.length && !c.uni_town) return false // 有关键词搜索/预算/专科/白名单时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false
     if (f.q && !matchQuery(c, f.q)) return false
     if (f.budget && !matchBudget(c, f.budget)) return false
