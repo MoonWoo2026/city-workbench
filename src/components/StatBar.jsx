@@ -1,52 +1,28 @@
-import { Database, SlidersHorizontal, Heart, Scale } from 'lucide-react'
-
-function StatCard({ icon, label, value, sub, accent }) {
-  return (
-    <div className="flex items-center gap-3.5 rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm">
-      <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-xl ${accent}`}>{icon}</div>
-      <div className="min-w-0">
-        <div className="text-[11px] font-medium tracking-wide text-stone-400">{label}</div>
-        <div className="mt-0.5 flex items-baseline gap-1.5">
-          <span className="text-[26px] font-semibold leading-none tracking-tight text-stone-800">{value}</span>
-          <span className="text-[11px] text-stone-400">{sub}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
+// 躺平调性头部：诗意横幅，数据自然融进文案，不再是仪表盘卡片
 export default function StatBar({ total, matched, favCount, compareCount }) {
-  const pct = total ? Math.round((matched / total) * 100) : 0
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <StatCard
-        icon={<Database size={18} className="text-stone-600" />}
-        accent="bg-stone-100"
-        label="已收录城市总数"
-        value={total}
-        sub="31 省份 · 七大区"
-      />
-      <StatCard
-        icon={<SlidersHorizontal size={18} className="text-emerald-700" />}
-        accent="bg-emerald-50"
-        label="符合当前筛选"
-        value={matched}
-        sub={`占比 ${pct}%`}
-      />
-      <StatCard
-        icon={<Heart size={18} className="text-rose-500" />}
-        accent="bg-rose-50"
-        label="我的收藏 / 想去"
-        value={favCount}
-        sub="仅存本机"
-      />
-      <StatCard
-        icon={<Scale size={18} className="text-amber-600" />}
-        accent="bg-amber-50"
-        label="已加入对比"
-        value={compareCount}
-        sub="勾选 2-3 个"
-      />
-    </div>
+    <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#f2eee1] via-[#f7f5ef] to-[#edf1e7] px-6 py-8 ring-1 ring-stone-200/60 sm:px-10 sm:py-10">
+      {/* 背景装饰大字 */}
+      <span className="font-display pointer-events-none absolute -right-6 -top-12 select-none text-[190px] leading-none text-stone-900/[0.05]">
+        慢
+      </span>
+      <p className="text-[11px] tracking-[0.35em] text-stone-400">低 成 本 旅 居 指 南</p>
+      <h2 className="font-display mt-2.5 text-[30px] font-bold leading-snug text-stone-900 sm:text-[36px]">
+        找一座小城，把日子过慢
+      </h2>
+      <p className="mt-3 max-w-xl text-[13px] leading-6 text-stone-500">
+        房租、物价、气候、网络、交通，都替你查好了。
+        挑一个合心意的地方，轻装上阵。
+      </p>
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12.5px] text-stone-500">
+        <span><b className="font-semibold text-stone-800">{total}</b> 个旅居地</span>
+        <span className="text-stone-300">·</span>
+        <span><b className="font-semibold text-emerald-700">{matched}</b> 个合你口味</span>
+        <span className="text-stone-300">·</span>
+        <span>收藏 <b className="font-semibold text-rose-500">{favCount}</b></span>
+        <span className="text-stone-300">·</span>
+        <span>对比 <b className="font-semibold text-amber-600">{compareCount}</b></span>
+      </div>
+    </section>
   )
 }

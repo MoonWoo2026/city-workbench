@@ -12,6 +12,11 @@
   color-scheme: light;
 }
 
+/* 躺平调性：衬线书卷气标题 */
+.font-display {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

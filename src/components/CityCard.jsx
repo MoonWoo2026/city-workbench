@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap, Share2, Thermometer, Droplets } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets } from 'lucide-react'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
@@ -94,12 +94,12 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
   return (
     <article
       onClick={() => onOpen(city.id)}
-      className="card-lift group flex cursor-pointer flex-col rounded-2xl border border-stone-200/70 bg-white p-4 shadow-sm"
+      className="card-lift group flex cursor-pointer flex-col rounded-3xl border border-stone-200/60 bg-white p-5 shadow-sm"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="flex items-center gap-1.5 text-[17px] font-semibold tracking-tight text-stone-800">
-            <span className="truncate">{city.name}</span>
+          <h3 className="flex items-center gap-1.5 text-[19px] font-semibold tracking-tight text-stone-800">
+            <span className="font-display truncate">{city.name}</span>
             {city.hot && (
               <span title="旅居热门" className="flex-none text-amber-500">
                 <Flame size={14} fill="currentColor" />
@@ -135,27 +135,21 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl bg-stone-50 px-3 py-2">
-          <div className="flex items-center gap-1 text-[10px] text-stone-400">
-            <BedDouble size={10} />主卧合租
+      {/* 价格：月总支出作主视觉，租金明细退为小字 */}
+      <div className="mt-4 flex items-end justify-between">
+        <div>
+          <div className="text-[11px] text-stone-400">每月全部开销约</div>
+          <div className="mt-1 flex items-baseline gap-1">
+            <span className="font-display text-[27px] font-bold leading-none tracking-tight text-emerald-800">
+              {yuan(city.monthly_total)}
+            </span>
+            <span className="text-[11px] text-stone-400">/月</span>
           </div>
-          <div className="mt-0.5 text-[15px] font-semibold text-stone-700">{yuan(city.rent_shared)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">/月</span></div>
         </div>
-        <div className="rounded-xl bg-stone-50 px-3 py-2">
-          <div className="flex items-center gap-1 text-[10px] text-stone-400">
-            <HomeIcon size={10} />单人整租
-          </div>
-          <div className="mt-0.5 text-[15px] font-semibold text-stone-700">{yuan(city.rent_single)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">/月</span></div>
+        <div className="text-right text-[11.5px] leading-5 text-stone-400">
+          <div>整租 <span className="font-medium text-stone-600">{yuan(city.rent_single)}</span></div>
+          <div>合租 <span className="font-medium text-stone-600">{yuan(city.rent_shared)}</span></div>
         </div>
-      </div>
-      <div className="mt-2 flex items-center justify-between rounded-xl bg-emerald-50/80 px-3 py-2 ring-1 ring-emerald-600/10">
-        <span className="flex items-center gap-1 text-[11px] text-emerald-700">
-          <Wallet size={12} />预估月总支出
-        </span>
-        <span className="text-[16px] font-bold tracking-tight text-emerald-800">
-          {yuan(city.monthly_total)}
-        </span>
       </div>
 
       {city.climate_stats && (
@@ -184,7 +178,7 @@ export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, on
     >
       <div className="min-w-0 sm:w-48 sm:flex-none">
         <div className="flex items-center gap-2">
-          <h3 className="truncate text-[15px] font-semibold text-stone-800">{city.name}</h3>
+          <h3 className="font-display truncate text-[16px] font-semibold text-stone-800">{city.name}</h3>
           {city.hot && <Flame size={13} className="flex-none text-amber-500" fill="currentColor" />}
           <button
             onClick={e => { e.stopPropagation(); onToggleFav() }}

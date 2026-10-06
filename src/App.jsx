@@ -221,7 +221,7 @@ export default function App() {
                 <MapPinned size={18} />
               </span>
               <div>
-                <h1 className="text-[16px] font-bold leading-tight tracking-tight text-stone-900 sm:text-[17px]">
+                <h1 className="font-display text-[17px] font-bold leading-tight tracking-tight text-stone-900 sm:text-[18px]">
                   去哪躺平
                 </h1>
                 <p className="hidden text-[11px] text-stone-400 sm:block">

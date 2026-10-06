@@ -95,7 +95,7 @@ export function encodeFilters(f) {
   if (f.tags.length) p.set('tag', f.tags.join(','))
   if (f.cleanOnly) p.set('clean', '1')
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
-  if (f.sort && f.sort !== 'total') p.set('sort', f.sort)
+  if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
   if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
   return p.toString()
 }
@@ -111,7 +111,7 @@ export function decodeFilters(search) {
   f.tags = split('tag')
   f.cleanOnly = p.get('clean') === '1'
   f.uniOnly = p.get('uni') === '1'
-  f.sort = p.get('sort') || 'total'
+  f.sort = p.get('sort') || f.sort // 未指定时用默认（explore）
   if (p.has('b')) {
     const [mode, ...nums] = p.get('b').split('~')
     const [rent, food, utils, transit, other] = nums.map(n => +n || 0)
