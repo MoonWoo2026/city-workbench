@@ -26,6 +26,9 @@ import { budgetTotal } from './lib/store.js'
 import { useCityShare } from './components/useCityShare.jsx'
 
 const PAGE_SIZE = 60
+// 探索模式分批轮播：每 8 秒换一批（行业轮播惯例 5–10 秒），悬停暂停，可手动换一批
+const EXPLORE_BATCH = 12
+const ROTATE_MS = 8000
 
 export default function App() {
   const all = dataset.cities
@@ -44,6 +47,8 @@ export default function App() {
   const [showBudget, setShowBudget] = useState(false)
   const [filterOpen, setFilterOpen] = useState(() => localStorage.getItem('cw:filterOpen') !== '0')
   const [limit, setLimit] = useState(PAGE_SIZE)
+  const [batch, setBatch] = useState(0) // 探索模式当前批次
+  const [batchPaused, setBatchPaused] = useState(false)
   const [toast, setToast] = useState('')
   const [syncStatus, setSyncStatus] = useState('off')
 
@@ -162,7 +167,21 @@ export default function App() {
   )
   const uniMatched = results.filter(c => c.uni_town).length
 
-  useEffect(() => { setLimit(PAGE_SIZE) }, [filters, favOnly])
+  useEffect(() => { setLimit(PAGE_SIZE); setBatch(0) }, [filters, favOnly])
+
+  // 探索模式分批轮播：默认首页（无搜索词、未加载更多）每 8 秒换一批，悬停暂停
+  const rotating = view === 'grid' && filters.sort === 'explore' && !filters.q
+    && limit === PAGE_SIZE && results.length > EXPLORE_BATCH
+  useEffect(() => {
+    if (!rotating || batchPaused) return
+    const t = setInterval(() => setBatch(b => b + 1), ROTATE_MS)
+    return () => clearInterval(t)
+  }, [rotating, batchPaused])
+
+  // 当前可见的城市：轮播模式下环形取一批，其余情况正常截断
+  const visible = rotating
+    ? Array.from({ length: EXPLORE_BATCH }, (_, i) => results[(batch * EXPLORE_BATCH + i) % results.length])
+    : results.slice(0, limit)
 
   const detailCity = all.find(c => c.id === detailId) || null
   const compareCities = compareIds.map(id => all.find(c => c.id === id)).filter(Boolean)
@@ -412,6 +431,21 @@ export default function App() {
                       <GraduationCap size={11} />仅看大学城
                     </span>
                   )}
+                {rotating && (
+                  <button
+                    onClick={() => setBatch(b => b + 1)}
+                    className="group relative flex items-center gap-1.5 overflow-hidden rounded-full border border-emerald-600/25 bg-emerald-50/70 px-3 py-1 text-[11px] font-medium text-emerald-700 transition hover:bg-emerald-100/80"
+                    title="每 8 秒自动换一批，悬停卡片可暂停"
+                  >
+                    <RefreshCw size={11} className="transition-transform duration-500 group-active:rotate-180" />
+                    换一批
+                    {/* 倒计时进度条 */}
+                    <span
+                      key={batch}
+                      className={`explore-progress absolute bottom-0 left-0 h-[2px] bg-emerald-500/50 ${batchPaused ? 'paused' : ''}`}
+                    />
+                  </button>
+                )}
               </div>
 
               <div className="ml-auto flex items-center gap-2">
@@ -535,8 +569,13 @@ export default function App() {
                 </div>
               </>
             ) : view === 'grid' ? (
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {results.slice(0, limit).map((c, idx) => (
+              <div
+                key={rotating ? `batch-${batch}` : 'grid-all'}
+                className="animate-fade-in grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+                onMouseEnter={() => setBatchPaused(true)}
+                onMouseLeave={() => setBatchPaused(false)}
+              >
+                {visible.map((c, idx) => (
                   <div key={c.id} className="h-full [&>article]:h-full" {...(idx === 0 ? { 'data-tour': 'card' } : {})}>
                     <CityCard
                       city={c}
@@ -567,7 +606,18 @@ export default function App() {
               </div>
             )}
 
-            {view !== 'map' && results.length > limit && (
+            {rotating && (
+              <div className="mt-5 text-center">
+                <button
+                  onClick={() => setLimit(PAGE_SIZE + 1)}
+                  className="rounded-full border border-dashed border-stone-300 bg-white/60 px-5 py-2 text-[12px] text-stone-500 transition hover:border-stone-400 hover:text-stone-700"
+                >
+                  停止轮播，浏览全部 {results.length} 个城市
+                </button>
+              </div>
+            )}
+
+            {view !== 'map' && !rotating && results.length > limit && (
               <button
                 onClick={() => setLimit(n => n + PAGE_SIZE)}
                 className="mt-5 w-full rounded-2xl border border-dashed border-stone-300 bg-white/60 py-3 text-[13px] text-stone-500 transition hover:border-stone-400 hover:text-stone-700"

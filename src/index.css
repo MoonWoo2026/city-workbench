@@ -89,6 +89,11 @@ body {
 .rabbit-zzz .z2 { animation-delay: 0.9s; }
 .rabbit-zzz .z3 { animation-delay: 1.8s; }
 
+/* 探索模式「换一批」倒计时进度条 */
+@keyframes explore-progress { from { width: 0; } to { width: 100%; } }
+.explore-progress { animation: explore-progress 8s linear forwards; }
+.explore-progress.paused { animation-play-state: paused; }
+
 /* 卡片 hover 微抬升 */
 .card-lift {
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
