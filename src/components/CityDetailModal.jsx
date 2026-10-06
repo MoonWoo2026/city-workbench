@@ -10,6 +10,7 @@ import {
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
 import { useCityShare } from './useCityShare.jsx'
+import { nearestSpec, nearestSpecs, specDistanceText } from '../lib/store.js'
 import dataset from '../data/cities_full.json'
 
 function MiniMap({ city }) {
@@ -105,10 +106,46 @@ function MedBlock({ city }) {
   )
 }
 
-// 全国专科强院卡：本市拥有的复旦 2023 专科声誉榜 Top10 科室（按名次升序）
-function SpecBlock({ city }) {
-  if (!city.spec?.length) return null
+// 全国专科强院卡：本市拥有的复旦 2023 专科声誉榜 Top10 科室（按名次升序，带头人以小签标注）
+// 本市无强院时退化为「就近就医参考」：有当前筛选专科时给该专科最近强院，否则给全部专科里最近的 3 家
+function SpecBlock({ city, specKey }) {
   const specs = dataset.specialties?.specs || {}
+  if (!city.spec?.length) {
+    if (specKey && specs[specKey]) {
+      const n = nearestSpec(city, specKey)
+      if (!n) return null
+      return (
+        <Block icon={<Award size={14} className="text-amber-600" />} title={`${specs[specKey].name}强院就医参考`}>
+          <p>
+            本城暂无该专科全国 Top10 强院，最近的是
+            <b className="mx-1 text-stone-700">{n.short}</b>
+            （{n.city} · 全国第{n.rank}），直线距离约 <b className="text-stone-700">{Math.round(n.km)}</b> km。
+          </p>
+          <p className="mt-1 text-[12px] text-stone-400">{specDistanceText(n.km)}</p>
+        </Block>
+      )
+    }
+    const ns = nearestSpecs(city, 3)
+    if (!ns.length) return null
+    return (
+      <Block icon={<Award size={14} className="text-amber-600" />} title="就近专科强院参考">
+        <p className="mb-2 text-[12px] text-stone-400">本城暂无复旦榜全国 Top10 专科强院，就近可考虑：</p>
+        <ul className="space-y-1.5">
+          {ns.map(n => (
+            <li key={n.key} className="flex items-start gap-1.5">
+              <Award size={12} className="mt-[6px] flex-none text-amber-500" />
+              <span>
+                <b className="text-stone-700">{specs[n.key]?.name || n.key}</b>
+                <span className="ml-1 text-stone-500">{n.short}（{n.city} · 全国第{n.rank}）</span>
+                <span className="ml-1 rounded bg-amber-50 px-1 py-px text-[11px] font-medium text-amber-800 ring-1 ring-amber-500/20">约 {Math.round(n.km)} km</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-[11px] leading-4 text-stone-400">直线距离仅供参考，实际路程以高铁/航班为准。</p>
+      </Block>
+    )
+  }
   // 按专科分组：同专科多家医院合并为一行
   const groups = []
   for (const [key, rank, short] of city.spec) {
@@ -121,25 +158,39 @@ function SpecBlock({ city }) {
   return (
     <Block icon={<Award size={14} className="text-amber-600" />} title={`全国专科强院（本市 ${groups.length} 个科室上榜）`}>
       <ul className="space-y-1.5">
-        {groups.map(g => (
-          <li key={g.key} className="flex items-start gap-1.5">
-            <Award size={12} className="mt-[6px] flex-none text-amber-500" />
-            <span>
-              <b className="text-stone-700">{specs[g.key]?.name || g.key}</b>
-              <span className="ml-1 rounded bg-amber-50 px-1 py-px text-[11px] font-medium text-amber-800 ring-1 ring-amber-500/20">全国第{g.rank}</span>
-              <span className="ml-1 text-stone-500">{g.hosps.map(h => h.short).join('、')}</span>
-            </span>
-          </li>
-        ))}
+        {groups.map(g => {
+          const sd = specs[g.key]
+          const leaders = (sd?.list || []).filter(h => h.leader && g.hosps.some(x => x.short === h.short))
+          return (
+            <li key={g.key} className="flex items-start gap-1.5">
+              <Award size={12} className="mt-[6px] flex-none text-amber-500" />
+              <span>
+                <b className="text-stone-700">{sd?.name || g.key}</b>
+                <span className="ml-1 rounded bg-amber-50 px-1 py-px text-[11px] font-medium text-amber-800 ring-1 ring-amber-500/20">全国第{g.rank}</span>
+                <span className="ml-1 text-stone-500">{g.hosps.map(h => h.short).join('、')}</span>
+                {leaders.map(h => (
+                  <span key={h.short} title={h.leader.title || '学科带头人'} className="ml-1 rounded bg-stone-100 px-1 py-px text-[11px] text-stone-600 ring-1 ring-stone-300/40">
+                    {h.leader.name}
+                  </span>
+                ))}
+                {specKey === g.key && sd?.guides?.length > 0 && (
+                  <span className="mt-1 block text-[12px] leading-5 text-stone-400">
+                    参考指南：{sd.guides.map(x => `《${x}》`).join(' ')}
+                  </span>
+                )}
+              </span>
+            </li>
+          )
+        })}
       </ul>
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
-        来源：{dataset.specialties?.source || '复旦版中国医院专科声誉排行榜'}。看对应疾病，优先选这些医院所在的城市。
+        来源：{dataset.specialties?.source || '复旦版中国医院专科声誉排行榜'}。带头人为公开报道的学科带头人，指南为对应专科权威共识/诊疗指南，均仅供参考。
       </p>
     </Block>
   )
 }
 
-export default function CityDetailModal({ city, fav, comparing, onClose, onToggleFav, onToggleCompare, note, onNoteChange }) {
+export default function CityDetailModal({ city, fav, comparing, specKey, onClose, onToggleFav, onToggleCompare, note, onNoteChange }) {
   const [draft, setDraft] = useState(note || '')
   const [savedTip, setSavedTip] = useState(false)
   const timer = useRef(null)
@@ -356,8 +407,8 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
           {/* 三甲医院名单（名单超 3 家自动折叠） */}
           <MedBlock city={city} />
 
-          {/* 全国专科强院（复旦 2023 专科声誉榜 Top10） */}
-          <SpecBlock city={city} />
+          {/* 全国专科强院（复旦 2023 专科声誉榜 Top10；无强院城市显示就近参考） */}
+          <SpecBlock city={city} specKey={specKey} />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Block icon={<CheckCircle2 size={14} className="text-emerald-600" />} title="优势" tone="green">

@@ -1,8 +1,8 @@
 // 复旦版《2023年度中国医院专科声誉排行榜》专科强院注入
 // 读 scripts/specialties-fudan.json（人工整理，含医院→城市归属），写回 src/data/cities_full.json：
-//   - 顶层 specialties: { source, specs: { key: { name, alias, list: [{rank,name,short,city}] } } }
+//   - 顶层 specialties: { source, specs: { key: { name, alias, guides, list: [{rank,name,short,city,leader?}] } } }
 //   - 每个有强院的城市 c.spec: [[specKey, rank, 医院短名], ...]（按 rank 升序）
-//   - 每个有强院的城市 c.spectext: 专科名+疾病别名+医院短名（供关键词搜索命中）
+//   - 每个有强院的城市 c.spectext: 专科名+疾病别名+医院短名+带头人姓名（供关键词搜索命中）
 import fs from 'node:fs'
 
 const DATA = 'src/data/cities_full.json'
@@ -16,18 +16,23 @@ for (const c of dataset.cities) { delete c.spec; delete c.spectext }
 
 const specs = {}
 const missing = new Set()
+const leaderToks = new Map() // city → Set(带头人姓名)
 let hospCount = 0
 for (const s of spec.specs) {
   const list = []
   for (const h of s.hospitals) {
     const city = byName.get(h.city)
     if (!city) { missing.add(h.city); continue }
-    list.push({ rank: h.rank, name: h.name, short: h.short, city: h.city })
+    list.push({ rank: h.rank, name: h.name, short: h.short, city: h.city, ...(h.leader ? { leader: h.leader } : {}) })
     ;(city.spec ||= []).push([s.key, h.rank, h.short])
+    if (h.leader?.name) {
+      if (!leaderToks.has(city)) leaderToks.set(city, new Set())
+      leaderToks.get(city).add(h.leader.name)
+    }
     hospCount++
   }
   list.sort((a, b) => a.rank - b.rank)
-  specs[s.key] = { name: s.name, alias: s.alias || [], list }
+  specs[s.key] = { name: s.name, alias: s.alias || [], guides: s.guides || [], list }
 }
 
 let hostCities = 0
@@ -40,6 +45,7 @@ for (const c of dataset.cities) {
     const s = specs[k]
     toks.push(s.name, ...(s.alias || []), short)
   }
+  toks.push(...(leaderToks.get(c) || []))
   c.spectext = [...new Set(toks)].join(' ')
 }
 

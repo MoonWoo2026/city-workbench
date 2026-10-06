@@ -839,6 +839,7 @@ export default function App() {
           city={detailCity}
           fav={favs.has(detailCity.id)}
           comparing={compareIds.includes(detailCity.id)}
+          specKey={filters.spec}
           onClose={() => setDetailId(null)}
           onToggleFav={() => toggleFav(detailCity.id)}
           onToggleCompare={() => toggleCompare(detailCity.id)}

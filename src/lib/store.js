@@ -1,4 +1,5 @@
 import { DEFAULT_LEVELS, TYPE_CODE_BY_NAME, PREFS, PREF_RANK } from './constants.js'
+import dataset from '../data/cities_full.json'
 
 // ---------- 本地存储（收藏 / 笔记） ----------
 const FAV_KEY = 'cw:favs'
@@ -185,6 +186,62 @@ export function specEntries(city, key) {
 export function specRank(city, key) {
   const es = specEntries(city, key)
   return es.length ? es[0][1] : 999
+}
+
+// ---------- 最近专科强院（haversine 直线距离，供非强院城市就医参考） ----------
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const rad = d => (d * Math.PI) / 180
+  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 +
+    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(a))
+}
+
+// 每个专科的强院城市坐标索引（惰性构建一次）
+let _specHostIdx = null
+function specHostIdx() {
+  if (_specHostIdx) return _specHostIdx
+  const byName = new Map(dataset.cities.map(c => [c.name, c]))
+  const idx = {}
+  for (const [key, s] of Object.entries(dataset.specialties?.specs || {})) {
+    idx[key] = (s.list || [])
+      .map(h => {
+        const c = byName.get(h.city)
+        return c && c.lat != null ? { city: h.city, lat: c.lat, lng: c.lng, rank: h.rank, short: h.short } : null
+      })
+      .filter(Boolean)
+  }
+  _specHostIdx = idx
+  return idx
+}
+
+// 某专科离本市最近的强院：{ city, short, rank, km }（跳过本市自身）
+export function nearestSpec(city, key) {
+  if (!key || city.lat == null || city.lng == null) return null
+  let best = null
+  for (const h of specHostIdx()[key] || []) {
+    if (h.city === city.name) continue
+    const km = haversineKm(city.lat, city.lng, h.lat, h.lng)
+    if (!best || km < best.km) best = { ...h, km }
+  }
+  return best
+}
+
+// 全部专科里离本市最近的 N 个「专科·强院」组合（按距离升序，同专科只取最近一家）
+export function nearestSpecs(city, n = 3) {
+  const out = []
+  for (const key of Object.keys(specHostIdx())) {
+    const r = nearestSpec(city, key)
+    if (r) out.push({ key, ...r })
+  }
+  out.sort((a, b) => a.km - b.km)
+  return out.slice(0, n)
+}
+
+// 距离分档文案（参考交通模块写法）
+export function specDistanceText(km) {
+  if (km < 100) return '距离较近，自驾/高铁当天可达'
+  if (km < 300) return '高铁出行较方便，可当天往返或短住'
+  return '距离较远，重大疾病建议提前规划异地就医'
 }
 
 // ---------- 多维筛选 ----------
