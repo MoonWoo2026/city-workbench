@@ -242,9 +242,11 @@ export default function App() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-900 text-paper">
-                <MapPinned size={18} />
-              </span>
+              <img
+                src="/logo.jpg"
+                alt="去哪躺平 logo"
+                className="h-9 w-9 flex-none rounded-full object-cover ring-1 ring-stone-200/70"
+              />
               <div>
                 <h1 className="font-display text-[17px] font-bold leading-tight tracking-tight text-stone-900 sm:text-[18px]">
                   去哪躺平
