@@ -5,9 +5,9 @@ import {
   Cloud, CloudOff, RefreshCw, Wallet, Flame,
 } from 'lucide-react'
 import dataset from './data/cities_full.json'
-import { SORTS, DEFAULT_LEVELS } from './lib/constants.js'
+import { SORTS, DEFAULT_LEVELS, PREFS } from './lib/constants.js'
 import {
-  defaultFilters, decodeFilters, encodeFilters, applyFilters, sortCities,
+  defaultFilters, decodeFilters, encodeFilters, applyFilters, sortCities, prefScore,
   loadFavs, saveFavs, loadNotes, saveNotes,
 } from './lib/store.js'
 import * as sync from './lib/sync.js'
@@ -165,10 +165,15 @@ export default function App() {
     })
   }
 
-  const results = useMemo(
-    () => sortCities(applyFilters(all, filters, { favs, favOnly }), filters.sort),
-    [all, filters, favs, favOnly],
-  )
+  const results = useMemo(() => {
+    const list = sortCities(applyFilters(all, filters, { favs, favOnly }), filters.sort)
+    if (!filters.prefs?.length) return list
+    // 生活偏好加权：命中偏好多的排前面（稳定排序，同分保持原排序结果）
+    return list
+      .map((c, i) => ({ c, i, s: prefScore(c, filters.prefs) }))
+      .sort((a, b) => b.s - a.s || a.i - b.i)
+      .map(x => x.c)
+  }, [all, filters, favs, favOnly])
   const uniMatched = results.filter(c => c.uni_town).length
 
   useEffect(() => { setLimit(PAGE_SIZE); setBatch(0) }, [filters, favOnly])
@@ -209,6 +214,10 @@ export default function App() {
     filters.types.forEach(ty => chips.push({ k: `ty:${ty}`, label: { A: '一二线', B: '一线郊区', C: '二线郊区', D: '三四线', E: '县城/小镇' }[ty], clear: () => patch({ types: filters.types.filter(x => x !== ty) }) }))
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
     if (filters.budget) chips.push({ k: 'budget', label: `预算 ¥${budgetTotal(filters.budget)}/月（${filters.budget.mode === 'shared' ? '合租' : '整租'}）`, clear: () => patch({ budget: null }) })
+    if (filters.prefs?.length) {
+      const labels = filters.prefs.map(id => PREFS.find(p => p.id === id)?.label || id)
+      chips.push({ k: 'prefs', label: `偏好：${labels.join('、')}`, clear: () => patch({ prefs: [] }) })
+    }
     return chips
   }, [filters, patch])
 
@@ -226,6 +235,7 @@ export default function App() {
     let n = filters.provinces.length + filters.tags.length + filters.types.length
     if (filters.cleanOnly) n++
     if (filters.uniOnly) n++
+    if (filters.prefs?.length) n++
     if (filters.levels.length !== DEFAULT_LEVELS.length || filters.levels.some(l => !DEFAULT_LEVELS.includes(l))) n++
     return n
   }, [filters])

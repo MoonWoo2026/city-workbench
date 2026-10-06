@@ -1,4 +1,4 @@
-import { DEFAULT_LEVELS, TYPE_CODE_BY_NAME } from './constants.js'
+import { DEFAULT_LEVELS, TYPE_CODE_BY_NAME, PREFS, PREF_RANK } from './constants.js'
 
 // ---------- 本地存储（收藏 / 笔记） ----------
 const FAV_KEY = 'cw:favs'
@@ -39,6 +39,7 @@ export function defaultFilters() {
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
     excl: [],                 // 微调排除：[{ label:'排除北方', provinces:[...] }]，可叠加多条
+    prefs: [],                // 生活偏好排序加权：[prefId, ...]，AI 与筛选面板共用
   }
 }
 
@@ -99,6 +100,7 @@ export function encodeFilters(f) {
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
   if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
   if (f.excl?.length) p.set('x', f.excl.map(e => `${e.label}@${e.provinces.join('.')}`).join('|'))
+  if (f.prefs?.length) p.set('pr', f.prefs.join(','))
   return p.toString()
 }
 
@@ -125,6 +127,7 @@ export function decodeFilters(search) {
       return { label, provinces: (provs || '').split('.').filter(Boolean) }
     }).filter(e => e.provinces.length)
   }
+  f.prefs = split('pr').filter(k => PREFS.some(pf => pf.id === k))
   return f
 }
 
@@ -176,6 +179,19 @@ function mulberry32(seed) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
+}
+
+// ---------- 生活偏好打分 ----------
+export function prefScore(city, prefs) {
+  if (!prefs?.length) return 0
+  let score = 0
+  for (const id of prefs) {
+    const rank = PREF_RANK[id]
+    if (!rank) continue
+    const r = rank(city)
+    if (r) score += r[0]
+  }
+  return score
 }
 
 export function sortCities(list, sort) {

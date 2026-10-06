@@ -2,6 +2,7 @@
 // 支持：省份/大区、租金预算、气候标签、居住类型、空气、大学城、排序、重置、撤销、收藏
 import dataset from '../data/cities_full.json'
 import { applyFilters, splitBudget } from './store.js'
+import { PREF_RANK } from './constants.js'
 
 const ALL_CITIES = dataset.cities
 
@@ -77,21 +78,7 @@ const PREF_RULES = [
   { id: 'safety', label: '优先治安良好的城市', words: /治安好|晚上能出门|安全感/ },
 ]
 
-// 偏好 → 推荐打分规则：返回 [加分, 理由] 或 null
-const PREF_RANK = {
-  rail: c => (c.transit?.rail && !/未通|暂无|无站|没有站|不通/.test(c.transit.rail)) ? [2, '有高铁/动车'] : null,
-  air: c => (c.transit?.air && !/无机场|需到|最近.{0,4}机场|没有机场/.test(c.transit.air)) ? [2, '有机场或邻近机场'] : null,
-  taxi: c => (c.transit?.taxi && !/无出租|没有出租|无网约车/.test(c.transit.taxi)) ? [1, '打车方便'] : null,
-  nomad: c => /多|成熟|聚集|密集|稳定|游民/.test(c.net?.cowork || '') ? [2, '数字游民友好'] : null,
-  quiet: c => (c.type === 'E' ? [2, '县城/小镇节奏慢'] : c.type === 'D' ? [1, '三四线不拥挤'] : null),
-  nature: c => (c.clean50 ? [1, '50km 内无重污染'] : null),
-  mild: c => (c.tags.includes('高原避暑') ? [1, '气候温和'] : null),
-  sun: c => (c.tags.includes('北方干燥') ? [1, '日照充足'] : null),
-  delivery: c => (c.type !== 'E' ? [1, '快递便利'] : null),
-  food: c => (['A', 'D'].includes(c.type) ? [1, '餐饮/外卖较丰富'] : null),
-  medical: c => (['A', 'D'].includes(c.type) ? [1, '医疗资源较好'] : null),
-  safety: c => (c.type !== 'A' ? [1, '小城治安好'] : null),
-}
+// 偏好打分规则 PREF_RANK 已集中到 constants.js（与筛选面板、主列表排序共用）
 
 export const SUGGESTIONS = [
   '云南 1500 以下有温泉的县城',

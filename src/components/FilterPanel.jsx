@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import {
-  Map as MapIcon, BedDouble, Home, ShieldCheck, ChevronDown, RotateCcw, Check,
+  Map as MapIcon, BedDouble, Home, ShieldCheck, ChevronDown, RotateCcw, Check, Sparkles,
 } from 'lucide-react'
-import { RENT_LEVELS, LIVING_TYPES, CLIMATE_TAGS, REGION_ORDER } from '../lib/constants.js'
+import { RENT_LEVELS, LIVING_TYPES, CLIMATE_TAGS, REGION_ORDER, PREFS } from '../lib/constants.js'
 
 function CheckBox({ checked, partial, onClick, label, sub, tone = 'emerald' }) {
   const toneBg = tone === 'amber' ? 'bg-amber-500' : 'bg-emerald-600'
@@ -294,6 +294,41 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
             </span>
           </button>
         </div>
+      </section>
+
+      {/* 生活偏好（AI 小助手识别同一套，这里可手动勾选，影响推荐排序） */}
+      <section>
+        <SectionTitle
+          icon={<Sparkles size={14} className="text-emerald-700" />}
+          title="生活偏好（优先推荐）"
+          extra={
+            filters.prefs?.length > 0 && (
+              <button onClick={() => patch({ prefs: [] })} className="text-[11px] font-medium text-emerald-700">
+                清空
+              </button>
+            )
+          }
+        />
+        <div className="flex flex-wrap gap-1.5">
+          {PREFS.map(p => {
+            const checked = filters.prefs?.includes(p.id)
+            return (
+              <button
+                key={p.id}
+                onClick={() => toggleSet('prefs', p.id)}
+                className={`rounded-full border px-3 py-1.5 text-[12px] transition
+                  ${checked
+                    ? 'border-amber-500/50 bg-amber-500 text-white shadow-sm'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
+              >
+                {p.label}
+              </button>
+            )
+          })}
+        </div>
+        <p className="mt-1.5 px-1 text-[11px] text-stone-400">
+          勾选后系统按偏好打分排序，越符合越靠前；不改变筛选范围。
+        </p>
       </section>
 
       <button

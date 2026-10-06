@@ -36,6 +36,39 @@ export const DEFAULT_LEVELS = ['under_1000', '1000_1700', '1700_3000']
 export const TYPE_CODE_BY_NAME = Object.fromEntries(LIVING_TYPES.map(t => [t.label, t.key]))
 export const TYPE_NAME_BY_CODE = Object.fromEntries(LIVING_TYPES.map(t => [t.key, t.label]))
 
+// 生活偏好（AI 与筛选面板共用）
+export const PREFS = [
+  { id: 'rail', label: '通高铁/动车' },
+  { id: 'air', label: '有机场' },
+  { id: 'taxi', label: '打车方便' },
+  { id: 'nomad', label: '数字游民友好' },
+  { id: 'quiet', label: '安静慢节奏' },
+  { id: 'nature', label: '自然风光好' },
+  { id: 'mild', label: '气候温和' },
+  { id: 'sun', label: '日照充足' },
+  { id: 'delivery', label: '快递便利' },
+  { id: 'food', label: '餐饮/外卖丰富' },
+  { id: 'medical', label: '医疗资源好' },
+  { id: 'safety', label: '治安良好' },
+]
+
+// 偏好 → 城市打分规则：返回 [加分, 理由] 或 null（供排序推荐用）
+// 注意：city.type 存的是中文名（一二线城市/一线郊区/二线郊区/三四线城市/县城·小镇）
+export const PREF_RANK = {
+  rail: c => (c.transit?.rail && !/未通|暂无|无站|没有站|不通/.test(c.transit.rail)) ? [2, '有高铁/动车'] : null,
+  air: c => (c.transit?.air && !/无机场|需到|最近.{0,4}机场|没有机场/.test(c.transit.air)) ? [2, '有机场或邻近机场'] : null,
+  taxi: c => (c.transit?.taxi && !/无出租|没有出租|无网约车/.test(c.transit.taxi)) ? [1, '打车方便'] : null,
+  nomad: c => /游民|咖啡馆多|咖啡馆密集|咖啡馆林立/.test(c.net?.cowork || '') ? [2, '数字游民友好'] : null,
+  quiet: c => (c.type === '县城/小镇' ? [2, '县城/小镇节奏慢'] : c.type === '三四线城市' ? [1, '三四线不拥挤'] : null),
+  nature: c => (c.clean50 ? [1, '50km 内无重污染'] : null),
+  mild: c => (c.tags.includes('高原避暑') ? [1, '气候温和'] : null),
+  sun: c => (c.tags.includes('北方干燥') ? [1, '日照充足'] : null),
+  delivery: c => (c.type !== '县城/小镇' ? [1, '快递便利'] : null),
+  food: c => (['一二线城市', '三四线城市'].includes(c.type) ? [1, '餐饮/外卖较丰富'] : null),
+  medical: c => (['一二线城市', '三四线城市'].includes(c.type) ? [1, '医疗资源较好'] : null),
+  safety: c => (c.type !== '一二线城市' ? [1, '小城治安好'] : null),
+}
+
 export const SORTS = [
   { key: 'explore', label: '✨ 探索模式（每日轮换）' },
   { key: 'total', label: '月总支出 从低到高' },
