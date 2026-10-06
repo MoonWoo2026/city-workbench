@@ -307,8 +307,8 @@ export default function App() {
                     ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
                     : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
               >
-                <SlidersHorizontal size={14} />
-                筛选
+                <MapPinned size={14} />
+                按区域查找
                 {activeFilterCount > 0 && (
                   <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold
                     ${filterOpen ? 'bg-white/25 text-white' : 'bg-emerald-600 text-white'}`}>
@@ -321,7 +321,7 @@ export default function App() {
                 onClick={() => setMobileFilter(true)}
                 className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-2 text-[12px] text-stone-600 lg:hidden"
               >
-                <SlidersHorizontal size={14} />筛选
+                <MapPinned size={14} />按区域查找
                 {activeFilterCount > 0 && (
                   <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
                     {activeFilterCount}
