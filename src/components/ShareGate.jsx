@@ -56,19 +56,26 @@ function LopRabbit() {
 }
 
 // 访客 30 分钟限时门禁：分享链接带 s=1 进入时开始计时，到期整页替换为送客兔
+// 每张入场券带 t= 时间戳；新券（t 更新）会重置 30 分钟，旧券/过期券直接送客
 export default function ShareGate({ children }) {
   const [expired, setExpired] = useState(false)
 
   useEffect(() => {
-    const isGuest = new URLSearchParams(window.location.search).get('s') === '1'
+    const params = new URLSearchParams(window.location.search)
+    const isGuest = params.get('s') === '1'
     if (!isGuest) return
-    let until = 0
-    try { until = +localStorage.getItem(KEY) || 0 } catch { /* ignore */ }
-    if (!until) {
-      until = Date.now() + MINUTES * 60 * 1000
-      try { localStorage.setItem(KEY, String(until)) } catch { /* ignore */ }
+    const ticket = +params.get('t') || 0
+    let state = null
+    try {
+      const raw = localStorage.getItem(KEY)
+      state = raw ? (raw.startsWith('{') ? JSON.parse(raw) : { until: +raw, t: 0 }) : null
+    } catch { /* ignore */ }
+    // 无记录，或带来更新的入场券 → 发放/重置 30 分钟
+    if (!state || ticket > (state.t || 0)) {
+      state = { until: Date.now() + MINUTES * 60 * 1000, t: ticket }
+      try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* ignore */ }
     }
-    const left = until - Date.now()
+    const left = state.until - Date.now()
     if (left <= 0) { setExpired(true); return }
     const t = setTimeout(() => setExpired(true), left)
     return () => clearTimeout(t)

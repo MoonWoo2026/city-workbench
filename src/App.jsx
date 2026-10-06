@@ -115,10 +115,13 @@ export default function App() {
   }, [doPull])
 
   // ---- URL 实时同步（分享即同一视图） ----
+  // 注意保留 s/t 访客入场券参数，否则 ShareGate/新手指引会在 effect 之后读不到 s=1
   useEffect(() => {
     const qs = encodeFilters(filters)
-    const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`
-    window.history.replaceState(null, '', url)
+    const cur = new URLSearchParams(window.location.search)
+    const keep = ['s', 't'].map(k => (cur.get(k) ? `${k}=${cur.get(k)}` : '')).filter(Boolean).join('&')
+    const joined = [qs, keep].filter(Boolean).join('&')
+    window.history.replaceState(null, '', `${window.location.pathname}${joined ? `?${joined}` : ''}`)
   }, [filters])
 
   useEffect(() => {
@@ -190,7 +193,7 @@ export default function App() {
   const shareLink = useCallback(async () => {
     // 分享链接带 s=1 访客标记：朋友打开后限时浏览 30 分钟
     const qs = encodeFilters(filters)
-    const url = `${window.location.origin}${window.location.pathname}?${qs ? `${qs}&` : ''}s=1`
+    const url = `${window.location.origin}${window.location.pathname}?${qs ? `${qs}&` : ''}s=1&t=${Date.now()}`
     try {
       await navigator.clipboard.writeText(url)
       fireToast('链接已复制！朋友打开即为完全相同的筛选视图（访客可浏览 30 分钟）')
