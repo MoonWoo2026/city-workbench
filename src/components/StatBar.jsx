@@ -8,11 +8,10 @@ export default function StatBar({ total, matched, favCount, compareCount }) {
       </span>
       <p className="text-[11px] tracking-[0.35em] text-stone-400">低 成 本 旅 居 指 南</p>
       <h2 className="font-display mt-2.5 text-[30px] font-bold leading-snug text-stone-900 sm:text-[36px]">
-        找一座小城，把日子过慢
+        人间烟火气，最抚躺平人
       </h2>
       <p className="mt-3 max-w-xl text-[13px] leading-6 text-stone-500">
-        房租、物价、气候、网络、交通，都替你查好了。
-        挑一个合心意的地方，轻装上阵。
+        林泉无俗物，此心安处是吾乡。不趋喧嚣，不困红尘，择一处安顿身心。
       </p>
       <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12.5px] text-stone-500">
         <span><b className="font-semibold text-stone-800">{total}</b> 个旅居地</span>
