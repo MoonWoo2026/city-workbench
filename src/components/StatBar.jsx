@@ -2,17 +2,17 @@
 export default function StatBar({ total, matched, favCount, compareCount }) {
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#f2eee1] via-[#f7f5ef] to-[#edf1e7] px-6 py-8 ring-1 ring-stone-200/60 sm:px-10 sm:py-10">
-      {/* 右侧艺术水印：大号「慢」+ 竖排「低成本旅居指南」融为一体 */}
-      <div className="pointer-events-none absolute -right-2 -top-10 flex select-none items-start gap-1 text-stone-900/[0.05] sm:right-2">
+      {/* 右侧艺术水印：大号「慢」+ 竖排「低成本旅居指南」融为一体（移动端只留小「慢」，避免压住标题） */}
+      <div className="pointer-events-none absolute -right-2 -top-4 flex select-none items-start gap-1 text-stone-900/[0.05] sm:-top-10 sm:right-2">
         <span
-          className="font-display mt-12 text-[18px] tracking-[0.35em] sm:text-[22px]"
+          className="font-display mt-12 hidden text-[18px] tracking-[0.35em] sm:block sm:text-[22px]"
           style={{ writingMode: 'vertical-rl' }}
         >
           低成本旅居指南
         </span>
-        <span className="font-display text-[190px] leading-none">慢</span>
+        <span className="font-display text-[110px] leading-none sm:text-[190px]">慢</span>
       </div>
-      <h2 className="font-display mt-1 text-[30px] font-bold leading-snug text-stone-900 sm:text-[36px]">
+      <h2 className="font-display mt-1 text-[27px] font-bold leading-snug text-stone-900 sm:text-[36px]">
         人间烟火气，最抚躺平人
       </h2>
       <p className="mt-5 max-w-xl text-[13px] leading-6 text-stone-500">

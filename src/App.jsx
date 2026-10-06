@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
-  Search, SlidersHorizontal, LayoutGrid, List, Share2, Link2, Scale, X,
+  Search, SlidersHorizontal, LayoutGrid, List, Share2, Scale, X,
   Heart, GraduationCap, Compass, MapPinned, ChevronUp, Map as MapIcon,
   Cloud, CloudOff, RefreshCw, Wallet, Flame,
 } from 'lucide-react'
@@ -272,14 +272,15 @@ export default function App() {
               </div>
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
+            {/* 右侧工具按钮：移动端换行 + 精简文字 */}
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:flex-nowrap">
               <button
                 onClick={() => setFavOnly(v => !v)}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[12px] font-medium transition
+                className={`flex h-9 w-9 items-center justify-center rounded-full border transition
                   ${favOnly ? 'border-rose-300 bg-rose-50 text-rose-600' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
+                title={favOnly ? '退出收藏视图' : '只看收藏'}
               >
-                <Heart size={14} fill={favOnly ? 'currentColor' : 'none'} />
-                <span className="hidden sm:inline">只看收藏</span>
+                <Heart size={15} fill={favOnly ? 'currentColor' : 'none'} />
               </button>
               <button
                 onClick={onSyncClick}
@@ -307,11 +308,10 @@ export default function App() {
               </button>
               <button
                 onClick={shareLink}
-                className="flex items-center gap-1.5 rounded-full bg-stone-900 px-3.5 py-2 text-[12px] font-medium text-white shadow-sm transition hover:bg-stone-700"
+                title="复制分享链接"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-900 text-white shadow-sm transition hover:bg-stone-700"
               >
-                <Share2 size={14} />
-                <span className="hidden sm:inline">复制分享链接</span>
-                <Link2 size={12} className="sm:hidden" />
+                <Share2 size={15} />
               </button>
               {/* 三大查找入口：连体胶囊组（预算 | 区域 | 地图），与右侧工具区分开 */}
               <div className="flex items-center overflow-hidden rounded-full border border-stone-200 bg-white shadow-sm" data-tour="trio">
@@ -361,13 +361,15 @@ export default function App() {
                   <span className="hidden sm:inline">{view === 'map' ? '返回列表' : '按图查找'}</span>
                 </button>
               </div>
+              {/* 移动端筛选抽屉按钮（纯图标，不挤占宽度） */}
               <button
                 onClick={() => setMobileFilter(true)}
-                className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-2 text-[12px] text-stone-600 lg:hidden"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-600 transition hover:border-stone-300 lg:hidden"
+                title="按区域查找"
               >
-                <MapPinned size={14} />按区域查找
+                <MapPinned size={15} />
                 {activeFilterCount > 0 && (
-                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
                     {activeFilterCount}
                   </span>
                 )}
