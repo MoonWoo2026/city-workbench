@@ -19,6 +19,7 @@ import CompareModal from './components/CompareModal.jsx'
 import MapView from './components/MapView.jsx'
 import Assistant from './components/Assistant.jsx'
 import BudgetModal from './components/BudgetModal.jsx'
+import ShareGate from './components/ShareGate.jsx'
 import CursorFollower from './components/CursorFollower.jsx'
 import { budgetTotal } from './lib/store.js'
 import { useCityShare } from './components/useCityShare.jsx'
@@ -166,10 +167,12 @@ export default function App() {
   const compareCities = compareIds.map(id => all.find(c => c.id === id)).filter(Boolean)
 
   const shareLink = useCallback(async () => {
-    const url = window.location.href
+    // 分享链接带 s=1 访客标记：朋友打开后限时浏览 30 分钟
+    const qs = encodeFilters(filters)
+    const url = `${window.location.origin}${window.location.pathname}?${qs ? `${qs}&` : ''}s=1`
     try {
       await navigator.clipboard.writeText(url)
-      fireToast('链接已复制！朋友打开即为完全相同的筛选视图')
+      fireToast('链接已复制！朋友打开即为完全相同的筛选视图（访客可浏览 30 分钟）')
     } catch {
       prompt('复制此链接分享给朋友：', url)
     }
@@ -212,6 +215,7 @@ export default function App() {
   }
 
   return (
+    <ShareGate>
     <div className="min-h-screen bg-paper">
       {/* 顶部 Header */}
       <header className="sticky top-0 z-30 border-b border-stone-200/70 bg-paper/85 backdrop-blur-md">
@@ -621,5 +625,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </ShareGate>
   )
 }

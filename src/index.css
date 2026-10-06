@@ -60,6 +60,21 @@ body {
 .animate-pop-in { animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-toast-in { animation: toast-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* 送客垂耳兔：摇头动画（没办法了的感觉） */
+@keyframes rabbit-shake {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+.rabbit-wrap { animation: rabbit-bob 2.4s ease-in-out infinite; }
+.rabbit-head {
+  transform-origin: 90px 100px;
+  animation: rabbit-shake 1.6s ease-in-out infinite;
+}
+@keyframes rabbit-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 /* 卡片 hover 微抬升 */
 .card-lift {
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),

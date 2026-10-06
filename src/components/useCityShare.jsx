@@ -15,7 +15,7 @@ export function useCityShare() {
     if (share) return
     setShare({ city, qr: null, img: null })
     try {
-      const url = `${window.location.origin}${window.location.pathname}?q=${encodeURIComponent(city.name)}`
+      const url = `${window.location.origin}${window.location.pathname}?q=${encodeURIComponent(city.name)}&s=1`
       const qr = await QRCode.toDataURL(url, { margin: 1, width: 128, color: { dark: '#1c1917', light: '#ffffff' } })
       setShare({ city, qr, img: null })
       await document.fonts.ready
