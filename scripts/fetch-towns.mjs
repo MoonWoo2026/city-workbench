@@ -89,7 +89,8 @@ async function geo(adcode) {
 const data = JSON.parse(readFileSync(resolve(__dirname, '../src/data/cities_full.json'), 'utf8'))
 // 地级市根节点（无 parent 的一二线 / 三四线城市）
 const roots = data.cities.filter(c => !c.parent && (c.type === '一二线城市' || c.type === '三四线城市'))
-const existing = new Set(data.cities.map(c => `${c.province}|${c.name}`))
+// 「已收录」只算手工精编条目（有拼音）；扩展生成的条目拼音为空，必须重新纳入，保证 towns.json 自包含
+const existing = new Set(data.cities.filter(c => c.pinyin).map(c => `${c.province}|${c.name}`))
 
 const out = []
 let skipped = 0, noBoundary = 0
@@ -97,10 +98,14 @@ for (const root of roots) {
   const padc = PROV_ADCODE[root.province]
   if (!padc) continue
   const prov = await geo(padc)
-  const me = prov.features.find(f => core(f.properties.name) === root.name)
-  if (!me) { noBoundary++; continue } // 省直辖县级市等（如济源）没有下级边界，跳过
   let city
-  try { city = await geo(me.properties.adcode) } catch { city = null }
+  if (root.name === root.province) {
+    city = prov // 直辖市：省级文件的 children 就是区/县
+  } else {
+    const me = prov.features.find(f => core(f.properties.name) === root.name)
+    if (!me) { noBoundary++; continue } // 省直辖县级市等（如济源）没有下级边界，跳过
+    try { city = await geo(me.properties.adcode) } catch { city = null }
+  }
   if (!city && SPECIAL_TOWNS[root.name]) {
     // 直筒子市：DataV 无镇级边界，改用名单 + Nominatim 编码
     for (const name of SPECIAL_TOWNS[root.name]) {
@@ -115,14 +120,16 @@ for (const root of roots) {
   if (!city) { console.log('拉取下辖失败:', root.name); continue }
   const kids = city.features.map(f => f.properties).filter(p => p.name && Array.isArray(p.center))
   const hasDistricts = kids.some(p => /[区县市旗]$/.test(p.name))
+  // 市辖区：全部城市都拆分（用户要求单列市辖区）
+  const allowQu = true
   for (const k of kids) {
-    // 普通地级市：只收县/自治县/旗 + 县级市（区=主城区，已由母城条目代表）
+    // 普通地级市：收县/自治县/旗 + 县级市；三四线城市另收市辖区
     // 直筒子市（中山/东莞/嘉峪关/儋州等，无区县）：收镇（街道为主城区，跳过）
     const kind = hasDistricts
-      ? (/[县旗]$/.test(k.name) ? '县' : (/市$/.test(k.name) && k.name !== root.name ? '县级市' : null))
+      ? (/[县旗]$/.test(k.name) ? '县' : (/市$/.test(k.name) && k.name !== root.name ? '县级市' : (allowQu && /区$/.test(k.name) ? '区' : null)))
       : (/镇$/.test(k.name) ? '镇' : null)
     if (!kind) continue
-    const short = k.name.replace(/(市|县|旗)$/, '')
+    const short = k.name.replace(/(市|县|旗|区)$/, '')
     if (existing.has(`${root.province}|${k.name}`) || existing.has(`${root.province}|${short}`)) { skipped++; continue }
     out.push({
       province: root.province, parent: root.name, name: k.name, kind,

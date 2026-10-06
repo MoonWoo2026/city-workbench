@@ -1434,12 +1434,12 @@ for (const [province, rows] of Object.entries(DATA)) {
   const rootsByName = new Map(cities.filter(c => !c.parent).map(c => [`${c.province}|${c.name}`, c]))
   let added = 0
   for (const t of TOWNS) {
-    const short = t.name.replace(/(市|县|旗)$/, '')
+    const short = t.name.replace(/(市|县|旗|区)$/, '')
     if (have.has(`${t.province}|${t.name}`) || have.has(`${t.province}|${short}`)) continue
     const parentCity = rootsByName.get(`${t.province}|${t.parent}`)
     const meta = PROV[t.province]
     if (!parentCity || !meta) continue
-    const fac = t.kind === '县级市' ? 0.78 : t.kind === '镇' ? 0.65 : 0.7
+    const fac = t.kind === '县级市' ? 0.78 : t.kind === '镇' ? 0.65 : t.kind === '区' ? 0.92 : 0.7
     const anchor = Math.max(400, round50(parentCity.rent_single * fac))
     const tags = [...parentCity.tags]
     const clean50 = parentCity.clean50
@@ -1452,7 +1452,7 @@ for (const [province, rows] of Object.entries(DATA)) {
       province: t.province, region: meta.region,
       parent: t.parent,
       lng: t.lng, lat: t.lat,
-      type: TYPE_NAME.E,
+      type: t.kind === '区' ? parentCity.type : TYPE_NAME.E, // 区随母城类型（上海浦东→一二线，茂名电白→三四线），县/镇归县城小镇
       rent_level: rentLevelOf(anchor),
       rent_shared: round50(anchor * 0.55),
       rent_single: anchor,
@@ -1461,8 +1461,8 @@ for (const [province, rows] of Object.entries(DATA)) {
       climate: climateText(tags),
       clean50,
       poll: clean50 ? '' : parentCity.poll,
-      areas: DEFAULT_AREAS.E,
-      utilities: utilitiesText({ ...meta, name: t.province }, TYPE_NAME.E),
+      areas: DEFAULT_AREAS[t.kind === '区' ? 'D' : 'E'], // 区用三四线默认区域
+      utilities: utilitiesText({ ...meta, name: t.province }, t.kind === '区' ? parentCity.type : TYPE_NAME.E),
       food: foodText(anchor),
       environment: envText({ clean50 }, tags, parentCity.poll, undefined),
       hot: false,

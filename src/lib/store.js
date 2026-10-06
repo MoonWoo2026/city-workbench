@@ -98,7 +98,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     return byCode[code] || code
   }))
   return cities.filter(c => {
-    if (f.levels.length && !f.levels.includes(c.rent_level)) return false
+    if (f.levels.length && !f.q && !f.levels.includes(c.rent_level)) return false // 有关键词搜索时放开房租档位（同 uniOnly：搜索是更明确的意图）
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false

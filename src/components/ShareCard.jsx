@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import dataset from '../data/cities_full.json'
 
 // 分享卡片：离屏渲染后由 html-to-image 转 PNG（微信转发用）
 const ShareCard = forwardRef(function ShareCard({ city, qr }, ref) {
@@ -69,7 +70,7 @@ const ShareCard = forwardRef(function ShareCard({ city, qr }, ref) {
       <div className="mt-3.5 flex items-center justify-between rounded-2xl bg-stone-900 px-3.5 py-3">
         <div>
           <p className="text-[12px] font-semibold text-white">扫码查看完整档案</p>
-          <p className="mt-0.5 text-[10px] text-stone-400">2061 个城市/区县/小镇任你挑</p>
+          <p className="mt-0.5 text-[10px] text-stone-400">{dataset.cities.length} 个城市/区县/小镇任你挑</p>
           <p className="mt-1 text-[10px] text-emerald-400">city-workbench.onrender.com</p>
         </div>
         {qr && <img src={qr} alt="二维码" className="h-16 w-16 rounded-lg bg-white p-1" />}
