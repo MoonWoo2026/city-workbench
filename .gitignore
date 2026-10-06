@@ -2,3 +2,4 @@ node_modules/
 dist/
 *.tmp.mjs
 .DS_Store
+scripts/.geo-cache/

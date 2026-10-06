@@ -103,7 +103,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
     if (f.cleanOnly && !c.clean50) return false
-    if (f.uniOnly && !c.uni_town) return false
+    if (f.uniOnly && !f.q && !c.uni_town) return false // 有关键词搜索时放开大学城限制（搜索是更明确的意图）
     if (favOnly && favs && !favs.has(c.id)) return false
     if (f.q && !matchQuery(c, f.q)) return false
     return true

@@ -1426,6 +1426,57 @@ for (const [province, rows] of Object.entries(DATA)) {
   }
 }
 
+// ---------- 下辖县/县级市/镇扩展（towns.json 由 fetch-towns.mjs 生成） ----------
+// 规则：租金锚点 = 母城 ×（县级市 0.78 / 县旗 0.7 / 镇 0.65），保底 400；标签/气候/空气继承母城；类型归 E
+{
+  const TOWNS = JSON.parse(readFileSync(resolve(__dirname, 'towns.json'), 'utf8'))
+  const have = new Set(cities.map(c => `${c.province}|${c.name}`))
+  const rootsByName = new Map(cities.filter(c => !c.parent).map(c => [`${c.province}|${c.name}`, c]))
+  let added = 0
+  for (const t of TOWNS) {
+    const short = t.name.replace(/(市|县|旗)$/, '')
+    if (have.has(`${t.province}|${t.name}`) || have.has(`${t.province}|${short}`)) continue
+    const parentCity = rootsByName.get(`${t.province}|${t.parent}`)
+    const meta = PROV[t.province]
+    if (!parentCity || !meta) continue
+    const fac = t.kind === '县级市' ? 0.78 : t.kind === '镇' ? 0.65 : 0.7
+    const anchor = Math.max(400, round50(parentCity.rent_single * fac))
+    const tags = [...parentCity.tags]
+    const clean50 = parentCity.clean50
+    const id = `${t.province}_t${t.adcode || `${t.parent}_${t.name}`}`
+    const living = 1300 * meta.fac
+    const monthlyTotal = round100(anchor + living + (meta.heat ? 180 : 0))
+    const city = {
+      id, seq: ++seq,
+      name: t.name, pinyin: '',
+      province: t.province, region: meta.region,
+      parent: t.parent,
+      lng: t.lng, lat: t.lat,
+      type: TYPE_NAME.E,
+      rent_level: rentLevelOf(anchor),
+      rent_shared: round50(anchor * 0.55),
+      rent_single: anchor,
+      monthly_total: monthlyTotal,
+      tags,
+      climate: climateText(tags),
+      clean50,
+      poll: clean50 ? '' : parentCity.poll,
+      areas: DEFAULT_AREAS.E,
+      utilities: utilitiesText({ ...meta, name: t.province }, TYPE_NAME.E),
+      food: foodText(anchor),
+      environment: envText({ clean50 }, tags, parentCity.poll, undefined),
+      hot: false,
+      uni_town: null,
+    }
+    const { pros, cons } = buildProsCons(id, anchor, tags, TYPE_NAME.E, false)
+    city.pros = pros
+    city.cons = cons
+    cities.push(city)
+    added++
+  }
+  console.log(`下辖县/县级市/镇扩展: +${added}`)
+}
+
 // 远程办公网络 & 交通出行（高铁/机场就近枢纽需全部坐标就绪，故在组装完成后统一生成）
 const connected = buildConnectivity(cities)
 cities.length = 0
