@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
-import { X, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft } from 'lucide-react'
 
 const KEY = 'cw:onboarded'
+const ASK_KEY = 'cw:onboard-asked' // 「不用啦」次数：前 3 次访问仍会询问，防第一次手滑跳过
+const MAX_ASK = 3
 
 // 新手指引：分享链接访客（s=1）首次打开时触发
 // 欢迎卡 → 聚光灯分步导览核心功能 → 完成标记 localStorage
@@ -45,9 +47,22 @@ export default function Onboarding() {
 
   useEffect(() => {
     const isGuest = new URLSearchParams(window.location.search).get('s') === '1'
-    let done = false
-    try { done = !!localStorage.getItem(KEY) } catch { /* ignore */ }
-    if (isGuest && !done) setPhase('ask')
+    let done = false, asked = 0
+    try {
+      done = !!localStorage.getItem(KEY)
+      asked = +localStorage.getItem(ASK_KEY) || 0
+    } catch { /* ignore */ }
+    if (isGuest && !done && asked < MAX_ASK) setPhase('ask')
+  }, [])
+
+  // 「不用啦，我自己看」：记一次跳过，第 3 次跳过后才永久不再询问
+  const dismiss = useCallback(() => {
+    try {
+      const n = (+localStorage.getItem(ASK_KEY) || 0) + 1
+      localStorage.setItem(ASK_KEY, String(n))
+      if (n >= MAX_ASK) localStorage.setItem(KEY, '1')
+    } catch { /* ignore */ }
+    setPhase('done')
   }, [])
 
   // 「再看一次」入口：左下角 ? 按钮派发 cw:replay-tour，直接进导览（不再问是否首次）
@@ -62,7 +77,7 @@ export default function Onboarding() {
     setPhase('done')
   }, [])
 
-  if (phase === 'ask') return <AskCard onYes={() => setPhase('tour')} onNo={finish} />
+  if (phase === 'ask') return <AskCard onYes={() => setPhase('tour')} onNo={dismiss} />
   if (phase === 'tour') return <Tour onDone={finish} />
   return null
 }
@@ -72,24 +87,26 @@ function AskCard({ onYes, onNo }) {
   return (
     <div className="fixed inset-0 z-[75] flex items-center justify-center bg-stone-900/45 px-6 backdrop-blur-[3px]">
       <div className="animate-pop-in w-full max-w-sm rounded-3xl bg-white p-7 text-center shadow-2xl">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-          <Sparkles size={22} />
-        </div>
-        <h2 className="font-display text-[20px] font-bold text-stone-900">你是第一次来这儿吗？</h2>
+        <img
+          src="/logo.jpg"
+          alt="去哪躺平"
+          className="mx-auto mb-4 h-14 w-14 rounded-2xl object-cover shadow-sm ring-1 ring-stone-200/70"
+        />
+        <h2 className="font-display text-[20px] font-bold text-stone-900">欸？抓住一只新来的小伙伴！</h2>
         <p className="mt-2 text-[13px] leading-6 text-stone-500">
-          朋友分享了一个低成本旅居城市库给你。<br />第一次来的话，我可以用 20 秒带你逛逛核心功能。
+          这里有朋友分享给你的「低成本旅居城市指南」。<br />第一次来的话，不如让我用 20 秒带你熟悉一下怎么快乐「躺平」？
         </p>
         <button
           onClick={onYes}
           className="mt-5 w-full rounded-full bg-emerald-600 py-2.5 text-[13px] font-medium text-white transition hover:bg-emerald-700"
         >
-          第一次来，带我逛逛
+          好呀，带我逛逛
         </button>
         <button
           onClick={onNo}
           className="mt-2 w-full rounded-full py-2 text-[12px] text-stone-400 transition hover:text-stone-600"
         >
-          我逛过，直接看吧
+          不用啦，我自己看
         </button>
       </div>
     </div>
