@@ -106,7 +106,7 @@ function isNegated(text, word, look = 6) {
   const i = text.indexOf(word)
   if (i < 0) return false
   const before = text.slice(Math.max(0, i - look), i)
-  return /不要|不用|不看|不考虑|排除|去掉|除了|别去|别选|不想去|非/.test(before)
+  return /不要|不用|不看|不考虑|排除|去掉|除了|别去|别选|不想去|取消|非/.test(before)
 }
 
 function findProvinces(text) {
@@ -197,7 +197,11 @@ function findTags(text) {
   for (const rule of TAG_RULES) {
     const hit = rule.words.find(w => text.includes(w))
     if (!hit) continue
-    if (isNegated(text, hit)) remove.push(rule.key)
+    const i = text.indexOf(hit)
+    // 后缀否定：「高原不要」「温泉不看」——否定词跟在词后面也算否定
+    const after = text.slice(i + hit.length, i + hit.length + 4)
+    const negAfter = /^(?:不要|不看|不用|不选|不想去|别去?|排除|去掉|取消)/.test(after)
+    if (negAfter || isNegated(text, hit)) remove.push(rule.key)
     else add.push(rule.key)
   }
   return { add: [...new Set(add)], remove: [...new Set(remove)] }
@@ -248,6 +252,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     levels: [...currentFilters.levels],
     types: [...currentFilters.types],
     tags: [...currentFilters.tags],
+    tagExcl: [...(currentFilters.tagExcl || [])],
     prefs: [...(currentFilters.prefs || [])],
   }
   const items = [] // 识别到的条件（用于回复气泡展示）
@@ -334,13 +339,24 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   // 6) 标签（新一轮未说「也/还」时替换旧标签，避免跨话题 AND 残留）
   const tags = findTags(text)
   if (tags.remove.length) {
-    next.tags = next.tags.filter(t => !tags.remove.includes(t))
-    items.push({ k: 'tagOff', label: '移除标签', value: tags.remove.join('、') })
+    if (/取消|撤销/.test(text)) {
+      // 「取消高原」= 撤回之前的限定/排除，双向都清掉
+      next.tags = next.tags.filter(t => !tags.remove.includes(t))
+      next.tagExcl = next.tagExcl.filter(t => !tags.remove.includes(t))
+      items.push({ k: 'tagReset', label: '标签', value: `${tags.remove.join('、')}不限` })
+    } else {
+      // 「高原不要」「排除高原」= 硬排除带该标签的城市
+      next.tags = next.tags.filter(t => !tags.remove.includes(t))
+      next.tagExcl = [...new Set([...next.tagExcl, ...tags.remove])]
+      items.push({ k: 'tagOff', label: '排除标签', value: tags.remove.join('、') })
+    }
   }
   if (tags.add.length) {
     next.tags = additive
       ? [...new Set([...next.tags, ...tags.add])]
       : tags.add
+    // 正向限定与旧排除互斥
+    next.tagExcl = next.tagExcl.filter(t => !tags.add.includes(t))
     for (const t of tags.add) items.push({ k: 'tag', label: '标签', value: t })
   }
 
@@ -462,6 +478,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
+    { when: () => next.tagExcl.length > 0, run: () => { next.tagExcl = []; relaxed.push('排除条件太苛刻，已取消标签排除') } },
     { when: () => !!next.spec, run: () => { next.spec = null; relaxed.push('该专科强院城市与其他条件无交集，已取消专科限制') } },
     { when: () => !!next.budget, run: () => { next.budget = null; relaxed.push('预算内没有完全住得起的，已关闭预算限制') } },
   ]
@@ -548,8 +565,17 @@ export function refineInterpret(rawText, currentFilters) {
     if (/工业|污染|雾霾|厂/.test(mEx[1])) {
       return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }
     }
-    if (/海边|海滨|沿海|海景/.test(raw)) {
-      return { next: { ...currentFilters, tags: currentFilters.tags.filter(t => t !== '海滨沿海') }, chip: '不看海边' }
+    // 通用标签排除：「排除高原」「不要温泉」「去掉海边的」等
+    const ft = findTags(raw)
+    if (ft.add.length) {
+      return {
+        next: {
+          ...currentFilters,
+          tags: currentFilters.tags.filter(t => !ft.add.includes(t)),
+          tagExcl: [...new Set([...(currentFilters.tagExcl || []), ...ft.add])],
+        },
+        chip: `排除${ft.add.join('、')}`,
+      }
     }
     return null
   }
@@ -569,6 +595,18 @@ export function refineInterpret(rawText, currentFilters) {
       return { next: { ...currentFilters, medOnly: true, medExcl: false }, chip: '只看有三甲' }
     }
     if (/县城|小镇/.test(raw)) return { next: { ...currentFilters, types: ['E'] }, chip: '只要县城/小镇' }
+    // 通用标签限定：「只要高原」「只看温泉」「就看得暖气的」等
+    const ft = findTags(raw)
+    if (ft.add.length) {
+      return {
+        next: {
+          ...currentFilters,
+          tags: ft.add,
+          tagExcl: (currentFilters.tagExcl || []).filter(t => !ft.add.includes(t)),
+        },
+        chip: `只要${ft.add.join('、')}`,
+      }
+    }
   }
   return null
 }

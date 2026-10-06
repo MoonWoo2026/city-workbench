@@ -34,6 +34,7 @@ export function defaultFilters() {
     levels: [...DEFAULT_LEVELS],
     types: [],                // 空数组 = 全选
     tags: [],                 // 标签之间为 AND（交集）
+    tagExcl: [],              // 排除的标签（如「高原不要」→ 排除高原避暑城市）
     cleanOnly: false,
     uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
     medOnly: false,           // 有三甲医院（本市或母城市区）
@@ -98,6 +99,7 @@ export function encodeFilters(f) {
   if (!isDefaultLevels) p.set('l', f.levels.join(','))
   if (f.types.length) p.set('ty', f.types.join(','))
   if (f.tags.length) p.set('tag', f.tags.join(','))
+  if (f.tagExcl?.length) p.set('tagx', f.tagExcl.join(','))
   if (f.cleanOnly) p.set('clean', '1')
   if (f.medOnly) p.set('med', '1')
   if (f.medExcl) p.set('medx', '1')
@@ -119,6 +121,7 @@ export function decodeFilters(search) {
   if (p.has('l')) f.levels = split('l')
   f.types = split('ty')
   f.tags = split('tag')
+  f.tagExcl = split('tagx')
   f.cleanOnly = p.get('clean') === '1'
   f.medOnly = p.get('med') === '1'
   f.medExcl = p.get('medx') === '1'
@@ -192,6 +195,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
+    if (f.tagExcl?.length && f.tagExcl.some(t => c.tags.includes(t))) return false // 排除带这些标签的城市
     if (f.cleanOnly && !c.clean50) return false
     if (f.medOnly && !(c.med && (c.med.n > 0 || c.med.p > 0))) return false // 有三甲（本市或市区）
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲

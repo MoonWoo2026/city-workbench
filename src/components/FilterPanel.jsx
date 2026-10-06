@@ -58,6 +58,11 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
   const toggleSet = (key, value) => {
     const set = new Set(filters[key])
     set.has(value) ? set.delete(value) : set.add(value)
+    // 勾选标签时同时解除同标签的排除（否则勾选「高原避暑」却仍被「排除高原」挡住，结果为 0）
+    if (key === 'tags' && set.has(value) && filters.tagExcl?.includes(value)) {
+      patch({ [key]: [...set], tagExcl: filters.tagExcl.filter(t => t !== value) })
+      return
+    }
     patch({ [key]: [...set] })
   }
 
