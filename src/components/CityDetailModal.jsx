@@ -5,9 +5,13 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
+  Share2, Loader2,
 } from 'lucide-react'
+import { toPng } from 'html-to-image'
+import QRCode from 'qrcode'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
+import ShareCard from './ShareCard.jsx'
 
 function MiniMap({ city }) {
   const ref = useRef(null)
@@ -72,8 +76,28 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
   const [draft, setDraft] = useState(note || '')
   const [savedTip, setSavedTip] = useState(false)
   const timer = useRef(null)
+  // 分享卡片：null=未触发；{ qr, img:null }=生成中；{ qr, img }=就绪
+  const [share, setShare] = useState(null)
+  const shareRef = useRef(null)
 
-  useEffect(() => { setDraft(note || ''); setSavedTip(false) }, [city.id, note])
+  // 生成分享图：渲染离屏 ShareCard → html-to-image 转 PNG（微信转发用）
+  const onShare = async () => {
+    if (share) return
+    setShare({ qr: null, img: null })
+    try {
+      const url = `${window.location.origin}${window.location.pathname}?q=${encodeURIComponent(city.name)}`
+      const qr = await QRCode.toDataURL(url, { margin: 1, width: 128, color: { dark: '#1c1917', light: '#ffffff' } })
+      setShare({ qr, img: null })
+      await document.fonts.ready
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+      const img = await toPng(shareRef.current, { pixelRatio: 2.5, cacheBust: true })
+      setShare({ qr, img })
+    } catch {
+      setShare(null)
+    }
+  }
+
+  useEffect(() => { setDraft(note || ''); setSavedTip(false); setShare(null) }, [city.id, note])
 
   useEffect(() => {
     const onKey = e => { if (e.key === 'Escape') onClose() }
@@ -113,12 +137,21 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
               {city.province} · {city.region} · {city.parent || city.type}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex flex-none items-center gap-2">
+            <button
+              onClick={onShare}
+              title="生成分享卡片图（可转发到微信）"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/70 transition hover:bg-emerald-100"
+            >
+              {share && !share.img ? <Loader2 size={17} className="animate-spin" /> : <Share2 size={17} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* 内容 */}
@@ -322,6 +355,44 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
           </button>
         </div>
       </div>
+
+      {/* 离屏渲染的分享卡片（生成 PNG 用） */}
+      {share && (
+        <div style={{ position: 'fixed', left: -2000, top: 0, pointerEvents: 'none' }}>
+          <ShareCard ref={shareRef} city={city} qr={share.qr} />
+        </div>
+      )}
+
+      {/* 分享预览：生成后展示图片，长按/保存即可转发微信 */}
+      {share && share.img && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => setShare(null)}>
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-[2px]" />
+          <div
+            className="animate-pop-in relative flex max-h-full w-full max-w-[400px] flex-col items-center gap-3 rounded-3xl bg-white p-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <img src={share.img} alt={`${city.name} 分享卡片`} className="max-h-[62vh] w-auto rounded-2xl ring-1 ring-stone-200" />
+            <p className="text-center text-[12px] leading-[1.6] text-stone-500">
+              微信里可<b className="text-stone-700">长按图片 → 发送给朋友</b><br />或先保存到相册再转发
+            </p>
+            <div className="flex w-full gap-2">
+              <a
+                href={share.img}
+                download={`去哪躺平-${city.name}.png`}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-emerald-700"
+              >
+                保存图片
+              </a>
+              <button
+                onClick={() => setShare(null)}
+                className="flex-1 rounded-full bg-stone-100 px-4 py-2 text-[13px] font-medium text-stone-600 transition hover:bg-stone-200"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
