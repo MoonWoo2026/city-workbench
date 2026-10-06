@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
-  Map as MapIcon, BedDouble, Home, ShieldCheck, ChevronDown, RotateCcw, Check, GraduationCap,
+  Map as MapIcon, BedDouble, Home, ShieldCheck, ChevronDown, RotateCcw, Check,
 } from 'lucide-react'
 import { RENT_LEVELS, LIVING_TYPES, CLIMATE_TAGS, REGION_ORDER } from '../lib/constants.js'
 
@@ -76,28 +76,6 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
       ? 'gap-5 md:columns-2 xl:columns-3 [&>*]:mb-5 [&>*]:break-inside-avoid'
       : 'space-y-6'
     }>
-      {/* 个人偏好：优先大学城 */}
-      <section className="rounded-2xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 to-violet-50 p-3.5 shadow-sm">
-        <button onClick={() => patch({ uniOnly: !filters.uniOnly })} className="flex w-full items-center gap-3 text-left">
-          <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl transition
-            ${filters.uniOnly ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-500 ring-1 ring-indigo-200'}`}>
-            <GraduationCap size={18} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[13.5px] font-semibold text-stone-800">优先大学城周边住宿</span>
-            <span className="mt-0.5 block text-[11px] leading-4 text-stone-500">
-              吃的多 · 交通方便 · 商超该有的都有（仅缺大型菜市场）
-            </span>
-          </span>
-          <span className={`relative h-[22px] w-10 flex-none rounded-full transition ${filters.uniOnly ? 'bg-indigo-600' : 'bg-stone-300'}`}>
-            <span
-              className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-all
-                ${filters.uniOnly ? 'left-[21px]' : 'left-[3px]'}`}
-            />
-          </span>
-        </button>
-      </section>
-
       {/* 区域 / 省份 */}
       <section>
         <SectionTitle
@@ -279,25 +257,43 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
         <p className="mt-1.5 px-1 text-[11px] text-stone-400">多个标签为「同时满足」。</p>
       </section>
 
-      {/* 生态硬指标 */}
+      {/* 环境与住宿偏好（开关式，默认都不过滤） */}
       <section>
-        <SectionTitle icon={<ShieldCheck size={14} className="text-emerald-700" />} title="生态硬指标" />
-        <button
-          onClick={() => patch({ cleanOnly: !filters.cleanOnly })}
-          className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition
-            ${filters.cleanOnly ? 'border-emerald-600/50 bg-emerald-50' : 'border-stone-200 bg-white/60'}`}
-        >
-          <span className={`relative h-5 w-9 flex-none rounded-full transition ${filters.cleanOnly ? 'bg-emerald-600' : 'bg-stone-300'}`}>
-            <span
-              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all
-                ${filters.cleanOnly ? 'left-[18px]' : 'left-0.5'}`}
-            />
-          </span>
-          <span>
-            <span className="block text-[13px] font-medium text-stone-800">周边 50 公里无重污染</span>
-            <span className="block text-[11px] text-stone-400">排除重工业 / 化工 / 矿区等城市</span>
-          </span>
-        </button>
+        <SectionTitle icon={<ShieldCheck size={14} className="text-emerald-700" />} title="环境与住宿偏好" />
+        <div className="space-y-1.5">
+          <button
+            onClick={() => patch({ cleanOnly: !filters.cleanOnly })}
+            className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition
+              ${filters.cleanOnly ? 'border-emerald-600/50 bg-emerald-50' : 'border-stone-200 bg-white/60'}`}
+          >
+            <span className={`relative h-5 w-9 flex-none rounded-full transition ${filters.cleanOnly ? 'bg-emerald-600' : 'bg-stone-300'}`}>
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all
+                  ${filters.cleanOnly ? 'left-[18px]' : 'left-0.5'}`}
+              />
+            </span>
+            <span>
+              <span className="block text-[13px] font-medium text-stone-800">排除重污染城市</span>
+              <span className="block text-[11px] text-stone-400">一键排除 50 公里内有重工业 / 化工 / 矿区的城市</span>
+            </span>
+          </button>
+          <button
+            onClick={() => patch({ uniOnly: !filters.uniOnly })}
+            className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition
+              ${filters.uniOnly ? 'border-indigo-500/40 bg-indigo-50/80' : 'border-stone-200 bg-white/60'}`}
+          >
+            <span className={`relative h-5 w-9 flex-none rounded-full transition ${filters.uniOnly ? 'bg-indigo-500' : 'bg-stone-300'}`}>
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all
+                  ${filters.uniOnly ? 'left-[18px]' : 'left-0.5'}`}
+              />
+            </span>
+            <span>
+              <span className="block text-[13px] font-medium text-stone-800">仅看大学城周边</span>
+              <span className="block text-[11px] text-stone-400">吃的多 · 交通方便 · 商超齐全（默认不开启）</span>
+            </span>
+          </button>
+        </div>
       </section>
 
       <button

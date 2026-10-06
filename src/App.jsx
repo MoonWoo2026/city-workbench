@@ -379,10 +379,10 @@ export default function App() {
                 <Compass size={14} className="text-emerald-700" />
                 <span><b className="text-stone-800">{results.length}</b> 个城市符合条件</span>
                 {filters.uniOnly && (
-                  <span className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 ring-1 ring-indigo-500/15">
-                    <GraduationCap size={11} />优先大学城
-                  </span>
-                )}
+                    <span className="flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-500 ring-1 ring-indigo-500/15">
+                      <GraduationCap size={11} />仅看大学城
+                    </span>
+                  )}
               </div>
 
               <div className="ml-auto flex items-center gap-2">
@@ -499,7 +499,7 @@ export default function App() {
 
             {filters.uniOnly && results.length > 0 && (
               <p className="mt-4 text-center text-[11px] text-stone-400">
-                已优先展示 {uniMatched} 个大学城周边城市 · 关闭左侧顶部开关可浏览全国 {dataset.total} 个城市
+                仅展示 {uniMatched} 个大学城周边城市 · 打开筛选面板关闭该开关可浏览全国
               </p>
             )}
           </section>

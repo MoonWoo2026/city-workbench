@@ -35,7 +35,7 @@ export function defaultFilters() {
     types: [],                // 空数组 = 全选
     tags: [],                 // 标签之间为 AND（交集）
     cleanOnly: false,
-    uniOnly: true,            // 个人偏好：优先大学城周边住宿
+    uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
   }
@@ -110,7 +110,7 @@ export function decodeFilters(search) {
   f.types = split('ty')
   f.tags = split('tag')
   f.cleanOnly = p.get('clean') === '1'
-  f.uniOnly = !p.has('uni') || p.get('uni') === '1'
+  f.uniOnly = p.get('uni') === '1'
   f.sort = p.get('sort') || 'total'
   if (p.has('b')) {
     const [mode, ...nums] = p.get('b').split('~')
