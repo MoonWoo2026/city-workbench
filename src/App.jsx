@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   Search, SlidersHorizontal, LayoutGrid, List, Share2, Link2, Scale, X,
   Heart, GraduationCap, Compass, MapPinned, ChevronUp, Map as MapIcon,
-  Cloud, CloudOff, RefreshCw,
+  Cloud, CloudOff, RefreshCw, Wallet,
 } from 'lucide-react'
 import dataset from './data/cities_full.json'
 import { SORTS, DEFAULT_LEVELS } from './lib/constants.js'
@@ -18,6 +18,8 @@ import CityDetailModal from './components/CityDetailModal.jsx'
 import CompareModal from './components/CompareModal.jsx'
 import MapView from './components/MapView.jsx'
 import Assistant from './components/Assistant.jsx'
+import BudgetModal from './components/BudgetModal.jsx'
+import { budgetTotal } from './lib/store.js'
 import { useCityShare } from './components/useCityShare.jsx'
 
 const PAGE_SIZE = 60
@@ -36,6 +38,7 @@ export default function App() {
   const [view, setView] = useState(() => localStorage.getItem('cw:view') || 'grid')
   const [favOnly, setFavOnly] = useState(false)
   const [mobileFilter, setMobileFilter] = useState(false)
+  const [showBudget, setShowBudget] = useState(false)
   const [filterOpen, setFilterOpen] = useState(() => localStorage.getItem('cw:filterOpen') !== '0')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [toast, setToast] = useState('')
@@ -177,6 +180,7 @@ export default function App() {
     filters.tags.forEach(t => chips.push({ k: `t:${t}`, label: t, clear: () => patch({ tags: filters.tags.filter(x => x !== t) }) }))
     filters.types.forEach(ty => chips.push({ k: `ty:${ty}`, label: { A: '一二线', B: '一线郊区', C: '二线郊区', D: '三四线', E: '县城/小镇' }[ty], clear: () => patch({ types: filters.types.filter(x => x !== ty) }) }))
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
+    if (filters.budget) chips.push({ k: 'budget', label: `预算 ¥${budgetTotal(filters.budget)}/月（${filters.budget.mode === 'shared' ? '合租' : '整租'}）`, clear: () => patch({ budget: null }) })
     return chips
   }, [filters, patch])
 
@@ -283,6 +287,17 @@ export default function App() {
                 <Share2 size={14} />
                 <span className="hidden sm:inline">复制分享链接</span>
                 <Link2 size={12} className="sm:hidden" />
+              </button>
+              <button
+                onClick={() => setShowBudget(true)}
+                title="按预算查找：房租/餐饮/杂费/交通/其他逐项设限，匹配住得起的城市"
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[12px] font-medium transition
+                  ${filters.budget
+                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}
+              >
+                <Wallet size={14} />
+                <span className="hidden sm:inline">按预算查找</span>
               </button>
               <button
                 onClick={toggleFilterOpen}
@@ -566,6 +581,16 @@ export default function App() {
           cities={compareCities}
           onClose={() => setShowCompare(false)}
           onRemove={id => setCompareIds(prev => prev.filter(x => x !== id))}
+        />
+      )}
+
+      {/* 预算模式弹窗 */}
+      {showBudget && (
+        <BudgetModal
+          initial={filters.budget}
+          onClose={() => setShowBudget(false)}
+          onApply={b => patch(b ? { budget: b, sort: 'total' } : { budget: null })}
+          previewCount={b => applyFilters(all, { ...filters, budget: b }, { favs, favOnly }).length}
         />
       )}
 

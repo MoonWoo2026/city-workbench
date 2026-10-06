@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap, Share2 } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, BedDouble, Home as HomeIcon, Wallet, GraduationCap, Share2, Thermometer, Droplets } from 'lucide-react'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
@@ -158,7 +158,14 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
         </span>
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-2.5">
+      {city.climate_stats && (
+        <div className="mt-2 flex items-center gap-3 text-[11px] text-stone-400">
+          <span className="flex items-center gap-1"><Thermometer size={11} className="text-sky-500" />最冷{city.climate_stats.coldest.month}月 {city.climate_stats.coldest.temp}°C</span>
+          <span className="flex items-center gap-1"><Thermometer size={11} className="text-amber-500" />最热{city.climate_stats.hottest.month}月 {city.climate_stats.hottest.temp}°C</span>
+          <span className="flex items-center gap-1"><Droplets size={11} className="text-teal-500" />年降水 {city.climate_stats.annual_precip}mm</span>
+        </div>
+      )}
+      <div className="mt-2.5 flex items-center justify-between border-t border-stone-100 pt-2.5">
         <CompareToggle comparing={comparing} onToggle={onToggleCompare} />
         <span className="flex items-center gap-0.5 text-[11px] text-stone-400 transition group-hover:text-emerald-700">
           查看详情 <ChevronRight size={13} />
@@ -211,6 +218,14 @@ export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, on
           <div className="text-[14px] font-bold text-emerald-800">{yuan(city.monthly_total)}</div>
         </div>
       </div>
+
+      {city.climate_stats && (
+        <div className="flex flex-none items-center gap-3 text-[11px] text-stone-400 sm:flex-col sm:items-end sm:gap-1">
+          <span className="flex items-center gap-1"><Thermometer size={11} className="text-sky-500" />最冷{city.climate_stats.coldest.month}月 {city.climate_stats.coldest.temp}°C</span>
+          <span className="flex items-center gap-1"><Thermometer size={11} className="text-amber-500" />最热{city.climate_stats.hottest.month}月 {city.climate_stats.hottest.temp}°C</span>
+          <span className="flex items-center gap-1"><Droplets size={11} className="text-teal-500" />{city.climate_stats.annual_precip}mm</span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-2 sm:justify-end">
         <CompareToggle comparing={comparing} onToggle={onToggleCompare} />

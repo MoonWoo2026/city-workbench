@@ -1485,6 +1485,25 @@ const connected = buildConnectivity(cities)
 cities.length = 0
 cities.push(...connected)
 
+// 气候统计：读取 fetch-climate.mjs 生成的缓存，注入每城 coldest/hottest/annual_precip
+{
+  const CLIMATE_DIR = resolve(__dirname, '.geo-cache/climate')
+  const { existsSync, readFileSync } = await import('fs')
+  let hit = 0
+  for (const c of cities) {
+    const fp = resolve(CLIMATE_DIR, `${c.id}.json`)
+    if (!existsSync(fp)) continue
+    const s = JSON.parse(readFileSync(fp, 'utf8'))
+    c.climate_stats = {
+      coldest: s.coldest_month,   // { month: 1, temp: -4.2 }
+      hottest: s.hottest_month,   // { month: 7, temp: 27.8 }
+      annual_precip: s.annual_precip, // mm
+    }
+    hit++
+  }
+  if (hit) console.log(`气候统计注入: ${hit}/${cities.length}`)
+}
+
 // 省份索引（层级过滤用）
 const regions = {}
 for (const c of cities) {

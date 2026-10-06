@@ -1,7 +1,7 @@
 // 躺平小助手：自然语言指令 → 筛选条件（纯本地识别，无需联网）
 // 支持：省份/大区、租金预算、气候标签、居住类型、空气、大学城、排序、重置、撤销、收藏
 import dataset from '../data/cities_full.json'
-import { applyFilters } from './store.js'
+import { applyFilters, splitBudget } from './store.js'
 
 const ALL_CITIES = dataset.cities
 
@@ -63,9 +63,9 @@ const WARM_PROVINCES = ['海南', '云南', '广西', '广东', '福建']
 
 export const SUGGESTIONS = [
   '云南 1500 以下有温泉的县城',
+  '每月预算2500能去哪躺平',
   '海边空气好的小城市',
   '过冬暖和又便宜的地方',
-  '三四线城市，整租最便宜',
   '东北有暖气的地方',
 ]
 
@@ -277,6 +277,20 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     next.q = '' // 换话题时清掉旧的城市搜索
   }
 
+  // 4.5) 月总预算模式：「预算3000」「每月花2500」「一个月2000生活费」（区别于「房租1500」单项）
+  const budgetM = text.match(/(?:预算|生活费|总开销|月支出|月花费|每月(?:花|开销|支出)|一个月(?:花|开销|支出))(\d{3,5})/)
+    || text.match(/(\d{3,5})(?:元|块)?(?:一个月|每月)(?:的)?(?:预算|生活费|开销|支出|花费)/)
+  if (budgetM && +budgetM[1] >= 800) {
+    const total = +budgetM[1]
+    const mode = /合租|主卧|床位/.test(text) ? 'shared' : 'single'
+    next.budget = { mode, ...splitBudget(total) }
+    next.levels = BANDS.map(b => b.key) // 预算模式放开房租档
+    items.push({ k: 'budget', label: '月预算', value: `¥${total}（${mode === 'shared' ? '合租' : '整租'}口径）` })
+  } else if (/不限预算|取消预算|关掉预算|不看预算/.test(text)) {
+    next.budget = null
+    items.push({ k: 'budgetOff', label: '预算', value: '已关闭预算模式' })
+  }
+
   // 5) 租金预算
   const lv = findLevels(text)
   let levelTouched = false
@@ -350,7 +364,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
 
   if (!items.length) return { kind: 'unknown', raw: rawText }
 
-  // 零结果自动放宽（按「隐藏默认条件 → 地域 → 明确偏好」顺序，尽量保住用户显式意图）
+  // 零结果自动放宽（按「隐藏默认条件 → 地域 → 明确偏好 → 预算」顺序，尽量保住用户显式意图）
   const calc = () => applyFilters(ALL_CITIES, next, { favs: null, favOnly: false }).length
   let count = calc()
   const relaxed = []
@@ -360,6 +374,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
+    { when: () => !!next.budget, run: () => { next.budget = null; relaxed.push('预算内没有完全住得起的，已关闭预算限制') } },
   ]
   for (const step of relaxSteps) {
     if (count > 0) break

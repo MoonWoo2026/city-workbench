@@ -37,7 +37,48 @@ export function defaultFilters() {
     cleanOnly: false,
     uniOnly: true,            // 个人偏好：优先大学城周边住宿
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
+    budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
   }
+}
+
+// ---------- 预算模式 ----------
+// 每城生活成本分项估算：living = 月总支出 - 整租，再按固定比例拆分
+export function budgetBreakdown(c, mode = 'single') {
+  const rent = mode === 'shared' ? c.rent_shared : c.rent_single
+  const living = Math.max(0, c.monthly_total - c.rent_single)
+  const r10 = n => Math.round(n / 10) * 10
+  return {
+    rent,
+    food: r10(living * 0.5),
+    utils: r10(living * 0.18),
+    transit: r10(living * 0.12),
+    other: r10(living * 0.20),
+    total: rent + living,
+  }
+}
+
+// 总预算 → 默认拆分（房租 45% / 餐饮 27% / 杂费 9% / 交通 6% / 其他 13%，余项归房租保证合计=总预算）
+export function splitBudget(total) {
+  const t = Math.max(0, Math.round(total) || 0)
+  const r50 = n => Math.round(n / 50) * 50
+  const food = r50(t * 0.27)
+  const utils = r50(t * 0.09)
+  const transit = r50(t * 0.06)
+  const other = r50(t * 0.13)
+  return { rent: Math.max(0, t - food - utils - transit - other), food, utils, transit, other }
+}
+
+export function budgetTotal(b) {
+  return b ? (b.rent || 0) + (b.food || 0) + (b.utils || 0) + (b.transit || 0) + (b.other || 0) : 0
+}
+
+export function matchBudget(c, b) {
+  if (!b) return true
+  const bk = budgetBreakdown(c, b.mode)
+  for (const k of ['rent', 'food', 'utils', 'transit', 'other']) {
+    if (b[k] > 0 && bk[k] > b[k]) return false
+  }
+  return true
 }
 
 // ---------- URL Query 编解码（用于分享完全一致的视图） ----------
@@ -55,6 +96,7 @@ export function encodeFilters(f) {
   if (f.cleanOnly) p.set('clean', '1')
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'total') p.set('sort', f.sort)
+  if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
   return p.toString()
 }
 
@@ -70,6 +112,11 @@ export function decodeFilters(search) {
   f.cleanOnly = p.get('clean') === '1'
   f.uniOnly = !p.has('uni') || p.get('uni') === '1'
   f.sort = p.get('sort') || 'total'
+  if (p.has('b')) {
+    const [mode, ...nums] = p.get('b').split('~')
+    const [rent, food, utils, transit, other] = nums.map(n => +n || 0)
+    f.budget = { mode: mode === 'shared' ? 'shared' : 'single', rent, food, utils, transit, other }
+  }
   return f
 }
 
@@ -98,14 +145,15 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     return byCode[code] || code
   }))
   return cities.filter(c => {
-    if (f.levels.length && !f.q && !f.levels.includes(c.rent_level)) return false // 有关键词搜索时放开房租档位（同 uniOnly：搜索是更明确的意图）
+    if (f.levels.length && !f.q && !f.budget && !f.levels.includes(c.rent_level)) return false // 有关键词搜索/预算模式时放开房租档位（更明确的意图）
     if (f.provinces.length && !f.provinces.includes(c.province)) return false
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
     if (f.cleanOnly && !c.clean50) return false
-    if (f.uniOnly && !f.q && !c.uni_town) return false // 有关键词搜索时放开大学城限制（搜索是更明确的意图）
+    if (f.uniOnly && !f.q && !f.budget && !c.uni_town) return false // 有关键词搜索/预算模式时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false
     if (f.q && !matchQuery(c, f.q)) return false
+    if (f.budget && !matchBudget(c, f.budget)) return false
     return true
   })
 }

@@ -222,7 +222,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                         <p className="mt-1 text-stone-500">直接用大白话说需求，我帮你筛城市：</p>
                         <div className="mt-1.5 space-y-1 text-[12px] text-stone-500">
                           <p>· 省份/大区：「云南的」「东三省」「西南地区」</p>
-                          <p>· 预算：「1500 以下」「1000 到 2000」「3000 左右」</p>
+                          <p>· 预算：「1500 以下」「月预算 2500」「每月花 2000」</p>
                           <p>· 偏好：「有温泉」「海边」「空气好」「有暖气」</p>
                           <p>· 类型：「县城小镇」「三四线」「大城市郊区」</p>
                           <p>· 还可以说「过冬暖和」「最便宜」「重置」「撤销」</p>
@@ -243,6 +243,11 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                           {m.count > 0 ? `已识别 ${m.items.length} 个条件，帮你筛好了` : '条件都识别到了，但没有完全匹配的地方'}
                         </p>
                         {chipsRow(m.items, 'bg-emerald-50 text-emerald-800 ring-emerald-600/15')}
+                        {m.filtersNext?.budget && (
+                          <p className="mt-1.5 rounded-lg bg-stone-50 px-2 py-1.5 text-[11.5px] leading-5 text-stone-500 ring-1 ring-stone-200/60">
+                            预算拆分（{m.filtersNext.budget.mode === 'shared' ? '合租' : '整租'}口径）：房租 ≤¥{m.filtersNext.budget.rent} · 餐饮 ≤¥{m.filtersNext.budget.food} · 杂费 ≤¥{m.filtersNext.budget.utils} · 交通 ≤¥{m.filtersNext.budget.transit} · 其他 ≤¥{m.filtersNext.budget.other}。说「取消预算」可退出。
+                          </p>
+                        )}
                         {m.relaxed?.length > 0 && (
                           <p className="mt-1.5 text-[11.5px] text-amber-600">
                             {m.relaxed.join('，')}（否则没有结果）
@@ -336,7 +341,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                         <p>我能听懂这些说法：</p>
                         <div className="mt-1 space-y-1 text-[12px] text-stone-500">
                           <p>📍 <b>地区</b>：云南 / 东三省 / 西南 / 不要新疆</p>
-                          <p>💰 <b>预算</b>：1000 以下 / 1500 到 2500 / 3000 左右 / 越便宜越好</p>
+                          <p>💰 <b>预算</b>：房租 1000 以下 / 月预算 2500（自动拆分房租餐饮杂费）/ 越便宜越好</p>
                           <p>🌊 <b>偏好</b>：温泉 / 海边 / 避暑 / 空气好 / 有暖气 / 南方湿润</p>
                           <p>🏘️ <b>类型</b>：县城小镇 / 三四线 / 大城市郊区 / 一二线</p>
                           <p>☀️ <b>场景</b>：过冬暖和 / 大学城周边 / 只看收藏</p>

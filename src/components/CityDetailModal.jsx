@@ -198,6 +198,25 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
           )}
 
           <Block icon={<Thermometer size={14} className="text-teal-600" />} title="气候特征">
+            {city.climate_stats && (
+              <div className="mb-2.5 grid grid-cols-3 gap-2">
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-stone-200/70">
+                  <div className="flex items-center gap-1 text-[10px] text-sky-600"><Thermometer size={10} />最冷月</div>
+                  <div className="mt-0.5 text-[15px] font-bold text-stone-800">{city.climate_stats.coldest.temp}°C</div>
+                  <div className="text-[10px] text-stone-400">{city.climate_stats.coldest.month}月</div>
+                </div>
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-stone-200/70">
+                  <div className="flex items-center gap-1 text-[10px] text-amber-600"><Thermometer size={10} />最热月</div>
+                  <div className="mt-0.5 text-[15px] font-bold text-stone-800">{city.climate_stats.hottest.temp}°C</div>
+                  <div className="text-[10px] text-stone-400">{city.climate_stats.hottest.month}月</div>
+                </div>
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-stone-200/70">
+                  <div className="flex items-center gap-1 text-[10px] text-teal-600"><Droplets size={10} />年降水</div>
+                  <div className="mt-0.5 text-[15px] font-bold text-stone-800">{city.climate_stats.annual_precip}mm</div>
+                  <div className="text-[10px] text-stone-400">2021–2025 均值</div>
+                </div>
+              </div>
+            )}
             {city.climate}
           </Block>
 
