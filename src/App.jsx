@@ -19,6 +19,7 @@ import CompareModal from './components/CompareModal.jsx'
 import MapView from './components/MapView.jsx'
 import Assistant from './components/Assistant.jsx'
 import BudgetModal from './components/BudgetModal.jsx'
+import CursorFollower from './components/CursorFollower.jsx'
 import { budgetTotal } from './lib/store.js'
 import { useCityShare } from './components/useCityShare.jsx'
 
@@ -593,6 +594,9 @@ export default function App() {
           previewCount={b => applyFilters(all, { ...filters, budget: b }, { favs, favOnly }).length}
         />
       )}
+
+      {/* 躺平光标跟随：柔和光晕 + 飘动的叶子（仅桌面端） */}
+      <CursorFollower />
 
       {/* 智能小助手 */}
       <Assistant
