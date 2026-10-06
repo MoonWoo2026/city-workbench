@@ -293,6 +293,22 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
               <span className="block text-[11px] text-stone-400">吃的多 · 交通方便 · 商超齐全（默认不开启）</span>
             </span>
           </button>
+          <button
+            onClick={() => patch({ medOnly: !filters.medOnly })}
+            className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition
+              ${filters.medOnly ? 'border-sky-600/40 bg-sky-50/80' : 'border-stone-200 bg-white/60'}`}
+          >
+            <span className={`relative h-5 w-9 flex-none rounded-full transition ${filters.medOnly ? 'bg-sky-600' : 'bg-stone-300'}`}>
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all
+                  ${filters.medOnly ? 'left-[18px]' : 'left-0.5'}`}
+              />
+            </span>
+            <span>
+              <span className="block text-[13px] font-medium text-stone-800">有三甲医院</span>
+              <span className="block text-[11px] text-stone-400">本市或所属市区有三甲，看病不愁（默认不开启）</span>
+            </span>
+          </button>
         </div>
       </section>
 

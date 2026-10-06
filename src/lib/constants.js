@@ -65,7 +65,11 @@ export const PREF_RANK = {
   sun: c => (c.tags.includes('北方干燥') ? [1, '日照充足'] : null),
   delivery: c => (c.type !== '县城/小镇' ? [1, '快递便利'] : null),
   food: c => (['一二线城市', '三四线城市'].includes(c.type) ? [1, '餐饮/外卖较丰富'] : null),
-  medical: c => (['一二线城市', '三四线城市'].includes(c.type) ? [1, '医疗资源较好'] : null),
+  medical: c => {
+    if (c.med?.n > 0) return [2, `三甲医院 ${c.med.n} 家`]
+    if (c.med?.p > 0) return [1, `邻市三甲医院 ${c.med.p} 家`]
+    return null
+  },
   safety: c => (c.type !== '一二线城市' ? [1, '小城治安好'] : null),
 }
 

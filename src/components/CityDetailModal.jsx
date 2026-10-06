@@ -5,11 +5,12 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2,
+  Share2, Loader2, Cross,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
 import { useCityShare } from './useCityShare.jsx'
+import dataset from '../data/cities_full.json'
 
 function MiniMap({ city }) {
   const ref = useRef(null)
@@ -67,6 +68,40 @@ function Block({ icon, title, children, tone }) {
       </h4>
       <div className="text-[13px] leading-6 text-stone-600">{children}</div>
     </section>
+  )
+}
+
+// 三甲医院名单卡：默认显示 3 家，超出折叠为「展开全部 N 家」（行业惯例）
+function MedBlock({ city }) {
+  const [expanded, setExpanded] = useState(false)
+  const med = city.med
+  if (!med || (!med.n && !med.p)) return null
+  const names = dataset.hospitals[med.k] || []
+  const own = med.n > 0
+  const count = own ? med.n : med.p
+  const shown = expanded ? names : names.slice(0, 3)
+  return (
+    <Block icon={<Cross size={14} className="text-sky-600" />} title={own ? `三甲医院（本市 ${count} 家）` : `三甲医院（市区 ${med.k} · ${count} 家）`}>
+      {!own && (
+        <p className="mb-2 text-[12px] text-stone-400">本城暂无三甲，就近共享市区医疗资源：</p>
+      )}
+      <ul className="space-y-1.5">
+        {shown.map(n => (
+          <li key={n} className="flex items-start gap-1.5">
+            <Cross size={12} className="mt-[6px] flex-none text-sky-400" />
+            <span>{n}</span>
+          </li>
+        ))}
+      </ul>
+      {names.length > 3 && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="mt-2 text-[12px] font-medium text-sky-700 transition hover:text-sky-900"
+        >
+          {expanded ? '收起' : `展开全部 ${names.length} 家`}
+        </button>
+      )}
+    </Block>
   )
 }
 
@@ -283,6 +318,9 @@ export default function CityDetailModal({ city, fav, comparing, onClose, onToggl
               </Block>
             </div>
           )}
+
+          {/* 三甲医院名单（名单超 3 家自动折叠） */}
+          <MedBlock city={city} />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Block icon={<CheckCircle2 size={14} className="text-emerald-600" />} title="优势" tone="green">

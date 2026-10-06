@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross } from 'lucide-react'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
 
@@ -41,6 +41,23 @@ export function UniBadge({ uni, size = 'sm' }) {
     >
       <GraduationCap size={size === 'xs' ? 10 : 11} />
       大学城周边
+    </span>
+  )
+}
+
+// 三甲医院徽标：本市有 → 「三甲 N 家」（绿）；只有母城有 → 「市区三甲 N 家」（灰绿）
+export function MedBadge({ med, size = 'sm' }) {
+  if (!med || (!med.n && !med.p)) return null
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  const own = med.n > 0
+  return (
+    <span
+      title={own ? `本市有 ${med.n} 家三甲医院` : `市区（${med.k}）有 ${med.p} 家三甲医院`}
+      className={`inline-flex items-center gap-1 rounded-full font-medium ring-1 ${cls}
+        ${own ? 'bg-sky-50 text-sky-700 ring-sky-600/15' : 'bg-stone-50 text-stone-500 ring-stone-400/15'}`}
+    >
+      <Cross size={size === 'xs' ? 10 : 11} />
+      {own ? `三甲 ${med.n} 家` : `市区三甲 ${med.p} 家`}
     </span>
   )
 }
@@ -126,6 +143,7 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
       <div className="mt-2.5 flex flex-wrap items-center gap-1">
         <CleanBadge clean={city.clean50} />
         <UniBadge uni={city.uni_town} />
+        <MedBadge med={city.med} />
         {city.tags.slice(0, 3).map(t => <TagChip key={t} tag={t} />)}
         {city.tags.length > 3 && <span className="text-[10px] text-stone-400">+{city.tags.length - 3}</span>}
       </div>
@@ -196,6 +214,7 @@ export function CityRow({ city, fav, comparing, onToggleFav, onToggleCompare, on
         <div className="mt-1.5 flex flex-wrap gap-1">
           <CleanBadge clean={city.clean50} size="xs" />
           <UniBadge uni={city.uni_town} size="xs" />
+          <MedBadge med={city.med} size="xs" />
           {city.tags.slice(0, 2).map(t => <TagChip key={t} tag={t} size="xs" />)}
         </div>
       </div>

@@ -36,6 +36,7 @@ export function defaultFilters() {
     tags: [],                 // 标签之间为 AND（交集）
     cleanOnly: false,
     uniOnly: false,           // 大学城周边：可勾选过滤，默认不开启
+    medOnly: false,           // 有三甲医院（本市或母城市区）
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
     excl: [],                 // 微调排除：[{ label:'排除北方', provinces:[...] }]，可叠加多条
@@ -96,6 +97,7 @@ export function encodeFilters(f) {
   if (f.types.length) p.set('ty', f.types.join(','))
   if (f.tags.length) p.set('tag', f.tags.join(','))
   if (f.cleanOnly) p.set('clean', '1')
+  if (f.medOnly) p.set('med', '1')
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
   if (f.budget) p.set('b', [f.budget.mode, f.budget.rent, f.budget.food, f.budget.utils, f.budget.transit, f.budget.other].join('~'))
@@ -114,6 +116,7 @@ export function decodeFilters(search) {
   f.types = split('ty')
   f.tags = split('tag')
   f.cleanOnly = p.get('clean') === '1'
+  f.medOnly = p.get('med') === '1'
   f.uniOnly = p.get('uni') === '1'
   f.sort = p.get('sort') || f.sort // 未指定时用默认（explore）
   if (p.has('b')) {
@@ -162,6 +165,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.types.length && !typeNames.has(c.type)) return false
     if (f.tags.length && !f.tags.every(t => c.tags.includes(t))) return false
     if (f.cleanOnly && !c.clean50) return false
+    if (f.medOnly && !(c.med && (c.med.n > 0 || c.med.p > 0))) return false // 有三甲（本市或市区）
     if (f.uniOnly && !f.q && !f.budget && !c.uni_town) return false // 有关键词搜索/预算模式时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false
     if (f.q && !matchQuery(c, f.q)) return false

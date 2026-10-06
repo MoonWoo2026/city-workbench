@@ -213,6 +213,7 @@ export default function App() {
     filters.tags.forEach(t => chips.push({ k: `t:${t}`, label: t, clear: () => patch({ tags: filters.tags.filter(x => x !== t) }) }))
     filters.types.forEach(ty => chips.push({ k: `ty:${ty}`, label: { A: '一二线', B: '一线郊区', C: '二线郊区', D: '三四线', E: '县城/小镇' }[ty], clear: () => patch({ types: filters.types.filter(x => x !== ty) }) }))
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
+    if (filters.medOnly) chips.push({ k: 'med', label: '有三甲医院', clear: () => patch({ medOnly: false }) })
     if (filters.budget) chips.push({ k: 'budget', label: `预算 ¥${budgetTotal(filters.budget)}/月（${filters.budget.mode === 'shared' ? '合租' : '整租'}）`, clear: () => patch({ budget: null }) })
     if (filters.prefs?.length) {
       const labels = filters.prefs.map(id => PREFS.find(p => p.id === id)?.label || id)
@@ -235,6 +236,7 @@ export default function App() {
     let n = filters.provinces.length + filters.tags.length + filters.types.length
     if (filters.cleanOnly) n++
     if (filters.uniOnly) n++
+    if (filters.medOnly) n++
     if (filters.prefs?.length) n++
     if (filters.levels.length !== DEFAULT_LEVELS.length || filters.levels.some(l => !DEFAULT_LEVELS.includes(l))) n++
     return n
