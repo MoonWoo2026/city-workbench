@@ -168,6 +168,7 @@ export function matchQuery(city, q) {
     TYPE_ALIASES[city.type] || '',
     ...(city.areas || []),
     ...(city.tags || []),
+    city.clean50 === false ? '周边有工业 重工业 有工业 污染 工业城市' : '无重污染', // 工业/污染口语词可搜
     city.spectext || '', // 专科强院搜索文本（疾病别名+专科名+医院短名，构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)

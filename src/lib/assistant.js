@@ -198,9 +198,9 @@ function findTags(text) {
     const hit = rule.words.find(w => text.includes(w))
     if (!hit) continue
     const i = text.indexOf(hit)
-    // 后缀否定：「高原不要」「温泉不看」——否定词跟在词后面也算否定
-    const after = text.slice(i + hit.length, i + hit.length + 4)
-    const negAfter = /^(?:不要|不看|不用|不选|不想去|别去?|排除|去掉|取消)/.test(after)
+    // 后缀否定：「高原不要」「温泉城市不看」——否定词在词后（允许夹「城市/的/多」等填充字）也算否定
+    const after = text.slice(i + hit.length, i + hit.length + 8)
+    const negAfter = /^(?:的|城市|地方|地区|县城|型|类|多|较多|密集)*?(?:不要|不看|不用|不选|不想去|别去?|排除|去掉|取消)/.test(after)
     if (negAfter || isNegated(text, hit)) remove.push(rule.key)
     else add.push(rule.key)
   }
@@ -386,6 +386,21 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   } else if (/空气(?:好|清新|新鲜|质量好|干净)|无污染|没污染|远离污染|生态好|环境好|蓝天白云|天空蓝/.test(text)) {
     next.cleanOnly = true
     items.push({ k: 'clean', label: '空气', value: '仅 50km 内无重污染' })
+  }
+
+  // 8.5) 排除工业/污染：「重工业不要」「不要工业城市」「污染不要」→ 只看 50km 无重污染
+  const IND_WORD = /重工业|工业区|工业城市|工业|污染|雾霾|工厂多|工厂|厂矿|化工|烟囱/
+  const indM = text.match(IND_WORD)
+  if (indM) {
+    const i = text.indexOf(indM[0])
+    const before = text.slice(Math.max(0, i - 6), i)
+    const after = text.slice(i + indM[0].length, i + indM[0].length + 8)
+    const neg = /不要|不用|不看|不考虑|排除|去掉|除了|别去|别选|不想去|非/.test(before)
+      || /^(?:的|城市|地方|地区|县城|型|类|多|较多|密集)*?(?:不要|不看|不用|不选|不想去|别去?|排除|去掉|取消)/.test(after)
+    if (neg && !next.cleanOnly) {
+      next.cleanOnly = true
+      items.push({ k: 'clean', label: '空气', value: '排除周边有工业的城市' })
+    }
   }
 
   // 8.6) 生活成本/物价
