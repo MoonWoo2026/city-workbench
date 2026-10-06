@@ -60,20 +60,34 @@ body {
 .animate-pop-in { animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-toast-in { animation: toast-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* 送客垂耳兔：摇头动画（没办法了的感觉） */
-@keyframes rabbit-shake {
-  0%, 100% { transform: rotate(-7deg); }
-  50% { transform: rotate(7deg); }
+/* 送客躺平兔：肚子呼吸起伏 + 脚丫偶翘 + Zzz 飘浮 */
+@keyframes rabbit-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.06); }
 }
-.rabbit-wrap { animation: rabbit-bob 2.4s ease-in-out infinite; }
-.rabbit-head {
-  transform-origin: 90px 100px;
-  animation: rabbit-shake 1.6s ease-in-out infinite;
+.rabbit-belly {
+  transform-origin: 138px 132px;
+  animation: rabbit-breathe 2.8s ease-in-out infinite;
 }
-@keyframes rabbit-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+@keyframes rabbit-foot-twitch {
+  0%, 78%, 100% { transform: rotate(0deg); }
+  84% { transform: rotate(-9deg); }
+  90% { transform: rotate(5deg); }
+  96% { transform: rotate(0deg); }
 }
+.rabbit-foot-r {
+  transform-origin: 186px 88px;
+  animation: rabbit-foot-twitch 3.6s ease-in-out infinite;
+}
+@keyframes rabbit-zzz-float {
+  0% { opacity: 0; transform: translateY(6px); }
+  25% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+.rabbit-zzz .zzz { animation: rabbit-zzz-float 3s ease-in-out infinite; }
+.rabbit-zzz .z2 { animation-delay: 0.9s; }
+.rabbit-zzz .z3 { animation-delay: 1.8s; }
 
 /* 卡片 hover 微抬升 */
 .card-lift {
