@@ -1,5 +1,6 @@
 import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets } from 'lucide-react'
 import { CLIMATE_TAGS } from '../lib/constants.js'
+import ProvinceArt from './ProvinceArt.jsx'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
 
@@ -94,8 +95,9 @@ export function CityCard({ city, fav, comparing, onToggleFav, onToggleCompare, o
   return (
     <article
       onClick={() => onOpen(city.id)}
-      className="card-lift group flex cursor-pointer flex-col rounded-3xl border border-stone-200/60 bg-white p-5 shadow-sm"
+      className="card-lift group relative flex cursor-pointer flex-col rounded-3xl border border-stone-200/60 bg-white p-5 shadow-sm"
     >
+      <ProvinceArt province={city.province} size={92} />
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="flex items-center gap-1.5 text-[19px] font-semibold tracking-tight text-stone-800">
