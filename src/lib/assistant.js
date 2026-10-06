@@ -44,22 +44,54 @@ const CITY_NAMES = [...new Set(ALL_CITIES.map(c => c.name))]
 const PINYIN_SET = new Set(ALL_CITIES.map(c => c.pinyin).filter(p => p && p.length >= 4))
 
 const TAG_RULES = [
-  { key: '天然温泉', words: ['温泉', '泡汤', '热海', '汤泉'] },
-  { key: '海滨沿海', words: ['海边', '海滨', '沿海', '滨海', '海景', '看海', '大海', '海岛', '近海', '赶海', '海钓'] },
-  { key: '高原避暑', words: ['避暑', '凉快', '凉爽', '不热', '不闷热', '高原', '夏天舒服'] },
-  { key: '南方湿润', words: ['湿润', '潮湿', '江南', '水乡', '梅雨', '不干燥', '南方'] },
-  { key: '北方干燥', words: ['干燥', '干爽', '不潮湿', '怕潮', '北方'] },
-  { key: '供暖充沛', words: ['暖气', '供暖', '集中供', '取暖', '有暖'] },
+  { key: '天然温泉', words: ['温泉', '泡汤', '热海', '汤泉', '疗养', '养生', '泡温泉'] },
+  { key: '海滨沿海', words: ['海边', '海滨', '沿海', '滨海', '海景', '看海', '大海', '海岛', '近海', '赶海', '海钓', '靠海', '是否靠海', '是否沿海', '沿海省份', '沿海城市'] },
+  { key: '高原避暑', words: ['避暑', '凉快', '凉爽', '不热', '不闷热', '高原', '夏天舒服', '夏凉', '无酷暑', '清凉'] },
+  { key: '南方湿润', words: ['湿润', '潮湿', '江南', '水乡', '梅雨', '不干燥', '南方', '空气湿润'] },
+  { key: '北方干燥', words: ['干燥', '干爽', '不潮湿', '怕潮', '北方', '空气干燥'] },
+  { key: '供暖充沛', words: ['暖气', '供暖', '集中供', '取暖', '有暖', '有暖气', '有地暖', '有集中供暖'] },
 ]
 
 const TYPE_RULES = [
   { codes: ['B', 'C'], words: ['郊区', '市郊', '卫星城', '城郊'] },
-  { codes: ['E'], words: ['县城', '小镇', '小城', '乡镇', '镇上', '村镇', '古镇'] },
-  { codes: ['D'], words: ['三四线', '地级市'] },
-  { codes: ['A'], words: ['一二线', '一线城市', '二线城市', '大城市', '省会', '大都市', '都市圈'] },
+  { codes: ['E'], words: ['县城', '小镇', '小城', '乡镇', '镇上', '村镇', '古镇', '县镇', '乡'] },
+  { codes: ['D'], words: ['三四线', '地级市', '四五线', '中小城市'] },
+  { codes: ['A'], words: ['一二线', '一线城市', '二线城市', '大城市', '省会', '大都市', '都市圈', '发达城市'] },
 ]
 
 const WARM_PROVINCES = ['海南', '云南', '广西', '广东', '福建']
+
+// 生活偏好规则：识别关键词 → 影响推荐排序打分（PREF_RANK）
+const PREF_RULES = [
+  { id: 'rail', label: '优先通高铁/动车的城市', words: /通高铁|有高铁|高铁方便|动车|高铁站|火车方便/ },
+  { id: 'air', label: '优先有机场的城市', words: /有机场|飞机方便|能坐飞机|通航|坐飞机方便/ },
+  { id: 'taxi', label: '优先打车/出行方便的城市', words: /打车方便|网约车|出租车多|出行方便|交通便利/ },
+  { id: 'nomad', label: '优先数字游民友好城市', words: /远程办公|数字游民|自由职业|共享办公|工位|咖啡馆多|咖啡多|网速好|网络好/ },
+  { id: 'quiet', label: '优先安静、慢节奏的小城', words: /安静|清静|不吵|没噪音|宁静|安逸|闲适|慢节奏|慢生活|悠闲|悠哉|养老|退休|隐居|避世|远离人群|人少|不拥挤|小众|冷门/ },
+  { id: 'nature', label: '优先自然风光好的城市', words: /有山有水|山水|风景好|景色好|自然风光|美景|森林|氧吧|负氧离子|绿化好|公园多|湖边|江边|草原|星空|看星星/ },
+  { id: 'mild', label: '优先气候温和的城市', words: /四季如春|冬暖夏凉|不冷不热|常年温和|气候宜人/ },
+  { id: 'sun', label: '优先日照充足的城市', words: /阳光充足|日照多|晴天多|晒太阳|阳光好/ },
+  { id: 'delivery', label: '优先快递便利的城市', words: /包邮|快递方便|次日达|快递多/ },
+  { id: 'food', label: '优先餐饮/外卖丰富的城市', words: /外卖多|能点外卖|餐饮丰富|美食多|好吃|吃货|夜生活|夜市/ },
+  { id: 'medical', label: '优先医疗资源较好的城市', words: /医疗好|医院近|有三甲|看病方便|医疗资源丰富/ },
+  { id: 'safety', label: '优先治安良好的城市', words: /治安好|晚上能出门|安全感/ },
+]
+
+// 偏好 → 推荐打分规则：返回 [加分, 理由] 或 null
+const PREF_RANK = {
+  rail: c => (c.transit?.rail && !/未通|暂无|无站|没有站|不通/.test(c.transit.rail)) ? [2, '有高铁/动车'] : null,
+  air: c => (c.transit?.air && !/无机场|需到|最近.{0,4}机场|没有机场/.test(c.transit.air)) ? [2, '有机场或邻近机场'] : null,
+  taxi: c => (c.transit?.taxi && !/无出租|没有出租|无网约车/.test(c.transit.taxi)) ? [1, '打车方便'] : null,
+  nomad: c => /多|成熟|聚集|密集|稳定|游民/.test(c.net?.cowork || '') ? [2, '数字游民友好'] : null,
+  quiet: c => (c.type === 'E' ? [2, '县城/小镇节奏慢'] : c.type === 'D' ? [1, '三四线不拥挤'] : null),
+  nature: c => (c.clean50 ? [1, '50km 内无重污染'] : null),
+  mild: c => (c.tags.includes('高原避暑') ? [1, '气候温和'] : null),
+  sun: c => (c.tags.includes('北方干燥') ? [1, '日照充足'] : null),
+  delivery: c => (c.type !== 'E' ? [1, '快递便利'] : null),
+  food: c => (['A', 'D'].includes(c.type) ? [1, '餐饮/外卖较丰富'] : null),
+  medical: c => (['A', 'D'].includes(c.type) ? [1, '医疗资源较好'] : null),
+  safety: c => (c.type !== 'A' ? [1, '小城治安好'] : null),
+}
 
 export const SUGGESTIONS = [
   '云南 1500 以下有温泉的县城',
@@ -67,6 +99,9 @@ export const SUGGESTIONS = [
   '海边空气好的小城市',
   '过冬暖和又便宜的地方',
   '东北有暖气的地方',
+  '安静慢节奏的小城',
+  '有高铁、气候温和的三线城市',
+  '数字游民友好的南方县城',
 ]
 
 // ---------- 文本预处理 ----------
@@ -224,6 +259,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     levels: [...currentFilters.levels],
     types: [...currentFilters.types],
     tags: [...currentFilters.tags],
+    prefs: [...(currentFilters.prefs || [])],
   }
   const items = [] // 识别到的条件（用于回复气泡展示）
   const additive = /也|还|再加|加上|另外|同时|顺便/.test(text)
@@ -346,6 +382,25 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'clean', label: '空气', value: '仅 50km 内无重污染' })
   }
 
+  // 8.5) 生活成本/物价
+  if (/物价低|消费低|生活成本低|吃饭便宜|菜价便宜|日常开销低/.test(text)) {
+    next.sort = 'total'
+    items.push({ k: 'sort', label: '倾向', value: '优先月总支出低的' })
+  }
+
+  // 8.6) 生活偏好（影响推荐排序打分，不改筛选）
+  const prefHits = PREF_RULES.filter(r => r.words.test(text))
+  if (prefHits.length) {
+    next.prefs = additive
+      ? [...new Set([...(next.prefs || []), ...prefHits.map(r => r.id)])]
+      : prefHits.map(r => r.id)
+    for (const r of prefHits) items.push({ k: 'pref', label: '偏好', value: r.label })
+  }
+  // 「安静/养老/慢节奏」额外把大城市排除掉
+  if (prefHits.some(r => r.id === 'quiet')) {
+    next.types = (next.types.length ? next.types : ['A','B','C','D','E']).filter(t => t !== 'A')
+  }
+
   // 9) 大学城
   if (/大学城|高校|大学周边|学院(?:附近|周边)/.test(text)) {
     const off = isNegated(text, '大学城') || /不限|不要|不用|去掉|所有区域|全部都看/.test(text)
@@ -393,6 +448,10 @@ export function rankResults(matched, f) {
     if ((f.types || []).length && f.types.includes(c.type)) score += 1
     if (c.clean50) { score += 1; if (f.cleanOnly) why.push('50km 无重污染') }
     if (f.uniOnly && c.uni_town) { score += 1; why.push('大学城周边') }
+    for (const p of f.prefs || []) {
+      const r = PREF_RANK[p]?.(c)
+      if (r) { score += r[0]; why.push(r[1]) }
+    }
     return { c, score, why }
   })
   arr.sort((a, b) => b.score - a.score || a.c.monthly_total - b.c.monthly_total)
