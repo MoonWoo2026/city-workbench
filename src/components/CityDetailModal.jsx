@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info,
+  Share2, Loader2, Cross, Award, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -119,59 +119,6 @@ function RestBlock({ city }) {
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
         来源：大众点评必吃榜、高德烟火小店榜、本地公认老店。仅收录可验证的地道小店，县区继承母城名单。
       </p>
-    </Block>
-  )
-}
-
-// 治安与安全卡：边境标记 + 群众安全感等官方指标；无数据时说明全国基线
-function SafetyBlock({ city }) {
-  const s = city.safety
-  return (
-    <Block icon={<ShieldHalf size={14} className="text-emerald-600" />} title="治安与安全">
-      <div className="space-y-1.5">
-        {city.border && (
-          <p className="flex items-center gap-1.5 text-[12.5px] text-rose-600">
-            <Mountain size={13} /> 陆地边境城市（公安部边境管理区名单）
-          </p>
-        )}
-        {s ? (
-          <>
-            {typeof s.security === 'number' && (
-              <p className="text-[13px] text-stone-700">
-                群众安全感 <b className="text-emerald-700">{s.security}%</b>（{s.year} 年）
-              </p>
-            )}
-            {typeof s.security === 'string' && (
-              <p className="text-[13px] text-stone-700">
-                群众安全感：<b className="text-emerald-700">{s.security}</b>（{s.year} 年）
-              </p>
-            )}
-            {s.securityRank && (
-              <p className="text-[13px] text-stone-700">
-                城市治安体验 <b className="text-emerald-700">{s.securityRank}</b>（{s.year} 年）
-              </p>
-            )}
-            {s.securityTrend && (
-              <p className="text-[13px] text-stone-700">群众安全感{s.securityTrend}</p>
-            )}
-            {s.murderRate && (
-              <p className="text-[13px] text-stone-700">万人命案发案数：<b className="text-stone-700">{s.murderRate}</b></p>
-            )}
-            {(s.note || s.source) && (
-              <p className="text-[11px] text-stone-400">来源：{s.source || '各地政法委公开发布'}{s.note ? `｜${s.note}` : ''}</p>
-            )}
-          </>
-        ) : (
-          <p className="text-[12.5px] text-stone-500">
-            暂无该市公开的治安指标数据。
-          </p>
-        )}
-        <p className="text-[11px] leading-4 text-stone-400">
-          全国基线：2024 年中国每 10 万人命案发生数 0.44 起，是世界上命案发案率最低的国家之一。
-          中国不公开城市级别犯罪率统计，本指标以各地政法委公开发布的「群众安全感」等官方数据为准，宁缺毋滥。
-          搜索「不要边境小城」「治安好的地方」可筛选。
-        </p>
-      </div>
     </Block>
   )
 }
@@ -706,9 +653,6 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
           {/* 地方名菜与小吃 */}
           <FoodBlock city={city} />
           <RestBlock city={city} />
-
-          {/* 治安与安全：边境标记 + 群众安全感官方指标 */}
-          <SafetyBlock city={city} />
 
           {/* 当地习俗与注意事项（外地人可能不适应或需注意的） */}
           {city.customs && city.customs.length > 0 && (
