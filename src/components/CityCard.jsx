@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf, ChefHat } from 'lucide-react'
 import dataset from '../data/cities_full.json'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
@@ -94,6 +94,43 @@ export function MedList({ city, size = 'sm' }) {
       <span className="line-clamp-1">
         {shown.join(' · ')}
         {names.length > 2 && <span className={own ? 'text-sky-400' : 'text-stone-400'}> +{names.length - 2}</span>}
+      </span>
+    </div>
+  )
+}
+
+// 本地苍蝇馆子/市井名店陈列：露前 3 家（店名+招牌菜），多余折叠（title 悬停看全名单）
+export function RestList({ city, size = 'sm' }) {
+  const list = city.restaurants
+  if (!list?.length) return null
+  const shown = list.slice(0, 3)
+  const full = list.map(x => x.dish ? `${x.name}（${x.dish}）` : x.name).join('、')
+  if (size === 'xs') {
+    return (
+      <div title={`市井名店：${full}`} className="mt-1 flex items-center gap-1 truncate text-[10.5px] text-amber-700/90">
+        <ChefHat size={10} className="flex-none" />
+        <span className="truncate">
+          {shown.map(x => x.name).join(' · ')}
+          {list.length > 3 ? ` +${list.length - 3}` : ''}
+        </span>
+      </div>
+    )
+  }
+  return (
+    <div
+      title={`本地苍蝇馆子/市井名店：${full}`}
+      className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-amber-800/90 ring-1 ring-amber-500/10"
+    >
+      <ChefHat size={12} className="mt-0.5 flex-none" />
+      <span className="line-clamp-2">
+        {shown.map((x, i) => (
+          <span key={x.name}>
+            {i > 0 && <span className="mx-0.5 text-amber-400">·</span>}
+            <span>{x.name}</span>
+            {x.dish && <span className="text-amber-600/70">（{x.dish}）</span>}
+          </span>
+        ))}
+        {list.length > 3 && <span className="ml-0.5 text-amber-500">+{list.length - 3}</span>}
       </span>
     </div>
   )
@@ -255,6 +292,8 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
 
       <MedList city={city} />
 
+      <RestList city={city} />
+
       {city.uni_town && (
         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-indigo-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-indigo-700/90 ring-1 ring-indigo-500/10">
           <GraduationCap size={12} className="mt-0.5 flex-none" />
@@ -352,6 +391,7 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
           </div>
         )}
         <MedList city={city} size="xs" />
+        <RestList city={city} size="xs" />
       </div>
 
       <div className="grid flex-1 grid-cols-3 gap-2">

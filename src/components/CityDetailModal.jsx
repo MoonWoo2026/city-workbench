@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -86,6 +86,37 @@ function FoodBlock({ city }) {
       </div>
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
         按公认名菜整理；县/区条目继承母城口味。在搜索框输入「火锅」「面食」「宫保鸡丁」等可找对应城市。
+      </p>
+    </Block>
+  )
+}
+
+// 本地苍蝇馆子/市井名店卡：默认露前5家，可展开全部
+function RestBlock({ city }) {
+  const list = city.restaurants
+  if (!list?.length) return null
+  const [open, setOpen] = useState(false)
+  const shown = open ? list : list.slice(0, 5)
+  return (
+    <Block icon={<ChefHat size={14} className="text-amber-600" />} title="本地苍蝇馆子 / 市井名店">
+      <ul className="space-y-1.5">
+        {shown.map((x, i) => (
+          <li key={x.name} className="flex items-start gap-2 text-[12.5px]">
+            <span className="mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full bg-amber-100 text-[10px] font-semibold text-amber-700">{i + 1}</span>
+            <span className="leading-5">
+              <span className="font-medium text-stone-700">{x.name}</span>
+              {x.dish && <span className="ml-1 text-stone-500">· {x.dish}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {list.length > 5 && (
+        <button onClick={() => setOpen(o => !o)} className="mt-2 flex items-center gap-0.5 text-[11.5px] text-amber-600 hover:text-amber-700">
+          {open ? <><ChevronUp size={13} /> 收起</> : <><ChevronDown size={13} /> 展开全部 {list.length} 家</>}
+        </button>
+      )}
+      <p className="mt-2 text-[11px] leading-4 text-stone-400">
+        来源：大众点评必吃榜、高德烟火小店榜、本地公认老店。仅收录可验证的地道小店，县区继承母城名单。
       </p>
     </Block>
   )
@@ -490,6 +521,7 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
 
           {/* 地方名菜与小吃 */}
           <FoodBlock city={city} />
+          <RestBlock city={city} />
 
           {/* 治安与安全：边境标记 + 群众安全感官方指标 */}
           <SafetyBlock city={city} />
