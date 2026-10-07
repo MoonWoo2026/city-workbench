@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award, UtensilsCrossed } from 'lucide-react'
 import dataset from '../data/cities_full.json'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
@@ -176,6 +176,19 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
         </div>
       )}
 
+      {city.dishes?.length > 0 && (
+        <div
+          title={`地方名菜：${city.dishes.join('、')}`}
+          className="mt-2 flex items-start gap-1.5 rounded-lg bg-orange-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-orange-700/90 ring-1 ring-orange-500/10"
+        >
+          <UtensilsCrossed size={12} className="mt-0.5 flex-none" />
+          <span className="line-clamp-1">
+            {city.dishes.slice(0, 3).join(' · ')}
+            {city.dishes.length > 3 && <span className="text-orange-400"> +{city.dishes.length - 3}</span>}
+          </span>
+        </div>
+      )}
+
       {/* 价格：月总支出作主视觉，租金明细退为小字 */}
       <div className="mt-4 flex items-end justify-between">
         <div>
@@ -239,6 +252,17 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
           <SpecBadge city={city} specKey={specKey} size="xs" />
           {city.tags.slice(0, 2).map(t => <TagChip key={t} tag={t} size="xs" />)}
         </div>
+        {city.dishes?.length > 0 && (
+          <div
+            title={`地方名菜：${city.dishes.join('、')}`}
+            className="mt-1 flex items-center gap-1 truncate text-[10.5px] text-orange-600/90"
+          >
+            <UtensilsCrossed size={10} className="flex-none" />
+            <span className="truncate">
+              {city.dishes.slice(0, 2).join(' · ')}{city.dishes.length > 2 ? ` +${city.dishes.length - 2}` : ''}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid flex-1 grid-cols-3 gap-2">

@@ -72,6 +72,25 @@ function Block({ icon, title, children, tone }) {
   )
 }
 
+// 地方名菜卡：展示全部名菜（县区条目继承自母城口味）
+function FoodBlock({ city }) {
+  if (!city.dishes?.length) return null
+  return (
+    <Block icon={<UtensilsCrossed size={14} className="text-orange-600" />} title="地方名菜与小吃">
+      <div className="flex flex-wrap gap-1.5">
+        {city.dishes.map(d => (
+          <span key={d} className="rounded-full bg-orange-50 px-2 py-0.5 text-[11.5px] text-orange-700 ring-1 ring-orange-500/15">
+            {d}
+          </span>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px] leading-4 text-stone-400">
+        按公认名菜整理；县/区条目继承母城口味。在搜索框输入「火锅」「面食」「宫保鸡丁」等可找对应城市。
+      </p>
+    </Block>
+  )
+}
+
 // 三甲医院名单卡：默认显示 3 家，超出折叠为「展开全部 N 家」（行业惯例）
 function MedBlock({ city }) {
   const [expanded, setExpanded] = useState(false)
@@ -406,6 +425,9 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
 
           {/* 三甲医院名单（名单超 3 家自动折叠） */}
           <MedBlock city={city} />
+
+          {/* 地方名菜与小吃 */}
+          <FoodBlock city={city} />
 
           {/* 全国专科强院（复旦 2023 专科声誉榜 Top10；无强院城市显示就近参考） */}
           <SpecBlock city={city} specKey={specKey} />
