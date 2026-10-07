@@ -46,27 +46,6 @@ const ShareCard = forwardRef(function ShareCard({ city, qr }, ref) {
         </div>
       )}
 
-      {/* 气候统计 */}
-      {city.climate_stats && (
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-sky-50 px-2.5 py-2 ring-1 ring-sky-200/50">
-            <p className="text-[10px] text-sky-600">最冷月</p>
-            <p className="mt-0.5 text-[14px] font-bold text-stone-800">{city.climate_stats.coldest.temp}°C</p>
-            <p className="text-[9px] text-stone-400">{city.climate_stats.coldest.month}月</p>
-          </div>
-          <div className="rounded-xl bg-amber-50 px-2.5 py-2 ring-1 ring-amber-200/50">
-            <p className="text-[10px] text-amber-600">最热月</p>
-            <p className="mt-0.5 text-[14px] font-bold text-stone-800">{city.climate_stats.hottest.temp}°C</p>
-            <p className="text-[9px] text-stone-400">{city.climate_stats.hottest.month}月</p>
-          </div>
-          <div className="rounded-xl bg-teal-50 px-2.5 py-2 ring-1 ring-teal-200/50">
-            <p className="text-[10px] text-teal-600">年降水</p>
-            <p className="mt-0.5 text-[14px] font-bold text-stone-800">{city.climate_stats.annual_precip}mm</p>
-            <p className="text-[9px] text-stone-400">2021–2025</p>
-          </div>
-        </div>
-      )}
-
       {/* 亮点 */}
       {pros.length > 0 && (
         <div className="mt-3 rounded-2xl bg-white p-3 ring-1 ring-stone-200/70">
