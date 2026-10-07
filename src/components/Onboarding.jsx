@@ -20,14 +20,14 @@ const STEPS = [
     desc: '城市名、拼音、省份、县区、标签都行，比如「腾冲」「kunming」「温泉」。',
   },
   {
-    selector: '[data-tour="trio"]',
-    title: '三种方式找城市',
-    desc: '按预算：告诉它你每月能花多少；按区域：挑省份、租金档、气候；按图：直接在地图上看全国分布。',
-  },
-  {
     selector: '[data-tour="card"]',
     title: '点开卡片看完整档案',
     desc: '每张卡片是一座小城的缩影。点进去有租金明细、气候、网络、高铁机场、大学城攻略，还能生成图片分享给朋友。',
+  },
+  {
+    selector: '[data-tour="trio"]',
+    title: '三种方式找城市',
+    desc: '按预算：告诉它你每月能花多少；按区域：挑省份、租金档、气候；按图：直接在地图上看全国分布。',
   },
   {
     selector: '[data-tour="assistant"]',
