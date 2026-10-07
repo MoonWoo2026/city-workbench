@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -298,6 +298,67 @@ function SpecBlock({ city, specKey }) {
       </ul>
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
         来源：{dataset.specialties?.source || '复旦版中国医院专科声誉排行榜'}。带头人为公开报道的学科带头人，指南为对应专科权威共识/诊疗指南，均仅供参考。
+      </p>
+    </Block>
+  )
+}
+
+// 上市公司总部所在地卡：仅收录沪深300成分股 + 港股内地消费/科技/金融龙头
+//   按板块分组（消费/科技/金融），公司名 + 代码 + 交易所标识
+//   区县继承母城名单（股东大会在母城召开）
+//   默认折叠（不显眼位置）— 用户展开查看
+function ListedBlock({ city }) {
+  const list = city.listed
+  const [open, setOpen] = useState(false)
+  if (!list?.length) return null
+  const SECTOR_ORDER = ['消费', '科技', '金融']
+  const SECTOR_CLS = {
+    消费: 'bg-orange-50 text-orange-700 ring-orange-500/20',
+    科技: 'bg-sky-50 text-sky-700 ring-sky-500/20',
+    金融: 'bg-violet-50 text-violet-700 ring-violet-500/20',
+  }
+  const EX_LABEL = { SH: '沪', SZ: '深', HK: '港', US: '美' }
+  // 按板块分组（保持插入顺序）
+  const groups = SECTOR_ORDER
+    .map(s => ({ s, items: list.filter(x => x.s === s) }))
+    .filter(g => g.items.length)
+  const total = list.length
+  // 折叠时只显示前 6 家（按板块顺序），展开后显示全部
+  const shown = open ? list : list.slice(0, 6)
+  const shownGroups = SECTOR_ORDER
+    .map(s => ({ s, items: shown.filter(x => x.s === s) }))
+    .filter(g => g.items.length)
+  return (
+    <Block icon={<Briefcase size={14} className="text-stone-500" />} title={`上市公司总部所在地（${total} 家）`}>
+      <div className="space-y-2.5">
+        {shownGroups.map(g => (
+          <div key={g.s}>
+            <div className="mb-1 flex items-center gap-1.5 text-[11px] text-stone-400">
+              <span className={`rounded px-1.5 py-0.5 font-medium ring-1 ${SECTOR_CLS[g.s]}`}>{g.s}</span>
+              <span>板块 · {g.items.length} 家{!open && g.items.length > 0 ? `（仅显示前若干家，展开看全部）` : ''}</span>
+            </div>
+            <ul className="flex flex-wrap gap-1.5">
+              {g.items.map((x, i) => (
+                <li key={`${x.c}-${i}`}
+                  title={`${x.n} · ${x.ex === 'HK' ? '港股' : x.ex === 'US' ? '美股' : 'A股'} ${x.c}${x.i ? ' · ' + x.i : ''}`}
+                  className="flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11.5px] ring-1 ring-stone-200/70"
+                >
+                  <span className="font-medium text-stone-700">{x.n}</span>
+                  <span className="text-[10px] text-stone-400">{x.c}</span>
+                  <span className="rounded bg-stone-100 px-1 text-[9.5px] font-medium text-stone-500">{EX_LABEL[x.ex] || x.ex}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      {total > 6 && (
+        <button onClick={() => setOpen(o => !o)} className="mt-2 flex items-center gap-0.5 text-[11.5px] text-stone-500 hover:text-stone-700">
+          {open ? <><ChevronUp size={13} /> 收起</> : <><ChevronDown size={13} /> 展开全部 {total} 家</>}
+        </button>
+      )}
+      <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
+        仅收录沪深300成分股与港股内地消费/科技/金融龙头，按公司总部/办公地归类；股东大会通常在此召开。区县条目继承母城名单。数据非全量，仅供职业投资人参会参考。
       </p>
     </Block>
   )
@@ -648,6 +709,9 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
               className="w-full resize-y rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-2.5 text-[13px] leading-6 text-stone-700 outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/15"
             />
           </section>
+
+          {/* 上市公司总部所在地（不显眼位置：备忘录之后） */}
+          <ListedBlock city={city} />
         </div>
 
         {/* 底部操作 */}

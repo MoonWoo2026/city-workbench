@@ -306,6 +306,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         pm25Max: null,
         fiscalMin: null,
         customExcl: [],
+        listedMin: null,
         uniOnly: false,
         spec: null,
         q: '',
@@ -357,6 +358,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       cleanOnly: false,
       pm25Max: null,
       fiscalMin: null,
+      listedMin: null,
       uniOnly: false,
       spec: null, // 点名城市时退出专科强院模式
       q: city.name,
@@ -507,6 +509,32 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'fiscal', label: '公共服务保障', value: '不限（已忽略差评倾向，按其他条件排序）' })
   }
 
+  // 8.575) 上市公司总部所在地 / 股东大会所在地筛选（职业投资人参会需求）
+  //   触发词：股东大会、公司总部、上市公司总部、上市办公地、A股、港股、沪深300、消费龙头、科技龙头、金融龙头
+  //   - 板块词（消费/科技/金融）→ listedMin = 该板块（只看该板块有上市公司的城市）
+  //   - 仅「上市公司总部/股东大会所在地/A股/港股/沪深300」无板块词 → 默认按消费板块（覆盖面最广，便于职业投资人参会）
+  //   - 「不限/取消」→ 清掉 listedMin
+  const LISTED_TRIGGER = /上市公司|股东大会|公司总部|上市办公地|上市企业总部|总部所在地|总部所在城市|A股公司|A股上市|港股公司|港股内地|港股上市|沪深300|沪深三百|三百成分股|消费龙头|科技龙头|金融龙头|消费板块|科技板块|金融板块|消费股|科技股|金融股|券商总部|银行总部|保险总部|互联网总部|新能源车总部|白酒总部|地产总部/
+  if (LISTED_TRIGGER.test(text)) {
+    if (/不限|取消|清除|去掉|不管|无所谓|都行|别限|不限制/.test(text)) {
+      next.listedMin = null
+      items.push({ k: 'listed', label: '上市公司总部', value: '不限' })
+    } else if (/消费龙头|消费板块|消费股|消费类/.test(text)) {
+      next.listedMin = '消费'
+      items.push({ k: 'listed', label: '上市公司总部', value: '只看消费板块上市公司总部所在地（沪深300+港股内地消费龙头）' })
+    } else if (/科技龙头|科技板块|科技股|科技类|互联网总部|新能源车总部/.test(text)) {
+      next.listedMin = '科技'
+      items.push({ k: 'listed', label: '上市公司总部', value: '只看科技板块上市公司总部所在地（沪深300+港股内地科技龙头）' })
+    } else if (/金融龙头|金融板块|金融股|金融类|券商总部|银行总部|保险总部/.test(text)) {
+      next.listedMin = '金融'
+      items.push({ k: 'listed', label: '上市公司总部', value: '只看金融板块上市公司总部所在地（沪深300+港股内地金融龙头）' })
+    } else {
+      // 仅提「股东大会所在地/公司总部/A股/港股/沪深300」无具体板块 → 默认消费板块（覆盖面广，便于参会）
+      next.listedMin = '消费'
+      items.push({ k: 'listed', label: '上市公司总部', value: '只看上市公司总部所在地（沪深300+港股内地龙头，默认消费板块）' })
+    }
+  }
+
   // 8.58) 习俗/饮食/禁忌排除：「不要吃狗肉的地方」「不要嚼槟榔」「排除方言重的地方」→ customExcl
   //   识别「不要/排除/避开 + 关键词 + 的地方」或「不要 + 已知习俗词」句式
   //   关键词需在至少一个城市的 customstext 里出现才生效，避免无意义排除
@@ -518,7 +546,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     const negRe = /(?:不要|不想|不愿|不接受|不能接受|排除|剔除|避开|远离|不喜欢|怕|受不了|嫌|拒绝)/
     if (negRe.test(text)) {
       // 句式 A：「不要 X 的地方」→ 提取 X
-      const m = text.match(/(?:不要|不想|不愿|不接受|不能接受|排除|剔除|避开|远离|不喜欢|怕|受不了|嫌|拒绝)([^,，。；！？]{0,6}??)(?:的地方|的城市|的县城|地区|地方|城市|习俗|风俗|习惯)/)
+      const m = text.match(/(?:不要|不想|不愿|不接受|不能接受|排除|剔除|避开|远离|不喜欢|怕|受不了|嫌|拒绝)([^,，。；！？]{0,6}?)(?:的地方|的城市|的县城|地区|地方|城市|习俗|风俗|习惯)/)
       if (m) {
         // 去掉动词性字（吃/有/含/卖/会/喝/嚼/打/敬）取核心词
         let w = m[1].replace(/^(?:吃|有|含|卖|会|喝|嚼|打|敬|说|讲|用|带|劝|让我|让人|别人|本地人|老|重|很|太|非常|比较|相对)+/, '').trim()
@@ -686,6 +714,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.pm25Max, run: () => { next.pm25Max = null; relaxed.push('已自动放宽「PM2.5」限制') } },
     { when: () => next.fiscalMin, run: () => { next.fiscalMin = null; relaxed.push('已自动放宽「公共服务保障」限制') } },
+    { when: () => next.listedMin, run: () => { next.listedMin = null; relaxed.push('已自动放宽「上市公司总部」限制') } },
     { when: () => next.customExcl?.length > 0, run: () => { next.customExcl = []; relaxed.push('已自动放宽「习俗排除」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
@@ -731,6 +760,13 @@ export function rankResults(matched, f) {
       const fw = { A: 2, B: 1, C: -1, D: -2 }[c.fiscal.grade] || 0
       score += fw
       if (f.fiscalMin && fw > 0) why.push(`公共保障 ${c.fiscal.grade} 级`)
+    }
+    // 上市公司总部所在地加权：命中板块 +2/家（封顶 +6），凸显总部密集城市
+    if (f.listedMin && c.listedsectors?.includes(f.listedMin)) {
+      const n = (c.listed || []).filter(x => x.s === f.listedMin).length
+      const w = Math.min(6, n * 2)
+      score += w
+      if (w > 0) why.push(`${f.listedMin}板块上市公司 ${n} 家`)
     }
     if (f.uniOnly && c.uni_town) { score += 1; why.push('大学城周边') }
     for (const p of f.prefs || []) {

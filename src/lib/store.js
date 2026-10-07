@@ -45,6 +45,7 @@ export function defaultFilters() {
     pm25Max: null,            // PM2.5 周均上限 μg/m³（「pm2.5低于50」→ 50），null 不限
     fiscalMin: null,          // 公共服务保障评级下限 A/B/C/D（「公共服务好」→ 'B'），null 不限
     customExcl: [],           // 习俗排除关键词（「不要吃狗肉的地方」→ ['狗肉']），命中的城市被排除
+    listedMin: null,          // 上市公司板块下限：「消费」「科技」「金融」任一字符串 = 只看该板块有上市公司的城市（股东大会所在地筛选），null 不限
     spec: null,               // 专科强院筛选：复旦 2023 专科声誉榜 key（如 xiaohua=消化病），只看有全国 Top10 强院的城市
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
@@ -114,6 +115,7 @@ export function encodeFilters(f) {
   if (f.pm25Max) p.set('pm', String(f.pm25Max))
   if (f.fiscalMin) p.set('fis', f.fiscalMin)
   if (f.customExcl?.length) p.set('cx', f.customExcl.join(','))
+  if (f.listedMin) p.set('ls', f.listedMin)
   if (f.spec) p.set('sp', f.spec)
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
@@ -141,6 +143,7 @@ export function decodeFilters(search) {
   f.pm25Max = p.get('pm') ? Number(p.get('pm')) : null
   f.fiscalMin = p.get('fis') || null
   f.customExcl = split('cx')
+  f.listedMin = p.get('ls') || null
   f.spec = p.get('sp') || null
   f.uniOnly = p.get('uni') === '1'
   f.sort = p.get('sort') || f.sort // 未指定时用默认（explore）
@@ -194,6 +197,7 @@ export function matchQuery(city, q) {
     city.pm25text || '', // PM2.5 周均/空气质量（数值+等级，构建时注入）
     city.fiscaltext || '', // 公共服务保障评级/财政自给度（构建时注入）
     city.customstext || '', // 当地习俗/注意事项（标题+描述+通用词，构建时注入）
+    city.listedtext || '', // 上市公司总部所在地（公司名+代码+板块，构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)
 }
@@ -289,6 +293,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.pm25Max && !(c.pm25 && c.pm25.v <= f.pm25Max)) return false // PM2.5 周均上限硬过滤
     if (f.fiscalMin && !(c.fiscal && c.fiscal.grade && c.fiscal.grade <= f.fiscalMin)) return false // 公共服务保障评级下限（A<B<C<D 字典序，要求 grade ≤ fiscalMin，fiscalMin='B' 表示只看 A 或 B）
     if (f.customExcl?.length && c.customstext && f.customExcl.some(k => c.customstext.toLowerCase().includes(k.toLowerCase()))) return false // 习俗关键词排除（「不要吃狗肉的地方」→ customstext 含「狗肉」的城市排除）
+    if (f.listedMin && !(c.listedsectors && c.listedsectors.includes(f.listedMin))) return false // 上市公司板块下限（「股东大会在消费龙头所在地」→ 只看 listedsectors 含该板块的城市）
     if (f.spec && !(c.spec && c.spec.some(s => s[0] === f.spec))) return false // 专科强院所在城市（全国 Top10）
     if (f.uniOnly && !f.q && !f.budget && !f.spec && !f.cityOnly?.length && !c.uni_town) return false // 有关键词搜索/预算/专科/白名单时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false
