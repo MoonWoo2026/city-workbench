@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award, UtensilsCrossed } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Thermometer, Droplets, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf } from 'lucide-react'
 import dataset from '../data/cities_full.json'
 import { CLIMATE_TAGS } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
@@ -90,6 +90,44 @@ export function SpecBadge({ city, specKey, size = 'sm' }) {
   )
 }
 
+// 边境城市徽标：陆地边境县/市（公安部公边[1999]4号名单）
+export function BorderBadge({ city, size = 'sm' }) {
+  if (!city.border) return null
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return (
+    <span
+      title="陆地边境城市（公安部边境管理区名单）"
+      className={`inline-flex items-center gap-1 rounded-full bg-rose-50 font-medium text-rose-600 ring-1 ring-rose-500/20 ${cls}`}
+    >
+      <Mountain size={size === 'xs' ? 10 : 11} />
+      边境
+    </span>
+  )
+}
+
+// 安全指标徽标：群众安全感等官方指标；无数据时不显示
+export function SafetyBadge({ city, size = 'sm' }) {
+  if (!city.safety) return null
+  const s = city.safety
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  let label = ''
+  if (typeof s.security === 'number') label = `安全感 ${s.security}%`
+  else if (typeof s.security === 'string') label = s.security // 省级定性描述，如「连续5年全国前三」
+  else if (s.securityRank) label = `治安${s.securityRank}`
+  else if (s.securityTrend) label = '安全感连年上升'
+  else if (s.murderRate) label = `命案${s.murderRate}`
+  if (!label) return null
+  return (
+    <span
+      title={`来源：${s.source || '各地政法委公开发布'}${s.note ? '｜' + s.note : ''}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-emerald-50 font-medium text-emerald-700 ring-1 ring-emerald-500/20 ${cls}`}
+    >
+      <ShieldHalf size={size === 'xs' ? 10 : 11} />
+      {label}
+    </span>
+  )
+}
+
 export const yuan = n => `¥${Number(n).toLocaleString('zh-CN')}`
 
 function FavButton({ fav, onToggle }) {
@@ -173,6 +211,8 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
         <UniBadge uni={city.uni_town} />
         <MedBadge med={city.med} />
         <SpecBadge city={city} specKey={specKey} />
+        <BorderBadge city={city} />
+        <SafetyBadge city={city} />
         {city.tags.slice(0, 3).map(t => <TagChip key={t} tag={t} />)}
         {city.tags.length > 3 && <span className="text-[10px] text-stone-400">+{city.tags.length - 3}</span>}
       </div>
@@ -258,6 +298,8 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
           <UniBadge uni={city.uni_town} size="xs" />
           <MedBadge med={city.med} size="xs" />
           <SpecBadge city={city} specKey={specKey} size="xs" />
+          <BorderBadge city={city} size="xs" />
+          <SafetyBadge city={city} size="xs" />
           {city.tags.slice(0, 2).map(t => <TagChip key={t} tag={t} size="xs" />)}
         </div>
         {city.dishes?.length > 0 && (

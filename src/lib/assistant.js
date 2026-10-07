@@ -108,6 +108,7 @@ export const SUGGESTIONS = [
   '数字游民友好的南方县城',
   '胃不好，去哪些城市看病强',
   '火锅出名又便宜的城市',
+  '不要边境小城，治安好的地方',
 ]
 
 // ---------- 文本预处理 ----------
@@ -468,6 +469,48 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'medOff', label: '医疗', value: '三甲不限' })
   }
 
+  // 8.75) 边境/治安安全：「不要边境小城」→ 排除陆地边境城市；「治安好/安全」→ 优先安全得分高的；危险词否定 → 同样排除边境
+  const BORDER_WORD = /边境|边疆|国门|口岸|边境小城|边境城市/
+  const SAFETY_WORD = /治安好|治安不错|治安良好|安全|安全感|平安|不危险|靠谱|放心/
+  // 危险相关词库（否定时触发边境排除 + 安全偏好；中国不公开城市犯罪率，边境为可操作的客观过滤）
+  const DANGER_WORDS = ['治安差', '治安不好', '治安乱', '不安全', '危险', '犯罪率高', '犯罪率', '恶性案件', '恶性犯罪',
+    '走私', '毒品', '贩毒', '偷渡', '拐卖', '传销', '诈骗高发', '电诈高发', '黑恶', '黑帮', '黑社会', '黄赌毒',
+    '缅北', '金三角', '治安混乱', '太乱', '乱']
+  if (BORDER_WORD.test(text)) {
+    const i = text.search(BORDER_WORD)
+    const before = text.slice(Math.max(0, i - 5), i)
+    const neg = /不要|不用|不看|排除|去掉|别去|避开|远离|不想去|不去/.test(before)
+    if (neg) {
+      next.borderExcl = true
+      items.push({ k: 'border', label: '安全', value: '排除陆地边境城市' })
+    }
+  }
+  // 危险词否定 → 排除边境城市（犯罪率数据不公开，边境是目前唯一可操作的客观危险维度）
+  let dangerHit = null
+  for (const w of DANGER_WORDS) {
+    if (text.includes(w)) { dangerHit = w; break }
+  }
+  if (dangerHit) {
+    const i = text.indexOf(dangerHit)
+    const before = text.slice(Math.max(0, i - 6), i)
+    const neg = /不要|不用|不看|排除|去掉|别去|避开|远离|不想去|不去|没|无/.test(before)
+    if (neg) {
+      next.borderExcl = true
+      items.push({ k: 'danger', label: '安全', value: `排除「${dangerHit}」相关的边境城市` })
+    }
+  }
+  // 治安好/安全 → 偏好排序（有群众安全感数据的城市优先）
+  if (SAFETY_WORD.test(text)) {
+    const i = text.search(SAFETY_WORD)
+    const before = text.slice(Math.max(0, i - 4), i)
+    if (!/不要|不用|不看|排除|去掉|别|没|无|不/.test(before)) {
+      if (!next.prefs?.includes('safety')) {
+        next.prefs = [...(next.prefs || []), 'safety']
+        items.push({ k: 'pref', label: '偏好', value: '优先治安好、安全感高的城市' })
+      }
+    }
+  }
+
   // 8.8) 看病需求：疾病口语词 → 复旦专科声誉榜强院城市（硬过滤，全国排名靠前在前）
   if (/取消专科|不限专科|看病不限|取消看病|不看专科/.test(text)) {
     next.spec = null
@@ -546,6 +589,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
     { when: () => next.tagExcl.length > 0, run: () => { next.tagExcl = []; relaxed.push('排除条件太苛刻，已取消标签排除') } },
+    { when: () => next.borderExcl, run: () => { next.borderExcl = false; relaxed.push('已取消「排除边境城市」限制') } },
     { when: () => !!next.spec, run: () => { next.spec = null; relaxed.push('该专科强院城市与其他条件无交集，已取消专科限制') } },
     { when: () => !!next.budget, run: () => { next.budget = null; relaxed.push('预算内没有完全住得起的，已关闭预算限制') } },
   ]

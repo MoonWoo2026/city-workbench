@@ -314,6 +314,22 @@ export default function FilterPanel({ filters, patch, regionTree, resetAll, bann
               <span className="block text-[11px] text-stone-400">本市或所属市区有三甲，看病不愁（默认不开启）</span>
             </span>
           </button>
+          <button
+            onClick={() => patch({ borderExcl: !filters.borderExcl })}
+            className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition
+              ${filters.borderExcl ? 'border-rose-600/40 bg-rose-50/80' : 'border-stone-200 bg-white/60'}`}
+          >
+            <span className={`relative h-5 w-9 flex-none rounded-full transition ${filters.borderExcl ? 'bg-rose-600' : 'bg-stone-300'}`}>
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all
+                  ${filters.borderExcl ? 'left-[18px]' : 'left-0.5'}`}
+              />
+            </span>
+            <span>
+              <span className="block text-[13px] font-medium text-stone-800">排除边境城市</span>
+              <span className="block text-[11px] text-stone-400">不显示陆地边境县/市（默认不开启）</span>
+            </span>
+          </button>
         </div>
       </section>
 

@@ -70,7 +70,13 @@ export const PREF_RANK = {
     if (c.med?.p > 0) return [1, `邻市三甲医院 ${c.med.p} 家`]
     return null
   },
-  safety: c => (c.type !== '一二线城市' ? [1, '小城治安好'] : null),
+  safety: c => {
+    if (c.safety?.security && typeof c.safety.security === 'number') return [3, `群众安全感 ${c.safety.security}%`]
+    if (c.safety?.security) return [2, '治安居前列']
+    if (c.safety?.securityTrend) return [2, '群众安全感连年上升']
+    if (c.border) return [-1, '边境城市']
+    return [1, '非边境地区']
+  },
 }
 
 export const SORTS = [

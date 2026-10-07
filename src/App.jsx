@@ -275,6 +275,7 @@ export default function App() {
     if (filters.cleanOnly) chips.push({ k: 'clean', label: '50km 无重污染', clear: () => patch({ cleanOnly: false }) })
     if (filters.medOnly) chips.push({ k: 'med', label: '有三甲医院', clear: () => patch({ medOnly: false }) })
     if (filters.medExcl) chips.push({ k: 'medx', label: '排除有三甲', clear: () => patch({ medExcl: false }) })
+    if (filters.borderExcl) chips.push({ k: 'bdx', label: '排除边境城市', clear: () => patch({ borderExcl: false }) })
     if (filters.spec && dataset.specialties?.specs?.[filters.spec]) {
       chips.push({ k: 'spec', label: `${dataset.specialties.specs[filters.spec].name}强院城市`, clear: () => patch({ spec: null }) })
     }
