@@ -464,7 +464,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   }
 
   // 8.56) PM2.5 周均：数值上限/等级/取消（数据每周自动更新，近 7 天均值）
-  if (/pm\s*2?\.?\s*5/.test(text)) {
+  if (/pm\s*2?\.?\s*5/i.test(text)) {
     if (/不限|取消|清除|去掉|不管|无所谓|都行|别限|不限制/.test(text)) {
       next.pm25Max = null
       items.push({ k: 'pm25', label: 'PM2.5', value: '不限' })
@@ -483,9 +483,18 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         items.push({ k: 'pm25', label: 'PM2.5', value: `≤ ${n} μg/m³（近7天均值）` })
       }
     }
-  } else if (/空气优|空气质量优|空气质量等级优/.test(text)) {
+  } else if (/空气优|空气质量优|空气质量等级优|空气等级优|空气清新|雾霾少|少雾霾|没雾霾|无雾霾|适合呼吸|呼吸顺畅|蓝天多|空气好得优|空气最好/.test(text)) {
+    // 8.56b) 空气质量优（含 PM2.5 值优/低、雾霾少、适合呼吸等口语表述）→ 只看「优」（≤35）
     next.pm25Max = 35
     items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优」（≤35 μg/m³，近7天均值）' })
+  } else if (/空气良|空气质量良|空气质量等级良|空气等级良|空气尚可|空气还行/.test(text)) {
+    // 8.565) 空气质量良 → 只看「优/良」（≤75）
+    next.pm25Max = 75
+    items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优/良」（≤75 μg/m³，近7天均值）' })
+  } else if (/空气差|空气不好|空气糟糕|空气质量差|空气质量不好|空气质量糟糕|空气污染|空气污染严重|空气污染重|雾霾多|雾霾严重|雾霾重|雾霾天多|霾严重|霾重/.test(text)) {
+    // 8.566) 空气质量差/雾霾严重 → 排除轻度污染及以上（≤75，即不要空气不好的城市）
+    next.pm25Max = 75
+    items.push({ k: 'pm25', label: 'PM2.5', value: '排除轻度污染及以上（≤75 μg/m³，近7天均值）' })
   }
 
   // 8.57) 公共服务保障评级：财政稳健度/福利水平/公共投入估算
@@ -823,7 +832,7 @@ export function refineInterpret(rawText, currentFilters) {
     if (/三甲|大医院|好医院/.test(mEx[1])) {
       return { next: { ...currentFilters, medOnly: false, medExcl: true }, chip: '排除有三甲' }
     }
-    if (/pm\s*2?\.?\s*5|空气(?:差|不好|糟糕)/.test(mEx[1])) {
+    if (/pm\s*2?\.?\s*5|空气(?:质量)?(?:差|不好|糟糕|污染)|雾霾|霾/i.test(mEx[1])) {
       return { next: { ...currentFilters, pm25Max: 35 }, chip: 'PM2.5 只看优（≤35）' }
     }
     if (/公共(?:服务|保障)|福利|财政|市政|基建/.test(mEx[1])) {

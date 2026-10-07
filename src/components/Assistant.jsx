@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, X, Send, Bot, Undo2, RotateCcw, Trophy, ExternalLink } from 'lucide-react'
-import { interpret, rankResults, SUGGESTIONS } from '../lib/assistant.js'
+import { interpret, refineInterpret, rankResults, SUGGESTIONS } from '../lib/assistant.js'
 import { applyFilters, defaultFilters, encodeFilters } from '../lib/store.js'
 
 const SEEN_TIP_KEY = 'cw:seen-assistant-tip'
@@ -60,9 +60,29 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
     pushMsg({ role: 'user', text })
     setInput('')
 
+    // 微调句式（排除/只要/去掉…）优先走微调引擎，与 App.jsx smartSearch 同步
+    // 让 FAB 也能识别「排除北方」「只要南方」「去掉有工业的」「不要空气质量不好的」等句式
+    const isRefine = /^(?:排除|不要|去掉|不看|滤掉|踢掉|别去|别选|剔除|屏蔽|只要|只看|只留|仅要|就看|取消|清除|撤销|再来|换成|改成)/.test(text)
+    const tryRefine = () => {
+      const rr = refineInterpret(text, filters)
+      if (!rr) return false
+      setHistory(h => [...h, { filters, favOnly }])
+      onApplyFilters(rr.next)
+      const matched = applyFilters(cities, rr.next, { favs, favOnly })
+      const count = matched.length
+      const ranked = count ? rankResults(matched, rr.next) : []
+      pushMsg({ role: 'bot', kind: 'plan', items: rr.chip ? [{ k: 'refine', label: '微调', value: rr.chip }] : [], count, relaxed: [], ranked, filtersNext: rr.next })
+      return true
+    }
+    if (isRefine && tryRefine()) return
+
     const r = interpret(text, filters, { favOnly })
 
     if (r.kind === 'plan') {
+      // 微调句被 interpret 抢答成「纯关闭标签」时视为无效，走 refine 兜底（与 smartSearch 同步）
+      if (isRefine && r.items.every(i => i.k === 'tagOff')) {
+        if (tryRefine()) return
+      }
       setHistory(h => [...h, { filters, favOnly }])
       onApplyFilters(r.next)
       const matched = applyFilters(cities, r.next, { favs, favOnly })
@@ -103,6 +123,8 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
       pushMsg({ role: 'bot', kind: 'help' })
       return
     }
+    // 兜底：再试一次微调引擎（与 App.jsx smartSearch 同步）
+    if (tryRefine()) return
     pushMsg({ role: 'bot', kind: 'unknown', raw: text })
   }
 
