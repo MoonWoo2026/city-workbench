@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -315,6 +315,41 @@ function SpecBlock({ city, specKey }) {
   )
 }
 
+// owner 私密财政明细：参考性反推一般公共预算收支 + 地方政府债务总规模
+//   仅 isOwner 渲染（有 owner key 且非访客链接），分享链接看不到
+//   基于城市类型基础值 × score 系数估算收入，自给度反推支出，投资活跃度推债务
+function OwnerFiscalDetail({ fiscal, type }) {
+  const [show, setShow] = useState(false)
+  if (!fiscal) return null
+  // 一般公共预算收入基础值（亿元）：一线城市 800、一线郊区 300、二线郊区 200、三四线 150、县城 40
+  const TYPE_BASE = { A: 800, B: 300, C: 200, D: 150, E: 40 }
+  const base = TYPE_BASE[type] || 60
+  const sc = fiscal.score
+  const ss = fiscal.self_sufficiency
+  const ia = fiscal.invest_activity
+  const revenue = Math.round(base * (0.5 + sc * 0.8) / 10) * 10
+  const expenditure = Math.round(revenue / Math.max(0.3, ss) / 10) * 10
+  const debt = Math.round(expenditure * (1.5 + (1 - ss) * 3) * ia / 10) * 10
+  return (
+    <div className="mt-1.5 rounded-lg bg-stone-100/80 px-2.5 py-1.5 ring-1 ring-stone-300/50">
+      <button onClick={() => setShow(v => !v)}
+        className="flex items-center gap-1 text-[11px] font-medium text-stone-500 hover:text-stone-700">
+        <Info size={11} /> 财政明细（仅自己可见）
+        {show ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+      </button>
+      {show && (
+        <div className="mt-1.5 space-y-1 text-[11.5px] leading-5 text-stone-600">
+          <div>一般公共预算收入：<b className="text-stone-800">{revenue}</b> 亿元（估算）</div>
+          <div>一般公共预算支出：<b className="text-stone-800">{expenditure}</b> 亿元（收入 ÷ 自给度 {Math.round(ss * 100)}%）</div>
+          <div>地方政府债务余额：<b className="text-stone-800">{debt}</b> 亿元（投资活跃度 × 缺口累积估算）</div>
+          <div className="text-stone-400">收入支出差（赤字）：约 <b className="text-stone-500">{expenditure - revenue}</b> 亿元，自给率 {Math.round(ss * 100)}%</div>
+          <p className="text-stone-400">以上为参考性估算，非真实决算数。建议结合财政部地方债务公开数据核对。</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // 上市公司总部所在地卡：仅收录沪深300成分股 + 港股内地消费/科技/金融龙头
 //   按板块分组（消费/科技/金融），公司名 + 代码 + 交易所标识
 //   区县继承母城名单（股东大会在母城召开）
@@ -376,7 +411,7 @@ function ListedBlock({ city }) {
   )
 }
 
-export default function CityDetailModal({ city, fav, comparing, specKey, onClose, onToggleFav, onToggleCompare, note, onNoteChange }) {
+export default function CityDetailModal({ city, fav, comparing, specKey, isOwner, onClose, onToggleFav, onToggleCompare, note, onNoteChange }) {
   const [draft, setDraft] = useState(note || '')
   const [savedTip, setSavedTip] = useState(false)
   const timer = useRef(null)
@@ -585,6 +620,7 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
                 <p className="mt-2 text-[10.5px] leading-5 text-stone-400">
                   以上为基于公开财政决算规律的模型估算（{(city.fiscal.score * 100).toFixed(0)}/100 综合分），反映城市公共服务供给能力与基建投入水平的相对位次，不代表真实决算数；数据年度更新，仅供参考。
                 </p>
+                {isOwner && <OwnerFiscalDetail fiscal={city.fiscal} type={city.type} />}
               </Block>
             )
           })()}
