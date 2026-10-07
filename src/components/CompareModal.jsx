@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { X, ShieldCheck, XCircle, MapPin, Droplets, Thermometer, Star, GraduationCap, BusFront } from 'lucide-react'
-import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
+import { X, ShieldCheck, XCircle, MapPin, Droplets, Thermometer, Star, GraduationCap, BusFront, Wind } from 'lucide-react'
+import { TagChip, CleanBadge, PM25Badge, yuan } from './CityCard.jsx'
 
 function Cell({ children, highlight = false, strong = false }) {
   return (
@@ -75,6 +75,13 @@ export default function CompareModal({ cities, onClose, onRemove }) {
       label: '气候',
       icon: <Thermometer size={12} className="text-teal-600" />,
       render: c => <div className="space-y-1.5"><p>{c.climate}</p><div className="flex flex-wrap gap-1">{c.tags.map(t => <TagChip key={t} tag={t} size="xs" />)}</div></div>,
+    },
+    {
+      label: 'PM2.5（周均）',
+      icon: <Wind size={12} className="text-teal-600" />,
+      render: c => c.pm25?.v
+        ? <PM25Badge pm25={c.pm25} size="xs" />
+        : <span className="text-stone-300">— 暂无数据</span>,
     },
     {
       label: '生态环境（50km）',

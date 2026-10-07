@@ -2,7 +2,7 @@
 // 支持：省份/大区、租金预算、气候标签、居住类型、空气、大学城、排序、重置、撤销、收藏
 import dataset from '../data/cities_full.json'
 import { applyFilters, splitBudget } from './store.js'
-import { PREF_RANK } from './constants.js'
+import { PREF_RANK, pm25Level } from './constants.js'
 
 const ALL_CITIES = dataset.cities
 const SPECS = dataset.specialties?.specs || {} // 复旦 2023 专科声誉榜：key → { name, alias, list }
@@ -303,6 +303,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         types: [],
         tags: [],
         cleanOnly: false,
+        pm25Max: null,
         uniOnly: false,
         spec: null,
         q: '',
@@ -352,6 +353,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       types: [],
       tags: [],
       cleanOnly: false,
+      pm25Max: null,
       uniOnly: false,
       spec: null, // 点名城市时退出专科强院模式
       q: city.name,
@@ -454,6 +456,31 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       next.cleanOnly = true
       items.push({ k: 'clean', label: '空气', value: '排除周边有工业的城市' })
     }
+  }
+
+  // 8.56) PM2.5 周均：数值上限/等级/取消（数据每周自动更新，近 7 天均值）
+  if (/pm\s*2?\.?\s*5/.test(text)) {
+    if (/不限|取消|清除|去掉|不管|无所谓|都行|别限|不限制/.test(text)) {
+      next.pm25Max = null
+      items.push({ k: 'pm25', label: 'PM2.5', value: '不限' })
+    } else if (/优/.test(text)) {
+      next.pm25Max = 35
+      items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优」（≤35 μg/m³，近7天均值）' })
+    } else if (/良/.test(text)) {
+      next.pm25Max = 75
+      items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优/良」（≤75 μg/m³，近7天均值）' })
+    } else {
+      const pmNum = text.match(/pm\s*2?\.?\s*5[^0-9]{0,8}?(?:低于|小于|不超过|不高于|≤|<=|<|在)?\s*(\d{1,3})/)
+        || text.match(/(\d{1,3})\s*(?:以下|以内)[^0-9]{0,8}?pm\s*2?\.?\s*5/)
+      if (pmNum) {
+        const n = Math.max(1, Math.min(500, Number(pmNum[1])))
+        next.pm25Max = n
+        items.push({ k: 'pm25', label: 'PM2.5', value: `≤ ${n} μg/m³（近7天均值）` })
+      }
+    }
+  } else if (/空气优|空气质量优|空气质量等级优/.test(text)) {
+    next.pm25Max = 35
+    items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优」（≤35 μg/m³，近7天均值）' })
   }
 
   // 8.6) 生活成本/物价
@@ -595,6 +622,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.uniOnly, run: () => { next.uniOnly = false; relaxed.push('已自动放宽「优先大学城」') } },
     { when: () => next.provinces.length > 0, run: () => { next.provinces = []; relaxed.push('限定省份没有匹配，已扩大到全国') } },
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
+    { when: () => next.pm25Max, run: () => { next.pm25Max = null; relaxed.push('已自动放宽「PM2.5」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
     { when: () => next.tagExcl.length > 0, run: () => { next.tagExcl = []; relaxed.push('排除条件太苛刻，已取消标签排除') } },
@@ -627,6 +655,13 @@ export function rankResults(matched, f) {
     for (const t of f.tags || []) if (c.tags.includes(t)) { score += 3; why.push(t) }
     if ((f.types || []).length && f.types.includes(c.type)) score += 1
     if (c.clean50) { score += 1; if (f.cleanOnly) why.push('50km 无重污染') }
+    // PM2.5 周均分级加权：优 +3 / 良 +1 / 中度 -1 / 重度 -3 / 严重 -5
+    if (c.pm25?.v != null) {
+      const lv = pm25Level(c.pm25.v)
+      const w = { good: 3, moderate: 1, light: 0, medium: -1, heavy: -3, severe: -5 }[lv.key] || 0
+      score += w
+      if ((f.pm25Max || f.cleanOnly) && w > 0) why.push(`PM2.5 ${c.pm25.v} ${lv.label}`)
+    }
     if (f.uniOnly && c.uni_town) { score += 1; why.push('大学城周边') }
     for (const p of f.prefs || []) {
       const r = PREF_RANK[p]?.(c)
@@ -681,6 +716,9 @@ export function refineInterpret(rawText, currentFilters) {
     if (provs.length) return { next: addExcl(currentFilters, `排除${provs.join('、')}`, provs), chip: `排除${provs.join('、')}` }
     if (/三甲|大医院|好医院/.test(mEx[1])) {
       return { next: { ...currentFilters, medOnly: false, medExcl: true }, chip: '排除有三甲' }
+    }
+    if (/pm\s*2?\.?\s*5|空气(?:差|不好|糟糕)/.test(mEx[1])) {
+      return { next: { ...currentFilters, pm25Max: 35 }, chip: 'PM2.5 只看优（≤35）' }
     }
     if (/工业|污染|雾霾|厂/.test(mEx[1])) {
       return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }

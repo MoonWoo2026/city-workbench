@@ -1,6 +1,6 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf, ChefHat } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf, ChefHat, Wind } from 'lucide-react'
 import dataset from '../data/cities_full.json'
-import { CLIMATE_TAGS } from '../lib/constants.js'
+import { CLIMATE_TAGS, pm25Level } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
@@ -28,6 +28,23 @@ export function CleanBadge({ clean, size = 'sm' }) {
     <span className={`inline-flex items-center gap-1 rounded-full bg-rose-50 font-medium text-rose-600 ring-1 ring-rose-500/15 ${cls}`}>
       <ShieldAlert size={size === 'xs' ? 10 : 11} />
       周边有工业
+    </span>
+  )
+}
+
+// PM2.5 周均徽标：颜色随国标分级（优/良/轻度/中度/重度/严重）
+export function PM25Badge({ pm25, size = 'sm' }) {
+  if (!pm25?.v) return null
+  const lv = pm25Level(pm25.v)
+  if (!lv) return null
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return (
+    <span
+      title={`PM2.5 近7天平均 ${pm25.v} μg/m³（${lv.label}，数据截至 ${pm25.updated}，来源 Open-Meteo / Copernicus CAMS）`}
+      className={`inline-flex items-center gap-1 rounded-full font-medium ring-1 ${cls} ${lv.cls}`}
+    >
+      <Wind size={size === 'xs' ? 10 : 11} />
+      PM2.5 {pm25.v} · {lv.label}
     </span>
   )
 }
@@ -281,6 +298,7 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
 
       <div className="mt-2.5 flex flex-wrap items-center gap-1">
         <CleanBadge clean={city.clean50} />
+        <PM25Badge pm25={city.pm25} />
         <UniBadge uni={city.uni_town} />
         <MedBadge med={city.med} />
         <SpecBadge city={city} specKey={specKey} />
@@ -365,6 +383,7 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
         </div>
         <div className="mt-1.5 flex flex-wrap gap-1">
           <CleanBadge clean={city.clean50} size="xs" />
+          <PM25Badge pm25={city.pm25} size="xs" />
           <UniBadge uni={city.uni_town} size="xs" />
           <MedBadge med={city.med} size="xs" />
           <SpecBadge city={city} specKey={specKey} size="xs" />

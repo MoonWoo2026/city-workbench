@@ -5,12 +5,13 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
 import { useCityShare } from './useCityShare.jsx'
 import { nearestSpec, nearestSpecs, specDistanceText } from '../lib/store.js'
+import { pm25Level } from '../lib/constants.js'
 import dataset from '../data/cities_full.json'
 
 function MiniMap({ city }) {
@@ -440,6 +441,25 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
             title="生态与污染说明"
             tone={city.clean50 ? 'green' : 'red'}
           >
+            {city.pm25?.v && (() => {
+              const lv = pm25Level(city.pm25.v)
+              return (
+                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl bg-white px-3 py-2.5 ring-1 ring-stone-200/70">
+                  <Wind size={18} className="text-stone-400" />
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[20px] font-bold leading-none text-stone-800">{city.pm25.v}</span>
+                      <span className="text-[11px] text-stone-400">μg/m³</span>
+                      <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${lv.cls}`}>{lv.label}</span>
+                    </div>
+                    <div className="mt-1 text-[10.5px] text-stone-400">PM2.5 近 7 天平均 · 数据截至 {city.pm25.updated} · 每周自动更新</div>
+                  </div>
+                  <span className="ml-auto hidden max-w-[45%] text-[10px] leading-4 text-stone-400 sm:block">
+                    分级阈值参照 GB3095-2012（优≤35 / 良≤75），数据源 Open-Meteo（Copernicus CAMS 大气监测）
+                  </span>
+                </div>
+              )
+            })()}
             {city.environment}
           </Block>
 

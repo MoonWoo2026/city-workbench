@@ -86,3 +86,19 @@ export const SORTS = [
   { key: 'shared', label: '合租价格 从低到高' },
   { key: 'name', label: '城市名称 A-Z' },
 ]
+
+// PM2.5 周均浓度分级（阈值参照 GB3095-2012 日均浓度限值，周均值按同阈值定性）
+// 数据来自 Open-Meteo Air Quality API（Copernicus CAMS），每周自动更新
+export const PM25_LEVELS = [
+  { key: 'good', label: '优', max: 35, cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15', dot: 'bg-emerald-500' },
+  { key: 'moderate', label: '良', max: 75, cls: 'bg-amber-50 text-amber-700 ring-amber-500/20', dot: 'bg-amber-500' },
+  { key: 'light', label: '轻度污染', max: 115, cls: 'bg-orange-50 text-orange-700 ring-orange-500/25', dot: 'bg-orange-500' },
+  { key: 'medium', label: '中度污染', max: 150, cls: 'bg-red-50 text-red-700 ring-red-500/25', dot: 'bg-red-500' },
+  { key: 'heavy', label: '重度污染', max: 250, cls: 'bg-rose-100 text-rose-800 ring-rose-700/30', dot: 'bg-rose-600' },
+  { key: 'severe', label: '严重污染', max: Infinity, cls: 'bg-purple-100 text-purple-900 ring-purple-700/30', dot: 'bg-purple-700' },
+]
+
+export function pm25Level(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return null
+  return PM25_LEVELS.find(l => v <= l.max) || PM25_LEVELS[PM25_LEVELS.length - 1]
+}
