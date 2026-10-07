@@ -1,8 +1,13 @@
 // 公共服务保障评级数据生成 + 注入：写 scripts/fiscal.json 并同步到 src/data/cities_full.json
 //   - 仅对地级市本身（无 parent）做模型估算
 //   - 县/区/县级市继承母城数据
-//   - c.fiscal = { score, self_sufficiency, per_capita_living, invest_activity, grade, source, updated }
+//   - c.fiscal = { score, self_sufficiency, per_capita_living, invest_activity, grade, source, updated,
+//                  revenue?, expenditure?, debt? }  // 真实数据字段（source='actual' 时存在）
 //   - c.fiscaltext 供 matchQuery 搜索（公共服务 财政 保障 A B C D …）
+//
+// 数据来源优先级：
+//   1. scripts/fiscal-real.json —— 各市 2025 年预算执行情况报告/统计公报的真实数据
+//   2. 估算模型 v1-2026 —— 基于城市经济活跃度代理指标的简化模型（source='estimated'）
 //
 // 估算模型 v1-2026：基于 2022 年地级市财政决算公开规律的简化模型
 //   维度：
@@ -11,14 +16,12 @@
 //     per_capita_living  人均民生支出（社保+教育+医疗+住房保障，元/年）
 //     invest_activity    基建投资活跃度（0-1，标准化）
 //   权重：城市类别基础分 + 省份修正 + 省会/计划单列加成 + 租金代理指标 + 稳定噪声
-//
-// 数据均为模型估算（source: 'estimated'），不代表真实决算数。
-// 后续可用真实公开数据替换 scripts/fiscal.json 后重跑此脚本注入。
 import fs from 'node:fs'
 import { fiscalGrade } from '../src/lib/constants.js'
 
 const DATA = 'src/data/cities_full.json'
 const SRC = 'scripts/fiscal.json'
+const REAL_SRC = 'scripts/fiscal-real.json'
 const UPDATED = '2026-10-07'
 const MODEL_VERSION = 'v1-2026'
 
@@ -128,6 +131,45 @@ for (let i = 0; i < N; i++) {
 fs.writeFileSync(SRC, JSON.stringify(fiscalSrc, null, 2))
 console.log(`估算 ${estimated} 个地级市的财政数据，写入 ${SRC}`)
 
+// ---------- 2.5 读取真实财政数据（fiscal-real.json）----------
+// 结构：{ cities: { "城市id": { revenue, expenditure, debt?, note? } } }
+// 有真实数据的城市：用真实收支重算 self_sufficiency + grade，source 改为 'actual'
+let realData = null
+let realCount = 0
+if (fs.existsSync(REAL_SRC)) {
+  realData = JSON.parse(fs.readFileSync(REAL_SRC, 'utf8'))
+  realCount = Object.keys(realData.cities || {}).length
+  console.log(`读取真实财政数据：${realCount} 城（${realData.updated || '?'}）`)
+}
+
+// 用真实数据覆盖估算值（地级市层面）
+function applyRealData() {
+  if (!realData?.cities) return
+  for (const [cid, rd] of Object.entries(realData.cities)) {
+    const est = fiscalSrc.cities[cid]
+    if (!est) continue
+    if (!rd.revenue || !rd.expenditure) continue
+    const ss = rd.revenue / rd.expenditure   // 真实自给度
+    // 真实数据 → 重算 score（以自给度为主，保留估算的 per_capita/invest 作辅）
+    // 自给度 0.3→score 0.30，1.0→score 0.95，>1.0 上限 0.98
+    const score = Math.max(0.25, Math.min(0.98, 0.25 + Math.min(1, ss) * 0.73))
+    const grade = fiscalGrade(score)?.key || 'D'
+    est.score = Math.round(score * 100) / 100
+    est.self_sufficiency = Math.round(ss * 100) / 100
+    est.grade = grade
+    est.source = 'actual'
+    est.revenue = rd.revenue
+    est.expenditure = rd.expenditure
+    if (rd.debt) est.debt = rd.debt
+    if (rd.note) est.note = rd.note
+  }
+}
+applyRealData()
+// 重写 fiscal.json（含真实数据覆盖）
+fs.writeFileSync(SRC, JSON.stringify(fiscalSrc, null, 2))
+const actualN = Object.values(fiscalSrc.cities).filter(x => x.source === 'actual').length
+console.log(`真实数据覆盖：${actualN} 城，估算 ${estimated - actualN} 城`)
+
 // ---------- 3. 注入 cities_full.json（地级市 + 区县继承母城）----------
 for (const c of cities) { delete c.fiscal; delete c.fiscaltext }
 
@@ -151,6 +193,13 @@ for (const c of cities) {
     grade: row.grade,
     source: row.source,
     updated: UPDATED,
+  }
+  // 真实数据字段透传
+  if (row.source === 'actual') {
+    if (row.revenue != null) c.fiscal.revenue = row.revenue
+    if (row.expenditure != null) c.fiscal.expenditure = row.expenditure
+    if (row.debt != null) c.fiscal.debt = row.debt
+    if (row.note) c.fiscal.note = row.note
   }
   const g = fiscalGrade(row.score)
   c.fiscaltext = [

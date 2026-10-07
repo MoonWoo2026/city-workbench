@@ -315,21 +315,31 @@ function SpecBlock({ city, specKey }) {
   )
 }
 
-// owner 私密财政明细：参考性反推一般公共预算收支 + 地方政府债务总规模
-//   仅 isOwner 渲染（有 owner key 且非访客链接），分享链接看不到
-//   基于城市类型基础值 × score 系数估算收入，自给度反推支出，投资活跃度推债务
+// owner 私密财政明细：一般公共预算收支 + 地方政府债务总规模
+//   仅 isOwner 渲染（有 owner key 或 admin 标记），分享链接看不到
+//   有真实数据（source='actual'）时直接显示真实值；否则用模型估算并标注
 function OwnerFiscalDetail({ fiscal, type }) {
   const [show, setShow] = useState(false)
   if (!fiscal) return null
-  // 一般公共预算收入基础值（亿元）：一二线 2000、一线郊区 500、二线郊区 350、三四线 200、县城 60
-  const TYPE_BASE = { '一二线城市': 2000, '一线郊区': 500, '二线郊区': 350, '三四线城市': 200, '县城/小镇': 60 }
-  const base = TYPE_BASE[type] || 80
-  const sc = fiscal.score
-  const ss = fiscal.self_sufficiency
-  const ia = fiscal.invest_activity
-  const revenue = Math.round(base * (0.5 + sc * 0.8) / 10) * 10
-  const expenditure = Math.round(revenue / Math.max(0.3, ss) / 10) * 10
-  const debt = Math.round(expenditure * (1.5 + (1 - ss) * 3) * ia / 10) * 10
+  const isActual = fiscal.source === 'actual' && fiscal.revenue != null && fiscal.expenditure != null
+  let revenue, expenditure, debt, ss
+  if (isActual) {
+    revenue = fiscal.revenue
+    expenditure = fiscal.expenditure
+    debt = fiscal.debt
+    ss = fiscal.self_sufficiency
+  } else {
+    // 估算（无真实数据时用模型推算）
+    const TYPE_BASE = { '一二线城市': 2000, '一线郊区': 500, '二线郊区': 350, '三四线城市': 200, '县城/小镇': 60 }
+    const base = TYPE_BASE[type] || 80
+    const sc = fiscal.score
+    const ia = fiscal.invest_activity
+    ss = fiscal.self_sufficiency
+    revenue = Math.round(base * (0.5 + sc * 0.8) / 10) * 10
+    expenditure = Math.round(revenue / Math.max(0.3, ss) / 10) * 10
+    debt = Math.round(expenditure * (1.5 + (1 - ss) * 3) * ia / 10) * 10
+  }
+  const deficit = expenditure - revenue
   return (
     <div className="mt-1.5 rounded-lg bg-stone-100/80 px-2.5 py-1.5 ring-1 ring-stone-300/50">
       <button onClick={() => setShow(v => !v)}
@@ -339,11 +349,22 @@ function OwnerFiscalDetail({ fiscal, type }) {
       </button>
       {show && (
         <div className="mt-1.5 space-y-1 text-[11.5px] leading-5 text-stone-600">
-          <div>一般公共预算收入：<b className="text-stone-800">{revenue}</b> 亿元（估算）</div>
-          <div>一般公共预算支出：<b className="text-stone-800">{expenditure}</b> 亿元（收入 ÷ 自给度 {Math.round(ss * 100)}%）</div>
-          <div>地方政府债务余额：<b className="text-stone-800">{debt}</b> 亿元（投资活跃度 × 缺口累积估算）</div>
-          <div className="text-stone-400">收入支出差（赤字）：约 <b className="text-stone-500">{expenditure - revenue}</b> 亿元，自给率 {Math.round(ss * 100)}%</div>
-          <p className="text-stone-400">以上为参考性估算，非真实决算数。建议结合财政部地方债务公开数据核对。</p>
+          <div>一般公共预算收入：<b className="text-stone-800">{revenue}</b> 亿元{isActual ? '' : '（估算）'}</div>
+          <div>一般公共预算支出：<b className="text-stone-800">{expenditure}</b> 亿元{isActual ? '' : '（估算）'}</div>
+          {debt != null && (
+            <div>地方政府债务余额：<b className="text-stone-800">{debt}</b> 亿元{isActual ? '' : '（估算）'}</div>
+          )}
+          <div className="text-stone-400">
+            收支差额：约 <b className={deficit > 0 ? 'text-rose-500' : 'text-emerald-600'}>
+              {deficit > 0 ? '-' : '+'}{Math.abs(deficit)}
+            </b> 亿元，财政自给率 <b className="text-stone-600">{Math.round(ss * 100)}%</b>
+          </div>
+          {fiscal.note && <p className="text-stone-400">{fiscal.note}</p>}
+          {isActual ? (
+            <p className="text-stone-400">数据来源：2025 年预算执行情况报告 / 统计公报（{fiscal.updated}）</p>
+          ) : (
+            <p className="text-stone-400">以上为参考性估算（基于城市经济活跃度模型推算），非真实决算数。</p>
+          )}
         </div>
       )}
     </div>
