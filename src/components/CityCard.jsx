@@ -63,6 +63,42 @@ export function MedBadge({ med, size = 'sm' }) {
   )
 }
 
+// 三甲医院名单陈列：露前 2 家 + 多余折叠（title 悬停看全名单）
+// 本市有三甲用蓝色，仅母城有（共享市区资源）用灰色
+export function MedList({ city, size = 'sm' }) {
+  if (!city.med) return null
+  const names = dataset.hospitals[city.med.k] || []
+  if (!names.length) return null
+  const own = city.med.n > 0
+  const shown = names.slice(0, 2)
+  const cls = size === 'xs'
+    ? 'mt-1 flex items-center gap-1 truncate text-[10.5px] text-sky-600/90'
+    : 'mt-2 flex items-start gap-1.5 rounded-lg bg-sky-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-sky-700/90 ring-1 ring-sky-500/10'
+  if (size === 'xs') {
+    return (
+      <div title={`三甲医院：${names.join('、')}`} className={`${cls} ${own ? '' : 'text-stone-400'}`}>
+        <Cross size={10} className="flex-none" />
+        <span className="truncate">
+          {shown.join(' · ')}
+          {names.length > 2 ? ` +${names.length - 2}` : ''}
+        </span>
+      </div>
+    )
+  }
+  return (
+    <div
+      title={`三甲医院（${own ? '本市' : '共享 ' + city.med.k + ' 市区'}）：${names.join('、')}`}
+      className={`${cls} ${own ? '' : 'bg-stone-50/60 text-stone-500 ring-stone-300/20'}`}
+    >
+      <Cross size={12} className="mt-0.5 flex-none" />
+      <span className="line-clamp-1">
+        {shown.join(' · ')}
+        {names.length > 2 && <span className={own ? 'text-sky-400' : 'text-stone-400'}> +{names.length - 2}</span>}
+      </span>
+    </div>
+  )
+}
+
 // 专科强院徽标：仅当专科筛选激活且本市有该专科全国 Top10 强院时显示
 // 命中医院若为权威指南牵头/带头人所在医院 → 金底★重点标注（悬停看带头人头衔）
 export function SpecBadge({ city, specKey, size = 'sm' }) {
@@ -217,6 +253,8 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
         {city.tags.length > 3 && <span className="text-[10px] text-stone-400">+{city.tags.length - 3}</span>}
       </div>
 
+      <MedList city={city} />
+
       {city.uni_town && (
         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-indigo-50/60 px-2.5 py-1.5 text-[11px] leading-4 text-indigo-700/90 ring-1 ring-indigo-500/10">
           <GraduationCap size={12} className="mt-0.5 flex-none" />
@@ -313,6 +351,7 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
             </span>
           </div>
         )}
+        <MedList city={city} size="xs" />
       </div>
 
       <div className="grid flex-1 grid-cols-3 gap-2">
