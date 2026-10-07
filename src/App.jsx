@@ -51,8 +51,8 @@ export default function App() {
   const [batchPaused, setBatchPaused] = useState(false)
   const [toast, setToast] = useState('')
   const [syncStatus, setSyncStatus] = useState('off')
-  // owner 视图：有 owner key 且非访客链接（s=1），可看私密财政估算
-  const isOwner = !!sync.getKey() && !new URLSearchParams(window.location.search).get('s')
+  // owner 视图：有 sync key 或 localStorage admin 标记（访客无 key 看不到私密财政估算）
+  const isOwner = !!sync.getKey() || localStorage.getItem('cw:admin') === '1'
   // 智能搜索：AI 理解后的回显（词条列表 + 撤销快照）
   const [aiEcho, setAiEcho] = useState(null) // { items, count, raw }
   const aiUndoRef = useRef(null) // AI 应用前的 filters 快照
