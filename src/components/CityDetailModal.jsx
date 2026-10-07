@@ -266,10 +266,15 @@ function SpecBlock({ city, specKey }) {
     if (rank < g.rank) g.rank = rank
   }
   groups.sort((a, b) => a.rank - b.rank)
+  // 默认折叠：>5 个科室时只显示前 5（按排名优先），点击展开全部
+  const SPEC_FOLD = 5
+  const [specOpen, setSpecOpen] = useState(false)
+  const folded = groups.length > SPEC_FOLD && !specOpen
+  const shown = folded ? groups.slice(0, SPEC_FOLD) : groups
   return (
     <Block icon={<Award size={14} className="text-amber-600" />} title={`全国专科强院（本市 ${groups.length} 个科室上榜）`}>
       <ul className="space-y-1.5">
-        {groups.map(g => {
+        {shown.map(g => {
           const sd = specs[g.key]
           const leaders = (sd?.list || []).filter(h => h.leader && g.hosps.some(x => x.short === h.short))
           return (
@@ -296,6 +301,13 @@ function SpecBlock({ city, specKey }) {
           )
         })}
       </ul>
+      {groups.length > SPEC_FOLD && (
+        <button
+          onClick={() => setSpecOpen(v => !v)}
+          className="mt-2 text-[12px] font-medium text-amber-700 hover:text-amber-800">
+          {specOpen ? '收起' : `展开全部 ${groups.length} 个科室`}
+        </button>
+      )}
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
         来源：{dataset.specialties?.source || '复旦版中国医院专科声誉排行榜'}。带头人为公开报道的学科带头人，指南为对应专科权威共识/诊疗指南，均仅供参考。
       </p>
