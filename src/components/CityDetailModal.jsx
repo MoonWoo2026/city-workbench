@@ -321,9 +321,9 @@ function SpecBlock({ city, specKey }) {
 function OwnerFiscalDetail({ fiscal, type }) {
   const [show, setShow] = useState(false)
   if (!fiscal) return null
-  // 一般公共预算收入基础值（亿元）：一线城市 800、一线郊区 300、二线郊区 200、三四线 150、县城 40
-  const TYPE_BASE = { A: 800, B: 300, C: 200, D: 150, E: 40 }
-  const base = TYPE_BASE[type] || 60
+  // 一般公共预算收入基础值（亿元）：一二线 2000、一线郊区 500、二线郊区 350、三四线 200、县城 60
+  const TYPE_BASE = { '一二线城市': 2000, '一线郊区': 500, '二线郊区': 350, '三四线城市': 200, '县城/小镇': 60 }
+  const base = TYPE_BASE[type] || 80
   const sc = fiscal.score
   const ss = fiscal.self_sufficiency
   const ia = fiscal.invest_activity
