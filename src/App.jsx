@@ -230,6 +230,27 @@ export default function App() {
         .sort((a, b) => a.r - b.r || a.i - b.i)
         .map(x => x.c)
     }
+    // 关键词搜索结果重排：地级市本身最优先，其次其下辖区县，再其他匹配
+    // 命中查询词本身（如搜「南昌」→南昌市本身）→ tier 0
+    // 下辖区县（parent === '南昌市'）→ tier 1
+    // 名称前缀命中（如「南昌县」对 q=南昌）→ tier 2
+    // 其他匹配 → tier 3（保持原排序）
+    if (filters.q) {
+      const qRaw = filters.q.trim()
+      const q = qRaw.replace(/市$/, '') // 兼容「南昌市」→「南昌」
+      const tier = c => {
+        if (c.name === qRaw || c.name === q) return 0
+        const p = c.parent || ''
+        if (p === q + '市' || p === qRaw + '市') return 1
+        if (p && (p.startsWith(q) || p.startsWith(qRaw))) return 1
+        if (c.name.startsWith(q) || c.name.startsWith(qRaw)) return 2
+        return 3
+      }
+      list = list
+        .map((c, i) => ({ c, i, t: tier(c) }))
+        .sort((a, b) => a.t - b.t || a.i - b.i)
+        .map(x => x.c)
+    }
     return list
   }, [all, filters, favs, favOnly])
   const uniMatched = results.filter(c => c.uni_town).length

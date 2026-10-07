@@ -166,8 +166,10 @@ const TYPE_ALIASES = {
 // ---------- 模糊搜索：城市名 / 拼音 / 省份 / 县区 / 推荐区域 / 标签 / 城市线级 ----------
 export function matchQuery(city, q) {
   if (!q) return true
-  const kw = q.trim().toLowerCase()
-  if (!kw) return true
+  const raw = q.trim().toLowerCase()
+  if (!raw) return true
+  // 去掉「市/县/区」后缀，让搜「南昌市」也能命中地级市本身「南昌」
+  const kw = raw.replace(/(市|县|区)$/, '')
   const hay = [
     city.name,
     city.pinyin,
