@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -579,6 +579,31 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
 
           {/* 治安与安全：边境标记 + 群众安全感官方指标 */}
           <SafetyBlock city={city} />
+
+          {/* 当地习俗与注意事项（外地人可能不适应或需注意的） */}
+          {city.customs && city.customs.length > 0 && (
+            <Block
+              icon={<Users size={14} className="text-rose-500" />}
+              title="当地习俗与注意事项"
+              tone="red"
+            >
+              <ul className="space-y-2">
+                {city.customs.map((x, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className={`mt-1.5 h-1.5 w-1.5 flex-none rounded-full ${x.warn ? 'bg-rose-500' : 'bg-stone-400'}`} />
+                    <div>
+                      <span className="font-medium text-stone-800">{x.t}</span>
+                      {x.warn && <span className="ml-1.5 rounded bg-rose-50 px-1.5 py-0.5 text-[10px] text-rose-600 ring-1 ring-rose-500/20">需注意</span>}
+                      <span className="ml-1.5 text-stone-600">{x.d}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2.5 text-[10.5px] leading-4 text-stone-400">
+                以上为当地常见习俗与可能需适应的事项，仅为提醒参考，并非定论。
+              </p>
+            </Block>
+          )}
 
           {/* 全国专科强院（复旦 2023 专科声誉榜 Top10；无强院城市显示就近参考） */}
           <SpecBlock city={city} specKey={specKey} />

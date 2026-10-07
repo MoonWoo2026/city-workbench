@@ -305,6 +305,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         cleanOnly: false,
         pm25Max: null,
         fiscalMin: null,
+        customExcl: [],
         uniOnly: false,
         spec: null,
         q: '',
@@ -506,6 +507,44 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'fiscal', label: '公共服务保障', value: '不限（已忽略差评倾向，按其他条件排序）' })
   }
 
+  // 8.58) 习俗/饮食/禁忌排除：「不要吃狗肉的地方」「不要嚼槟榔」「排除方言重的地方」→ customExcl
+  //   识别「不要/排除/避开 + 关键词 + 的地方」或「不要 + 已知习俗词」句式
+  //   关键词需在至少一个城市的 customstext 里出现才生效，避免无意义排除
+  if (!cityOnlyHit) {
+    // 已由其他规则处理的关键词，避免重复/冲突
+    const takenByOthers = ['pm', '空气', '三甲', '大医院', '好医院', '边境', '工业', '污染', '雾霾', '厂',
+      '高原', '温泉', '海边', '海滨', '沿海', '南方', '北方', '暖气', '供暖', '大学城', '高校',
+      '公共', '财政', '福利', '市政', '基建']
+    const negRe = /(?:不要|不想|不愿|不接受|不能接受|排除|剔除|避开|远离|不喜欢|怕|受不了|嫌|拒绝)/
+    if (negRe.test(text)) {
+      // 句式 A：「不要 X 的地方」→ 提取 X
+      const m = text.match(/(?:不要|不想|不愿|不接受|不能接受|排除|剔除|避开|远离|不喜欢|怕|受不了|嫌|拒绝)([^,，。；！？]{0,6}??)(?:的地方|的城市|的县城|地区|地方|城市|习俗|风俗|习惯)/)
+      if (m) {
+        // 去掉动词性字（吃/有/含/卖/会/喝/嚼/打/敬）取核心词
+        let w = m[1].replace(/^(?:吃|有|含|卖|会|喝|嚼|打|敬|说|讲|用|带|劝|让我|让人|别人|本地人|老|重|很|太|非常|比较|相对)+/, '').trim()
+        if (w.length >= 2 && w.length <= 8 && !takenByOthers.some(e => w.includes(e) || e.includes(w))) {
+          // 验证：至少一个城市的 customstext 包含 w
+          const hasHit = ALL_CITIES.some(c => c.customstext && c.customstext.toLowerCase().includes(w.toLowerCase()))
+          if (hasHit) {
+            next.customExcl = [...new Set([...(next.customExcl || []), w])]
+            items.push({ k: 'customExcl', label: '习俗排除', value: `排除有「${w}」相关习俗的城市` })
+          }
+        }
+      }
+      // 句式 B：词典兜底（直接出现的关键词，没"的地方"后缀也认）
+      if (!m || !next.customExcl?.length) {
+        const lex = ['狗肉', '昆虫', '竹虫', '蜂蛹', '槟榔', '酒文化', '劝酒', '方言', '清真', '高原反应',
+          '回南天', '酸野', '酸嘢', '老火汤', '煲汤', '重油', '重辣', '甜口', '麻将', '夜宵',
+          '俄式', '吐司', '糌粑', '酥油茶', '海蛎子', '塑料袋装啤酒', '地震记忆']
+        const hits = lex.filter(w => text.includes(w) && !takenByOthers.some(e => w.includes(e) || e.includes(w)))
+        if (hits.length) {
+          next.customExcl = [...new Set([...(next.customExcl || []), ...hits])]
+          items.push({ k: 'customExcl', label: '习俗排除', value: `排除 ${hits.map(h => `「${h}」`).join('、')} 相关` })
+        }
+      }
+    }
+  }
+
   // 8.6) 生活成本/物价
   if (/物价低|消费低|生活成本低|吃饭便宜|菜价便宜|日常开销低/.test(text)) {
     next.sort = 'total'
@@ -647,6 +686,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.pm25Max, run: () => { next.pm25Max = null; relaxed.push('已自动放宽「PM2.5」限制') } },
     { when: () => next.fiscalMin, run: () => { next.fiscalMin = null; relaxed.push('已自动放宽「公共服务保障」限制') } },
+    { when: () => next.customExcl?.length > 0, run: () => { next.customExcl = []; relaxed.push('已自动放宽「习俗排除」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
     { when: () => next.tagExcl.length > 0, run: () => { next.tagExcl = []; relaxed.push('排除条件太苛刻，已取消标签排除') } },
@@ -752,6 +792,22 @@ export function refineInterpret(rawText, currentFilters) {
     }
     if (/公共(?:服务|保障)|福利|财政|市政|基建/.test(mEx[1])) {
       return { next: { ...currentFilters, fiscalMin: 'B' }, chip: '公共服务保障 ≥ B 级' }
+    }
+    // 习俗排除：「不要吃狗肉的地方」「排除嚼槟榔的」→ customExcl
+    {
+      const takenByOthers = ['pm', '空气', '三甲', '大医院', '好医院', '边境', '工业', '污染', '雾霾', '厂',
+        '高原', '温泉', '海边', '海滨', '沿海', '南方', '北方', '暖气', '供暖', '大学城', '高校',
+        '公共', '财政', '福利', '市政', '基建']
+      const lex = ['狗肉', '昆虫', '竹虫', '蜂蛹', '槟榔', '酒文化', '劝酒', '方言', '清真', '高原反应',
+        '回南天', '酸野', '酸嘢', '老火汤', '煲汤', '重油', '重辣', '甜口', '麻将', '夜宵',
+        '俄式', '吐司', '糌粑', '酥油茶', '海蛎子', '塑料袋装啤酒', '地震记忆']
+      const hits = lex.filter(w => mEx[1].includes(w) && !takenByOthers.some(e => w.includes(e) || e.includes(w)))
+      if (hits.length) {
+        return {
+          next: { ...currentFilters, customExcl: [...new Set([...(currentFilters.customExcl || []), ...hits])] },
+          chip: `排除「${hits.join('、')}」相关习俗`,
+        }
+      }
     }
     if (/工业|污染|雾霾|厂/.test(mEx[1])) {
       return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }

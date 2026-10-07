@@ -299,6 +299,9 @@ export default function App() {
     if (filters.borderExcl) chips.push({ k: 'bdx', label: '排除边境城市', clear: () => patch({ borderExcl: false }) })
     if (filters.pm25Max) chips.push({ k: 'pm', label: `PM2.5 ≤ ${filters.pm25Max}`, clear: () => patch({ pm25Max: null }) })
     if (filters.fiscalMin) chips.push({ k: 'fis', label: `公共保障 ≥ ${filters.fiscalMin} 级`, clear: () => patch({ fiscalMin: null }) })
+    filters.customExcl?.forEach((k, i) => chips.push({
+      k: `cx-${i}`, label: `排除「${k}」习俗`, clear: () => patch({ customExcl: filters.customExcl.filter((_, j) => j !== i) })
+    }))
     if (filters.spec && dataset.specialties?.specs?.[filters.spec]) {
       chips.push({ k: 'spec', label: `${dataset.specialties.specs[filters.spec].name}强院城市`, clear: () => patch({ spec: null }) })
     }
@@ -332,6 +335,7 @@ export default function App() {
     if (filters.cleanOnly) n++
     if (filters.pm25Max) n++
     if (filters.fiscalMin) n++
+    if (filters.customExcl?.length) n += filters.customExcl.length
     if (filters.uniOnly) n++
     if (filters.medOnly) n++
     if (filters.spec) n++
