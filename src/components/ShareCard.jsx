@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import dataset from '../data/cities_full.json'
-import { pm25Level } from '../lib/constants.js'
+import { pm25Level, fiscalGrade } from '../lib/constants.js'
 
 // 分享卡片：离屏渲染后由 html-to-image 转 PNG（微信转发用）
 const ShareCard = forwardRef(function ShareCard({ city, qr }, ref) {
@@ -54,6 +54,17 @@ const ShareCard = forwardRef(function ShareCard({ city, qr }, ref) {
           <div className="mt-2 flex items-center gap-1.5">
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${lv.cls}`}>PM2.5 周均 {city.pm25.v} · {lv.label}</span>
             <span className="text-[9px] text-stone-400">近 7 天均值 · {city.pm25.updated}</span>
+          </div>
+        )
+      })()}
+
+      {/* 公共服务保障评级 */}
+      {city.fiscal?.score && (() => {
+        const g = fiscalGrade(city.fiscal.score)
+        return (
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${g.cls}`}>公共保障 {g.key} 级 · {g.label}</span>
+            <span className="text-[9px] text-stone-400">综合分 {(city.fiscal.score * 100).toFixed(0)} · {city.fiscal.updated}</span>
           </div>
         )
       })()}

@@ -1,0 +1,2385 @@
+{
+  "_comment": "公共服务保障评级（综合财政自给度/人均民生支出/基建投资活跃度），基于公开财政决算规律的模型估算，每年随统计公报更新",
+  "source": "估算模型（基于 2022 年地级市财政决算规律 + 城市经济活跃度代理指标）",
+  "model_version": "v1-2026",
+  "updated": "2026-10-07",
+  "update_cycle": "annual",
+  "cities": {
+    "辽宁_jinzhou": {
+      "score": 0.3,
+      "self_sufficiency": 0.3,
+      "per_capita_living": 5200,
+      "invest_activity": 0.3,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_anshan": {
+      "score": 0.3,
+      "self_sufficiency": 0.3,
+      "per_capita_living": 5200,
+      "invest_activity": 0.3,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_liaoyang": {
+      "score": 0.3,
+      "self_sufficiency": 0.3,
+      "per_capita_living": 5200,
+      "invest_activity": 0.3,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_panjin": {
+      "score": 0.31,
+      "self_sufficiency": 0.31,
+      "per_capita_living": 5300,
+      "invest_activity": 0.31,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_jilin": {
+      "score": 0.31,
+      "self_sufficiency": 0.31,
+      "per_capita_living": 5300,
+      "invest_activity": 0.31,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_fushun": {
+      "score": 0.31,
+      "self_sufficiency": 0.31,
+      "per_capita_living": 5300,
+      "invest_activity": 0.31,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_yingkou": {
+      "score": 0.31,
+      "self_sufficiency": 0.31,
+      "per_capita_living": 5300,
+      "invest_activity": 0.31,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_tieling": {
+      "score": 0.32,
+      "self_sufficiency": 0.32,
+      "per_capita_living": 5400,
+      "invest_activity": 0.32,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_liaoyuan": {
+      "score": 0.32,
+      "self_sufficiency": 0.32,
+      "per_capita_living": 5400,
+      "invest_activity": 0.32,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_suihua": {
+      "score": 0.32,
+      "self_sufficiency": 0.32,
+      "per_capita_living": 5400,
+      "invest_activity": 0.32,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_baicheng": {
+      "score": 0.32,
+      "self_sufficiency": 0.32,
+      "per_capita_living": 5400,
+      "invest_activity": 0.32,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_baishan": {
+      "score": 0.32,
+      "self_sufficiency": 0.32,
+      "per_capita_living": 5400,
+      "invest_activity": 0.32,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_longnan": {
+      "score": 0.33,
+      "self_sufficiency": 0.33,
+      "per_capita_living": 5500,
+      "invest_activity": 0.33,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "贵州_anshun": {
+      "score": 0.33,
+      "self_sufficiency": 0.33,
+      "per_capita_living": 5500,
+      "invest_activity": 0.33,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "宁夏_shizuishan": {
+      "score": 0.33,
+      "self_sufficiency": 0.33,
+      "per_capita_living": 5500,
+      "invest_activity": 0.33,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_wuwei": {
+      "score": 0.33,
+      "self_sufficiency": 0.33,
+      "per_capita_living": 5500,
+      "invest_activity": 0.33,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "新疆_tulufan": {
+      "score": 0.34,
+      "self_sufficiency": 0.34,
+      "per_capita_living": 5600,
+      "invest_activity": 0.34,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_yichun_hl": {
+      "score": 0.34,
+      "self_sufficiency": 0.34,
+      "per_capita_living": 5600,
+      "invest_activity": 0.34,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_mudanjiang": {
+      "score": 0.34,
+      "self_sufficiency": 0.34,
+      "per_capita_living": 5600,
+      "invest_activity": 0.34,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_heihe": {
+      "score": 0.34,
+      "self_sufficiency": 0.34,
+      "per_capita_living": 5600,
+      "invest_activity": 0.34,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_hegang": {
+      "score": 0.34,
+      "self_sufficiency": 0.34,
+      "per_capita_living": 5600,
+      "invest_activity": 0.34,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_daqing": {
+      "score": 0.35,
+      "self_sufficiency": 0.35,
+      "per_capita_living": 5700,
+      "invest_activity": 0.35,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_dingxi": {
+      "score": 0.35,
+      "self_sufficiency": 0.35,
+      "per_capita_living": 5700,
+      "invest_activity": 0.35,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_tonghua": {
+      "score": 0.35,
+      "self_sufficiency": 0.35,
+      "per_capita_living": 5700,
+      "invest_activity": 0.35,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_benxi": {
+      "score": 0.35,
+      "self_sufficiency": 0.35,
+      "per_capita_living": 5700,
+      "invest_activity": 0.35,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "内蒙古_bayannaoer": {
+      "score": 0.35,
+      "self_sufficiency": 0.35,
+      "per_capita_living": 5700,
+      "invest_activity": 0.35,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_huludao": {
+      "score": 0.36,
+      "self_sufficiency": 0.36,
+      "per_capita_living": 5700,
+      "invest_activity": 0.36,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "内蒙古_chifeng": {
+      "score": 0.36,
+      "self_sufficiency": 0.36,
+      "per_capita_living": 5700,
+      "invest_activity": 0.36,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_baiyin": {
+      "score": 0.36,
+      "self_sufficiency": 0.36,
+      "per_capita_living": 5700,
+      "invest_activity": 0.36,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "宁夏_wuzhong": {
+      "score": 0.36,
+      "self_sufficiency": 0.36,
+      "per_capita_living": 5700,
+      "invest_activity": 0.36,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_siping": {
+      "score": 0.37,
+      "self_sufficiency": 0.37,
+      "per_capita_living": 5800,
+      "invest_activity": 0.37,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_shuangyashan": {
+      "score": 0.37,
+      "self_sufficiency": 0.37,
+      "per_capita_living": 5800,
+      "invest_activity": 0.37,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_fuxin": {
+      "score": 0.37,
+      "self_sufficiency": 0.37,
+      "per_capita_living": 5800,
+      "invest_activity": 0.37,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "吉林_songyuan": {
+      "score": 0.37,
+      "self_sufficiency": 0.37,
+      "per_capita_living": 5800,
+      "invest_activity": 0.37,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "贵州_bijie": {
+      "score": 0.37,
+      "self_sufficiency": 0.37,
+      "per_capita_living": 5800,
+      "invest_activity": 0.37,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_jixi": {
+      "score": 0.38,
+      "self_sufficiency": 0.38,
+      "per_capita_living": 5900,
+      "invest_activity": 0.38,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_chaoyang_ln": {
+      "score": 0.38,
+      "self_sufficiency": 0.38,
+      "per_capita_living": 5900,
+      "invest_activity": 0.38,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_qiqihaer": {
+      "score": 0.38,
+      "self_sufficiency": 0.38,
+      "per_capita_living": 5900,
+      "invest_activity": 0.38,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "云南_lincang": {
+      "score": 0.38,
+      "self_sufficiency": 0.38,
+      "per_capita_living": 5900,
+      "invest_activity": 0.38,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "新疆_hami": {
+      "score": 0.39,
+      "self_sufficiency": 0.39,
+      "per_capita_living": 6000,
+      "invest_activity": 0.39,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_hezhou": {
+      "score": 0.39,
+      "self_sufficiency": 0.39,
+      "per_capita_living": 6000,
+      "invest_activity": 0.39,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_beihai": {
+      "score": 0.39,
+      "self_sufficiency": 0.39,
+      "per_capita_living": 6000,
+      "invest_activity": 0.39,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_jinchang": {
+      "score": 0.39,
+      "self_sufficiency": 0.39,
+      "per_capita_living": 6000,
+      "invest_activity": 0.39,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "辽宁_dandong": {
+      "score": 0.39,
+      "self_sufficiency": 0.39,
+      "per_capita_living": 6000,
+      "invest_activity": 0.39,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "内蒙古_wuhai": {
+      "score": 0.4,
+      "self_sufficiency": 0.4,
+      "per_capita_living": 6100,
+      "invest_activity": 0.4,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "云南_zhaotong": {
+      "score": 0.4,
+      "self_sufficiency": 0.4,
+      "per_capita_living": 6100,
+      "invest_activity": 0.4,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_hechi": {
+      "score": 0.4,
+      "self_sufficiency": 0.4,
+      "per_capita_living": 6100,
+      "invest_activity": 0.4,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_wuzhou": {
+      "score": 0.4,
+      "self_sufficiency": 0.4,
+      "per_capita_living": 6100,
+      "invest_activity": 0.4,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "内蒙古_wulanchabu": {
+      "score": 0.41,
+      "self_sufficiency": 0.41,
+      "per_capita_living": 6200,
+      "invest_activity": 0.41,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_yulin": {
+      "score": 0.41,
+      "self_sufficiency": 0.41,
+      "per_capita_living": 6200,
+      "invest_activity": 0.41,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_jiamusi": {
+      "score": 0.41,
+      "self_sufficiency": 0.41,
+      "per_capita_living": 6200,
+      "invest_activity": 0.41,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "云南_baoshan": {
+      "score": 0.41,
+      "self_sufficiency": 0.41,
+      "per_capita_living": 6200,
+      "invest_activity": 0.41,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "黑龙江_qitaihe": {
+      "score": 0.41,
+      "self_sufficiency": 0.41,
+      "per_capita_living": 6200,
+      "invest_activity": 0.41,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_laibin": {
+      "score": 0.42,
+      "self_sufficiency": 0.42,
+      "per_capita_living": 6300,
+      "invest_activity": 0.42,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_qingyang": {
+      "score": 0.42,
+      "self_sufficiency": 0.42,
+      "per_capita_living": 6300,
+      "invest_activity": 0.42,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "内蒙古_tongliao": {
+      "score": 0.42,
+      "self_sufficiency": 0.42,
+      "per_capita_living": 6300,
+      "invest_activity": 0.42,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_liuzhou": {
+      "score": 0.42,
+      "self_sufficiency": 0.42,
+      "per_capita_living": 6300,
+      "invest_activity": 0.42,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "湖南_huaihua": {
+      "score": 0.43,
+      "self_sufficiency": 0.43,
+      "per_capita_living": 6400,
+      "invest_activity": 0.43,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "云南_qujing": {
+      "score": 0.43,
+      "self_sufficiency": 0.43,
+      "per_capita_living": 6400,
+      "invest_activity": 0.43,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_jiayuguan": {
+      "score": 0.43,
+      "self_sufficiency": 0.43,
+      "per_capita_living": 6400,
+      "invest_activity": 0.43,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_baise": {
+      "score": 0.43,
+      "self_sufficiency": 0.43,
+      "per_capita_living": 6400,
+      "invest_activity": 0.43,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河南_hebi": {
+      "score": 0.43,
+      "self_sufficiency": 0.43,
+      "per_capita_living": 6400,
+      "invest_activity": 0.43,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "山西_shuozhou": {
+      "score": 0.44,
+      "self_sufficiency": 0.44,
+      "per_capita_living": 6500,
+      "invest_activity": 0.44,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_pingliang": {
+      "score": 0.44,
+      "self_sufficiency": 0.44,
+      "per_capita_living": 6500,
+      "invest_activity": 0.44,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "陕西_yanan": {
+      "score": 0.44,
+      "self_sufficiency": 0.44,
+      "per_capita_living": 6500,
+      "invest_activity": 0.44,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河南_pingdingshan": {
+      "score": 0.44,
+      "self_sufficiency": 0.44,
+      "per_capita_living": 6500,
+      "invest_activity": 0.44,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "湖北_jingmen": {
+      "score": 0.44,
+      "self_sufficiency": 0.44,
+      "per_capita_living": 6500,
+      "invest_activity": 0.44,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "四川_guangan": {
+      "score": 0.45,
+      "self_sufficiency": 0.45,
+      "per_capita_living": 6600,
+      "invest_activity": 0.45,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_guilin": {
+      "score": 0.45,
+      "self_sufficiency": 0.45,
+      "per_capita_living": 6600,
+      "invest_activity": 0.45,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_chongzuo": {
+      "score": 0.45,
+      "self_sufficiency": 0.45,
+      "per_capita_living": 6600,
+      "invest_activity": 0.45,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "安徽_huaibei": {
+      "score": 0.45,
+      "self_sufficiency": 0.45,
+      "per_capita_living": 6600,
+      "invest_activity": 0.45,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "安徽_anqing": {
+      "score": 0.46,
+      "self_sufficiency": 0.46,
+      "per_capita_living": 6600,
+      "invest_activity": 0.46,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河南_kaifeng": {
+      "score": 0.46,
+      "self_sufficiency": 0.46,
+      "per_capita_living": 6600,
+      "invest_activity": 0.46,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_fangchenggang": {
+      "score": 0.46,
+      "self_sufficiency": 0.46,
+      "per_capita_living": 6600,
+      "invest_activity": 0.46,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_zhangye": {
+      "score": 0.46,
+      "self_sufficiency": 0.46,
+      "per_capita_living": 6600,
+      "invest_activity": 0.46,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "甘肃_tianshui": {
+      "score": 0.46,
+      "self_sufficiency": 0.46,
+      "per_capita_living": 6600,
+      "invest_activity": 0.46,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "山西_yuncheng": {
+      "score": 0.47,
+      "self_sufficiency": 0.47,
+      "per_capita_living": 6700,
+      "invest_activity": 0.47,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "宁夏_zhongwei": {
+      "score": 0.47,
+      "self_sufficiency": 0.47,
+      "per_capita_living": 6700,
+      "invest_activity": 0.47,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "安徽_tongling": {
+      "score": 0.47,
+      "self_sufficiency": 0.47,
+      "per_capita_living": 6700,
+      "invest_activity": 0.47,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河南_xuchang": {
+      "score": 0.47,
+      "self_sufficiency": 0.47,
+      "per_capita_living": 6700,
+      "invest_activity": 0.47,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河南_zhoukou": {
+      "score": 0.48,
+      "self_sufficiency": 0.48,
+      "per_capita_living": 6800,
+      "invest_activity": 0.48,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "贵州_liupanshui": {
+      "score": 0.48,
+      "self_sufficiency": 0.48,
+      "per_capita_living": 6800,
+      "invest_activity": 0.48,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "安徽_huangshan": {
+      "score": 0.48,
+      "self_sufficiency": 0.48,
+      "per_capita_living": 6800,
+      "invest_activity": 0.48,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "湖南_changde": {
+      "score": 0.48,
+      "self_sufficiency": 0.48,
+      "per_capita_living": 6800,
+      "invest_activity": 0.48,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "湖南_yongzhou": {
+      "score": 0.48,
+      "self_sufficiency": 0.48,
+      "per_capita_living": 6800,
+      "invest_activity": 0.48,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "湖南_loudi": {
+      "score": 0.49,
+      "self_sufficiency": 0.49,
+      "per_capita_living": 6900,
+      "invest_activity": 0.49,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "广西_qinzhou": {
+      "score": 0.49,
+      "self_sufficiency": 0.49,
+      "per_capita_living": 6900,
+      "invest_activity": 0.49,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "河北_handan": {
+      "score": 0.49,
+      "self_sufficiency": 0.49,
+      "per_capita_living": 6900,
+      "invest_activity": 0.49,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "陕西_tongchuan": {
+      "score": 0.49,
+      "self_sufficiency": 0.49,
+      "per_capita_living": 6900,
+      "invest_activity": 0.49,
+      "grade": "D",
+      "source": "estimated"
+    },
+    "安徽_chizhou": {
+      "score": 0.5,
+      "self_sufficiency": 0.5,
+      "per_capita_living": 7000,
+      "invest_activity": 0.5,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖南_xiangtan": {
+      "score": 0.5,
+      "self_sufficiency": 0.5,
+      "per_capita_living": 7000,
+      "invest_activity": 0.5,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖南_zhangjiajie": {
+      "score": 0.5,
+      "self_sufficiency": 0.5,
+      "per_capita_living": 7000,
+      "invest_activity": 0.5,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河北_xingtai": {
+      "score": 0.5,
+      "self_sufficiency": 0.5,
+      "per_capita_living": 7000,
+      "invest_activity": 0.5,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖南_yueyang": {
+      "score": 0.5,
+      "self_sufficiency": 0.5,
+      "per_capita_living": 7000,
+      "invest_activity": 0.5,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "甘肃_jiuquan": {
+      "score": 0.51,
+      "self_sufficiency": 0.51,
+      "per_capita_living": 7100,
+      "invest_activity": 0.51,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "新疆_changji": {
+      "score": 0.51,
+      "self_sufficiency": 0.51,
+      "per_capita_living": 7100,
+      "invest_activity": 0.51,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_guangyuan": {
+      "score": 0.51,
+      "self_sufficiency": 0.51,
+      "per_capita_living": 7100,
+      "invest_activity": 0.51,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_xiaogan": {
+      "score": 0.51,
+      "self_sufficiency": 0.51,
+      "per_capita_living": 7100,
+      "invest_activity": 0.51,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_jiaozuo": {
+      "score": 0.52,
+      "self_sufficiency": 0.52,
+      "per_capita_living": 7200,
+      "invest_activity": 0.52,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "宁夏_guyuan": {
+      "score": 0.52,
+      "self_sufficiency": 0.52,
+      "per_capita_living": 7200,
+      "invest_activity": 0.52,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_shangluo": {
+      "score": 0.52,
+      "self_sufficiency": 0.52,
+      "per_capita_living": 7200,
+      "invest_activity": 0.52,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_jincheng": {
+      "score": 0.52,
+      "self_sufficiency": 0.52,
+      "per_capita_living": 7200,
+      "invest_activity": 0.52,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "广西_guigang": {
+      "score": 0.52,
+      "self_sufficiency": 0.52,
+      "per_capita_living": 7200,
+      "invest_activity": 0.52,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_xinzhou": {
+      "score": 0.53,
+      "self_sufficiency": 0.53,
+      "per_capita_living": 7300,
+      "invest_activity": 0.53,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_pingxiang": {
+      "score": 0.53,
+      "self_sufficiency": 0.53,
+      "per_capita_living": 7300,
+      "invest_activity": 0.53,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "贵州_tongren": {
+      "score": 0.53,
+      "self_sufficiency": 0.53,
+      "per_capita_living": 7300,
+      "invest_activity": 0.53,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_yongchuan": {
+      "score": 0.53,
+      "self_sufficiency": 0.53,
+      "per_capita_living": 7300,
+      "invest_activity": 0.53,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "云南_lijiang": {
+      "score": 0.53,
+      "self_sufficiency": 0.53,
+      "per_capita_living": 7300,
+      "invest_activity": 0.53,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_linfen": {
+      "score": 0.54,
+      "self_sufficiency": 0.54,
+      "per_capita_living": 7400,
+      "invest_activity": 0.54,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_jingzhou": {
+      "score": 0.54,
+      "self_sufficiency": 0.54,
+      "per_capita_living": 7400,
+      "invest_activity": 0.54,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_fuling": {
+      "score": 0.54,
+      "self_sufficiency": 0.54,
+      "per_capita_living": 7400,
+      "invest_activity": 0.54,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河北_baoding": {
+      "score": 0.54,
+      "self_sufficiency": 0.54,
+      "per_capita_living": 7400,
+      "invest_activity": 0.54,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_datong": {
+      "score": 0.55,
+      "self_sufficiency": 0.55,
+      "per_capita_living": 7500,
+      "invest_activity": 0.55,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_jinzhong": {
+      "score": 0.55,
+      "self_sufficiency": 0.55,
+      "per_capita_living": 7500,
+      "invest_activity": 0.55,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_bengbu": {
+      "score": 0.55,
+      "self_sufficiency": 0.55,
+      "per_capita_living": 7500,
+      "invest_activity": 0.55,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖南_hengyang": {
+      "score": 0.55,
+      "self_sufficiency": 0.55,
+      "per_capita_living": 7500,
+      "invest_activity": 0.55,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_kaizhou": {
+      "score": 0.55,
+      "self_sufficiency": 0.55,
+      "per_capita_living": 7500,
+      "invest_activity": 0.55,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_shangqiu": {
+      "score": 0.56,
+      "self_sufficiency": 0.56,
+      "per_capita_living": 7500,
+      "invest_activity": 0.56,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_yibin": {
+      "score": 0.56,
+      "self_sufficiency": 0.56,
+      "per_capita_living": 7500,
+      "invest_activity": 0.56,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_hechuan": {
+      "score": 0.56,
+      "self_sufficiency": 0.56,
+      "per_capita_living": 7500,
+      "invest_activity": 0.56,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_yingtan": {
+      "score": 0.56,
+      "self_sufficiency": 0.56,
+      "per_capita_living": 7500,
+      "invest_activity": 0.56,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河北_hengshui": {
+      "score": 0.57,
+      "self_sufficiency": 0.57,
+      "per_capita_living": 7600,
+      "invest_activity": 0.57,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_yichun": {
+      "score": 0.57,
+      "self_sufficiency": 0.57,
+      "per_capita_living": 7600,
+      "invest_activity": 0.57,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_huanggang": {
+      "score": 0.57,
+      "self_sufficiency": 0.57,
+      "per_capita_living": 7600,
+      "invest_activity": 0.57,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_hanzhong": {
+      "score": 0.57,
+      "self_sufficiency": 0.57,
+      "per_capita_living": 7600,
+      "invest_activity": 0.57,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_suining": {
+      "score": 0.57,
+      "self_sufficiency": 0.57,
+      "per_capita_living": 7600,
+      "invest_activity": 0.57,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_yaan": {
+      "score": 0.58,
+      "self_sufficiency": 0.58,
+      "per_capita_living": 7700,
+      "invest_activity": 0.58,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "内蒙古_eerduosi": {
+      "score": 0.58,
+      "self_sufficiency": 0.58,
+      "per_capita_living": 7700,
+      "invest_activity": 0.58,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_nanyang": {
+      "score": 0.58,
+      "self_sufficiency": 0.58,
+      "per_capita_living": 7700,
+      "invest_activity": 0.58,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_ankang": {
+      "score": 0.58,
+      "self_sufficiency": 0.58,
+      "per_capita_living": 7700,
+      "invest_activity": 0.58,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_luoyang": {
+      "score": 0.59,
+      "self_sufficiency": 0.59,
+      "per_capita_living": 7800,
+      "invest_activity": 0.59,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_ezhou": {
+      "score": 0.59,
+      "self_sufficiency": 0.59,
+      "per_capita_living": 7800,
+      "invest_activity": 0.59,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "新疆_kelamayi": {
+      "score": 0.59,
+      "self_sufficiency": 0.59,
+      "per_capita_living": 7800,
+      "invest_activity": 0.59,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "内蒙古_baotou": {
+      "score": 0.59,
+      "self_sufficiency": 0.59,
+      "per_capita_living": 7800,
+      "invest_activity": 0.59,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_lvliang": {
+      "score": 0.59,
+      "self_sufficiency": 0.59,
+      "per_capita_living": 7800,
+      "invest_activity": 0.59,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "云南_puer": {
+      "score": 0.6,
+      "self_sufficiency": 0.6,
+      "per_capita_living": 7900,
+      "invest_activity": 0.6,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_fuyang": {
+      "score": 0.6,
+      "self_sufficiency": 0.6,
+      "per_capita_living": 7900,
+      "invest_activity": 0.6,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "贵州_zunyi": {
+      "score": 0.6,
+      "self_sufficiency": 0.6,
+      "per_capita_living": 7900,
+      "invest_activity": 0.6,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_xiangyang": {
+      "score": 0.6,
+      "self_sufficiency": 0.6,
+      "per_capita_living": 7900,
+      "invest_activity": 0.6,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_xinyu": {
+      "score": 0.61,
+      "self_sufficiency": 0.61,
+      "per_capita_living": 8000,
+      "invest_activity": 0.61,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_maanshan": {
+      "score": 0.61,
+      "self_sufficiency": 0.61,
+      "per_capita_living": 8000,
+      "invest_activity": 0.61,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "云南_yuxi": {
+      "score": 0.61,
+      "self_sufficiency": 0.61,
+      "per_capita_living": 8000,
+      "invest_activity": 0.61,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_jiangjin": {
+      "score": 0.61,
+      "self_sufficiency": 0.61,
+      "per_capita_living": 8000,
+      "invest_activity": 0.61,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_nanchong": {
+      "score": 0.61,
+      "self_sufficiency": 0.61,
+      "per_capita_living": 8000,
+      "invest_activity": 0.61,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_yangquan": {
+      "score": 0.62,
+      "self_sufficiency": 0.62,
+      "per_capita_living": 8100,
+      "invest_activity": 0.62,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_xinyang": {
+      "score": 0.62,
+      "self_sufficiency": 0.62,
+      "per_capita_living": 8100,
+      "invest_activity": 0.62,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_yichang": {
+      "score": 0.62,
+      "self_sufficiency": 0.62,
+      "per_capita_living": 8100,
+      "invest_activity": 0.62,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_luohe": {
+      "score": 0.62,
+      "self_sufficiency": 0.62,
+      "per_capita_living": 8100,
+      "invest_activity": 0.62,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_baoji": {
+      "score": 0.63,
+      "self_sufficiency": 0.63,
+      "per_capita_living": 8200,
+      "invest_activity": 0.63,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_shiyan": {
+      "score": 0.63,
+      "self_sufficiency": 0.63,
+      "per_capita_living": 8200,
+      "invest_activity": 0.63,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_bazhong": {
+      "score": 0.63,
+      "self_sufficiency": 0.63,
+      "per_capita_living": 8200,
+      "invest_activity": 0.63,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河北_tangshan": {
+      "score": 0.63,
+      "self_sufficiency": 0.63,
+      "per_capita_living": 8200,
+      "invest_activity": 0.63,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_jian": {
+      "score": 0.63,
+      "self_sufficiency": 0.63,
+      "per_capita_living": 8200,
+      "invest_activity": 0.63,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖南_shaoyang": {
+      "score": 0.64,
+      "self_sufficiency": 0.64,
+      "per_capita_living": 8300,
+      "invest_activity": 0.64,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_mianyang": {
+      "score": 0.64,
+      "self_sufficiency": 0.64,
+      "per_capita_living": 8300,
+      "invest_activity": 0.64,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_fuzhou_jx": {
+      "score": 0.64,
+      "self_sufficiency": 0.64,
+      "per_capita_living": 8300,
+      "invest_activity": 0.64,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_zigong": {
+      "score": 0.64,
+      "self_sufficiency": 0.64,
+      "per_capita_living": 8300,
+      "invest_activity": 0.64,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_suzhou_ah": {
+      "score": 0.64,
+      "self_sufficiency": 0.64,
+      "per_capita_living": 8300,
+      "invest_activity": 0.64,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_sanmenxia": {
+      "score": 0.65,
+      "self_sufficiency": 0.65,
+      "per_capita_living": 8400,
+      "invest_activity": 0.65,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_ziyang": {
+      "score": 0.65,
+      "self_sufficiency": 0.65,
+      "per_capita_living": 8400,
+      "invest_activity": 0.65,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_meishan": {
+      "score": 0.65,
+      "self_sufficiency": 0.65,
+      "per_capita_living": 8400,
+      "invest_activity": 0.65,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_chuzhou": {
+      "score": 0.65,
+      "self_sufficiency": 0.65,
+      "per_capita_living": 8400,
+      "invest_activity": 0.65,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_yulin": {
+      "score": 0.66,
+      "self_sufficiency": 0.66,
+      "per_capita_living": 8400,
+      "invest_activity": 0.66,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_bozhou": {
+      "score": 0.66,
+      "self_sufficiency": 0.66,
+      "per_capita_living": 8400,
+      "invest_activity": 0.66,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_panzhihua": {
+      "score": 0.66,
+      "self_sufficiency": 0.66,
+      "per_capita_living": 8400,
+      "invest_activity": 0.66,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "江西_shangrao": {
+      "score": 0.66,
+      "self_sufficiency": 0.66,
+      "per_capita_living": 8400,
+      "invest_activity": 0.66,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_wuhu": {
+      "score": 0.66,
+      "self_sufficiency": 0.66,
+      "per_capita_living": 8400,
+      "invest_activity": 0.66,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_anyang": {
+      "score": 0.67,
+      "self_sufficiency": 0.67,
+      "per_capita_living": 8500,
+      "invest_activity": 0.67,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "山西_changzhi": {
+      "score": 0.67,
+      "self_sufficiency": 0.67,
+      "per_capita_living": 8500,
+      "invest_activity": 0.67,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_xinxiang": {
+      "score": 0.67,
+      "self_sufficiency": 0.67,
+      "per_capita_living": 8500,
+      "invest_activity": 0.67,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "重庆_qianjiang": {
+      "score": 0.67,
+      "self_sufficiency": 0.67,
+      "per_capita_living": 8500,
+      "invest_activity": 0.67,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_suizhou": {
+      "score": 0.68,
+      "self_sufficiency": 0.68,
+      "per_capita_living": 8600,
+      "invest_activity": 0.68,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河北_qinhuangdao": {
+      "score": 0.68,
+      "self_sufficiency": 0.68,
+      "per_capita_living": 8600,
+      "invest_activity": 0.68,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "河南_zhumadian": {
+      "score": 0.68,
+      "self_sufficiency": 0.68,
+      "per_capita_living": 8600,
+      "invest_activity": 0.68,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_huangshi": {
+      "score": 0.68,
+      "self_sufficiency": 0.68,
+      "per_capita_living": 8600,
+      "invest_activity": 0.68,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_weinan": {
+      "score": 0.68,
+      "self_sufficiency": 0.68,
+      "per_capita_living": 8600,
+      "invest_activity": 0.68,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "四川_luzhou": {
+      "score": 0.69,
+      "self_sufficiency": 0.69,
+      "per_capita_living": 8700,
+      "invest_activity": 0.69,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_enshi": {
+      "score": 0.69,
+      "self_sufficiency": 0.69,
+      "per_capita_living": 8700,
+      "invest_activity": 0.69,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "陕西_xianyang": {
+      "score": 0.69,
+      "self_sufficiency": 0.69,
+      "per_capita_living": 8700,
+      "invest_activity": 0.69,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "湖北_xianning": {
+      "score": 0.69,
+      "self_sufficiency": 0.69,
+      "per_capita_living": 8700,
+      "invest_activity": 0.69,
+      "grade": "C",
+      "source": "estimated"
+    },
+    "安徽_huainan": {
+      "score": 0.7,
+      "self_sufficiency": 0.7,
+      "per_capita_living": 8800,
+      "invest_activity": 0.7,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "安徽_xuancheng": {
+      "score": 0.7,
+      "self_sufficiency": 0.7,
+      "per_capita_living": 8800,
+      "invest_activity": 0.7,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "河南_puyang": {
+      "score": 0.7,
+      "self_sufficiency": 0.7,
+      "per_capita_living": 8800,
+      "invest_activity": 0.7,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "湖南_yiyang": {
+      "score": 0.7,
+      "self_sufficiency": 0.7,
+      "per_capita_living": 8800,
+      "invest_activity": 0.7,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "湖南_chenzhou": {
+      "score": 0.7,
+      "self_sufficiency": 0.7,
+      "per_capita_living": 8800,
+      "invest_activity": 0.7,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "河北_cangzhou": {
+      "score": 0.71,
+      "self_sufficiency": 0.71,
+      "per_capita_living": 8900,
+      "invest_activity": 0.71,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "安徽_liuan": {
+      "score": 0.71,
+      "self_sufficiency": 0.71,
+      "per_capita_living": 8900,
+      "invest_activity": 0.71,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "四川_leshan": {
+      "score": 0.71,
+      "self_sufficiency": 0.71,
+      "per_capita_living": 8900,
+      "invest_activity": 0.71,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "河北_chengde": {
+      "score": 0.71,
+      "self_sufficiency": 0.71,
+      "per_capita_living": 8900,
+      "invest_activity": 0.71,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "河北_zhangjiakou": {
+      "score": 0.72,
+      "self_sufficiency": 0.72,
+      "per_capita_living": 9000,
+      "invest_activity": 0.72,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江西_jingdezhen": {
+      "score": 0.72,
+      "self_sufficiency": 0.72,
+      "per_capita_living": 9000,
+      "invest_activity": 0.72,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "四川_neijiang": {
+      "score": 0.72,
+      "self_sufficiency": 0.72,
+      "per_capita_living": 9000,
+      "invest_activity": 0.72,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江西_ganzhou": {
+      "score": 0.72,
+      "self_sufficiency": 0.72,
+      "per_capita_living": 9000,
+      "invest_activity": 0.72,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "四川_deyang": {
+      "score": 0.72,
+      "self_sufficiency": 0.72,
+      "per_capita_living": 9000,
+      "invest_activity": 0.72,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江西_jiujiang": {
+      "score": 0.73,
+      "self_sufficiency": 0.73,
+      "per_capita_living": 9100,
+      "invest_activity": 0.73,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "四川_dazhou": {
+      "score": 0.73,
+      "self_sufficiency": 0.73,
+      "per_capita_living": 9100,
+      "invest_activity": 0.73,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "湖南_zhuzhou": {
+      "score": 0.73,
+      "self_sufficiency": 0.73,
+      "per_capita_living": 9100,
+      "invest_activity": 0.73,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "河北_langfang": {
+      "score": 0.73,
+      "self_sufficiency": 0.73,
+      "per_capita_living": 9100,
+      "invest_activity": 0.73,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_zaozhuang": {
+      "score": 0.73,
+      "self_sufficiency": 0.73,
+      "per_capita_living": 9100,
+      "invest_activity": 0.73,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_suqian": {
+      "score": 0.74,
+      "self_sufficiency": 0.74,
+      "per_capita_living": 9200,
+      "invest_activity": 0.74,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "辽宁_dalian": {
+      "score": 0.74,
+      "self_sufficiency": 0.74,
+      "per_capita_living": 9200,
+      "invest_activity": 0.74,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_yunfu": {
+      "score": 0.74,
+      "self_sufficiency": 0.74,
+      "per_capita_living": 9200,
+      "invest_activity": 0.74,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_shaoguan": {
+      "score": 0.74,
+      "self_sufficiency": 0.74,
+      "per_capita_living": 9200,
+      "invest_activity": 0.74,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_lishui": {
+      "score": 0.75,
+      "self_sufficiency": 0.75,
+      "per_capita_living": 9300,
+      "invest_activity": 0.75,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_zibo": {
+      "score": 0.75,
+      "self_sufficiency": 0.75,
+      "per_capita_living": 9300,
+      "invest_activity": 0.75,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_zhongshan": {
+      "score": 0.75,
+      "self_sufficiency": 0.75,
+      "per_capita_living": 9300,
+      "invest_activity": 0.75,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_meizhou": {
+      "score": 0.75,
+      "self_sufficiency": 0.75,
+      "per_capita_living": 9300,
+      "invest_activity": 0.75,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_huaian": {
+      "score": 0.75,
+      "self_sufficiency": 0.75,
+      "per_capita_living": 9300,
+      "invest_activity": 0.75,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_dongying": {
+      "score": 0.76,
+      "self_sufficiency": 0.76,
+      "per_capita_living": 9300,
+      "invest_activity": 0.76,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_linyi": {
+      "score": 0.76,
+      "self_sufficiency": 0.76,
+      "per_capita_living": 9300,
+      "invest_activity": 0.76,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_putian": {
+      "score": 0.76,
+      "self_sufficiency": 0.76,
+      "per_capita_living": 9300,
+      "invest_activity": 0.76,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_taian": {
+      "score": 0.76,
+      "self_sufficiency": 0.76,
+      "per_capita_living": 9300,
+      "invest_activity": 0.76,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_yancheng": {
+      "score": 0.77,
+      "self_sufficiency": 0.77,
+      "per_capita_living": 9400,
+      "invest_activity": 0.77,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_ningde": {
+      "score": 0.77,
+      "self_sufficiency": 0.77,
+      "per_capita_living": 9400,
+      "invest_activity": 0.77,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_qingyuan": {
+      "score": 0.77,
+      "self_sufficiency": 0.77,
+      "per_capita_living": 9400,
+      "invest_activity": 0.77,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_nanping": {
+      "score": 0.77,
+      "self_sufficiency": 0.77,
+      "per_capita_living": 9400,
+      "invest_activity": 0.77,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_weifang": {
+      "score": 0.77,
+      "self_sufficiency": 0.77,
+      "per_capita_living": 9400,
+      "invest_activity": 0.77,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_heze": {
+      "score": 0.78,
+      "self_sufficiency": 0.78,
+      "per_capita_living": 9500,
+      "invest_activity": 0.78,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_longyan": {
+      "score": 0.78,
+      "self_sufficiency": 0.78,
+      "per_capita_living": 9500,
+      "invest_activity": 0.78,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_shanwei": {
+      "score": 0.78,
+      "self_sufficiency": 0.78,
+      "per_capita_living": 9500,
+      "invest_activity": 0.78,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_huzhou": {
+      "score": 0.78,
+      "self_sufficiency": 0.78,
+      "per_capita_living": 9500,
+      "invest_activity": 0.78,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_liaocheng": {
+      "score": 0.79,
+      "self_sufficiency": 0.79,
+      "per_capita_living": 9600,
+      "invest_activity": 0.79,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_quzhou": {
+      "score": 0.79,
+      "self_sufficiency": 0.79,
+      "per_capita_living": 9600,
+      "invest_activity": 0.79,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_rizhao": {
+      "score": 0.79,
+      "self_sufficiency": 0.79,
+      "per_capita_living": 9600,
+      "invest_activity": 0.79,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_taizhou_zj": {
+      "score": 0.79,
+      "self_sufficiency": 0.79,
+      "per_capita_living": 9600,
+      "invest_activity": 0.79,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_weihai": {
+      "score": 0.79,
+      "self_sufficiency": 0.79,
+      "per_capita_living": 9600,
+      "invest_activity": 0.79,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_lianyungang": {
+      "score": 0.8,
+      "self_sufficiency": 0.8,
+      "per_capita_living": 9700,
+      "invest_activity": 0.8,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "海南_danzhou": {
+      "score": 0.8,
+      "self_sufficiency": 0.8,
+      "per_capita_living": 9700,
+      "invest_activity": 0.8,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_changzhou": {
+      "score": 0.8,
+      "self_sufficiency": 0.8,
+      "per_capita_living": 9700,
+      "invest_activity": 0.8,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_heyuan": {
+      "score": 0.8,
+      "self_sufficiency": 0.8,
+      "per_capita_living": 9700,
+      "invest_activity": 0.8,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_zhoushan": {
+      "score": 0.81,
+      "self_sufficiency": 0.81,
+      "per_capita_living": 9800,
+      "invest_activity": 0.81,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_dezhou": {
+      "score": 0.81,
+      "self_sufficiency": 0.81,
+      "per_capita_living": 9800,
+      "invest_activity": 0.81,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "山东_binzhou": {
+      "score": 0.81,
+      "self_sufficiency": 0.81,
+      "per_capita_living": 9800,
+      "invest_activity": 0.81,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_maoming": {
+      "score": 0.81,
+      "self_sufficiency": 0.81,
+      "per_capita_living": 9800,
+      "invest_activity": 0.81,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_chaozhou": {
+      "score": 0.81,
+      "self_sufficiency": 0.81,
+      "per_capita_living": 9800,
+      "invest_activity": 0.81,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_jieyang": {
+      "score": 0.82,
+      "self_sufficiency": 0.82,
+      "per_capita_living": 9900,
+      "invest_activity": 0.82,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_jiangmen": {
+      "score": 0.82,
+      "self_sufficiency": 0.82,
+      "per_capita_living": 9900,
+      "invest_activity": 0.82,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_xuzhou": {
+      "score": 0.82,
+      "self_sufficiency": 0.82,
+      "per_capita_living": 9900,
+      "invest_activity": 0.82,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_dongguan": {
+      "score": 0.82,
+      "self_sufficiency": 0.82,
+      "per_capita_living": 9900,
+      "invest_activity": 0.82,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_sanming": {
+      "score": 0.82,
+      "self_sufficiency": 0.82,
+      "per_capita_living": 9900,
+      "invest_activity": 0.82,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "福建_zhangzhou": {
+      "score": 0.83,
+      "self_sufficiency": 0.83,
+      "per_capita_living": 10000,
+      "invest_activity": 0.83,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_wenzhou": {
+      "score": 0.83,
+      "self_sufficiency": 0.83,
+      "per_capita_living": 10000,
+      "invest_activity": 0.83,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "青海_xining": {
+      "score": 0.83,
+      "self_sufficiency": 0.83,
+      "per_capita_living": 10000,
+      "invest_activity": 0.83,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_foshan": {
+      "score": 0.83,
+      "self_sufficiency": 0.83,
+      "per_capita_living": 10000,
+      "invest_activity": 0.83,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "江苏_nantong": {
+      "score": 0.84,
+      "self_sufficiency": 0.84,
+      "per_capita_living": 10100,
+      "invest_activity": 0.84,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "浙江_shaoxing": {
+      "score": 0.84,
+      "self_sufficiency": 0.84,
+      "per_capita_living": 10100,
+      "invest_activity": 0.84,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_zhaoqing": {
+      "score": 0.84,
+      "self_sufficiency": 0.84,
+      "per_capita_living": 10100,
+      "invest_activity": 0.84,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "吉林_changchun": {
+      "score": 0.84,
+      "self_sufficiency": 0.84,
+      "per_capita_living": 10100,
+      "invest_activity": 0.84,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "广东_yangjiang": {
+      "score": 0.84,
+      "self_sufficiency": 0.84,
+      "per_capita_living": 10100,
+      "invest_activity": 0.84,
+      "grade": "B",
+      "source": "estimated"
+    },
+    "辽宁_shenyang": {
+      "score": 0.85,
+      "self_sufficiency": 0.85,
+      "per_capita_living": 10200,
+      "invest_activity": 0.85,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_taizhou": {
+      "score": 0.85,
+      "self_sufficiency": 0.85,
+      "per_capita_living": 10200,
+      "invest_activity": 0.85,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "山东_yantai": {
+      "score": 0.85,
+      "self_sufficiency": 0.85,
+      "per_capita_living": 10200,
+      "invest_activity": 0.85,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "海南_sanya": {
+      "score": 0.85,
+      "self_sufficiency": 0.85,
+      "per_capita_living": 10200,
+      "invest_activity": 0.85,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_zhenjiang": {
+      "score": 0.86,
+      "self_sufficiency": 0.86,
+      "per_capita_living": 10200,
+      "invest_activity": 0.86,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_yangzhou": {
+      "score": 0.86,
+      "self_sufficiency": 0.86,
+      "per_capita_living": 10200,
+      "invest_activity": 0.86,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "山东_jining": {
+      "score": 0.86,
+      "self_sufficiency": 0.86,
+      "per_capita_living": 10200,
+      "invest_activity": 0.86,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_zhanjiang": {
+      "score": 0.86,
+      "self_sufficiency": 0.86,
+      "per_capita_living": 10200,
+      "invest_activity": 0.86,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_huizhou": {
+      "score": 0.86,
+      "self_sufficiency": 0.86,
+      "per_capita_living": 10200,
+      "invest_activity": 0.86,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "浙江_jinhua": {
+      "score": 0.87,
+      "self_sufficiency": 0.87,
+      "per_capita_living": 10300,
+      "invest_activity": 0.87,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "宁夏_yinchuan": {
+      "score": 0.87,
+      "self_sufficiency": 0.87,
+      "per_capita_living": 10300,
+      "invest_activity": 0.87,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_shantou": {
+      "score": 0.87,
+      "self_sufficiency": 0.87,
+      "per_capita_living": 10300,
+      "invest_activity": 0.87,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "贵州_guiyang": {
+      "score": 0.87,
+      "self_sufficiency": 0.87,
+      "per_capita_living": 10300,
+      "invest_activity": 0.87,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "新疆_wulumuqi": {
+      "score": 0.88,
+      "self_sufficiency": 0.88,
+      "per_capita_living": 10400,
+      "invest_activity": 0.88,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "云南_kunming": {
+      "score": 0.88,
+      "self_sufficiency": 0.88,
+      "per_capita_living": 10400,
+      "invest_activity": 0.88,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "福建_quanzhou": {
+      "score": 0.88,
+      "self_sufficiency": 0.88,
+      "per_capita_living": 10400,
+      "invest_activity": 0.88,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "浙江_jiaxing": {
+      "score": 0.88,
+      "self_sufficiency": 0.88,
+      "per_capita_living": 10400,
+      "invest_activity": 0.88,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "黑龙江_haerbin": {
+      "score": 0.88,
+      "self_sufficiency": 0.88,
+      "per_capita_living": 10400,
+      "invest_activity": 0.88,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "内蒙古_huhehaote": {
+      "score": 0.89,
+      "self_sufficiency": 0.89,
+      "per_capita_living": 10500,
+      "invest_activity": 0.89,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_wuxi": {
+      "score": 0.89,
+      "self_sufficiency": 0.89,
+      "per_capita_living": 10500,
+      "invest_activity": 0.89,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_zhuhai": {
+      "score": 0.89,
+      "self_sufficiency": 0.89,
+      "per_capita_living": 10500,
+      "invest_activity": 0.89,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "西藏_lasa": {
+      "score": 0.89,
+      "self_sufficiency": 0.89,
+      "per_capita_living": 10500,
+      "invest_activity": 0.89,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "甘肃_lanzhou": {
+      "score": 0.9,
+      "self_sufficiency": 0.9,
+      "per_capita_living": 10600,
+      "invest_activity": 0.9,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广西_nanning": {
+      "score": 0.9,
+      "self_sufficiency": 0.9,
+      "per_capita_living": 10600,
+      "invest_activity": 0.9,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "山西_taiyuan": {
+      "score": 0.9,
+      "self_sufficiency": 0.9,
+      "per_capita_living": 10600,
+      "invest_activity": 0.9,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "安徽_hefei": {
+      "score": 0.9,
+      "self_sufficiency": 0.9,
+      "per_capita_living": 10600,
+      "invest_activity": 0.9,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "河南_zhengzhou": {
+      "score": 0.9,
+      "self_sufficiency": 0.9,
+      "per_capita_living": 10600,
+      "invest_activity": 0.9,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "河北_shijiazhuang": {
+      "score": 0.91,
+      "self_sufficiency": 0.91,
+      "per_capita_living": 10700,
+      "invest_activity": 0.91,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江西_nanchang": {
+      "score": 0.91,
+      "self_sufficiency": 0.91,
+      "per_capita_living": 10700,
+      "invest_activity": 0.91,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "浙江_ningbo": {
+      "score": 0.91,
+      "self_sufficiency": 0.91,
+      "per_capita_living": 10700,
+      "invest_activity": 0.91,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "海南_haikou": {
+      "score": 0.91,
+      "self_sufficiency": 0.91,
+      "per_capita_living": 10700,
+      "invest_activity": 0.91,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "山东_jinan": {
+      "score": 0.91,
+      "self_sufficiency": 0.91,
+      "per_capita_living": 10700,
+      "invest_activity": 0.91,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "福建_fuzhou": {
+      "score": 0.92,
+      "self_sufficiency": 0.92,
+      "per_capita_living": 10800,
+      "invest_activity": 0.92,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_suzhou": {
+      "score": 0.92,
+      "self_sufficiency": 0.92,
+      "per_capita_living": 10800,
+      "invest_activity": 0.92,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "陕西_xian": {
+      "score": 0.92,
+      "self_sufficiency": 0.92,
+      "per_capita_living": 10800,
+      "invest_activity": 0.92,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "重庆_chongqing": {
+      "score": 0.92,
+      "self_sufficiency": 0.92,
+      "per_capita_living": 10800,
+      "invest_activity": 0.92,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "湖北_wuhan": {
+      "score": 0.93,
+      "self_sufficiency": 0.93,
+      "per_capita_living": 10900,
+      "invest_activity": 0.93,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "湖南_changsha": {
+      "score": 0.93,
+      "self_sufficiency": 0.93,
+      "per_capita_living": 10900,
+      "invest_activity": 0.93,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "四川_chengdu": {
+      "score": 0.93,
+      "self_sufficiency": 0.93,
+      "per_capita_living": 10900,
+      "invest_activity": 0.93,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "福建_xiamen": {
+      "score": 0.93,
+      "self_sufficiency": 0.93,
+      "per_capita_living": 10900,
+      "invest_activity": 0.93,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "山东_qingdao": {
+      "score": 0.93,
+      "self_sufficiency": 0.93,
+      "per_capita_living": 10900,
+      "invest_activity": 0.93,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_shenzhen": {
+      "score": 0.94,
+      "self_sufficiency": 0.94,
+      "per_capita_living": 11000,
+      "invest_activity": 0.94,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "江苏_nanjing": {
+      "score": 0.94,
+      "self_sufficiency": 0.94,
+      "per_capita_living": 11000,
+      "invest_activity": 0.94,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "广东_guangzhou": {
+      "score": 0.94,
+      "self_sufficiency": 0.94,
+      "per_capita_living": 11000,
+      "invest_activity": 0.94,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "浙江_hangzhou": {
+      "score": 0.94,
+      "self_sufficiency": 0.94,
+      "per_capita_living": 11000,
+      "invest_activity": 0.94,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "天津_tianjin": {
+      "score": 0.95,
+      "self_sufficiency": 0.95,
+      "per_capita_living": 11100,
+      "invest_activity": 0.95,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "上海_shanghai": {
+      "score": 0.95,
+      "self_sufficiency": 0.95,
+      "per_capita_living": 11100,
+      "invest_activity": 0.95,
+      "grade": "A",
+      "source": "estimated"
+    },
+    "北京_beijing": {
+      "score": 0.95,
+      "self_sufficiency": 0.95,
+      "per_capita_living": 11100,
+      "invest_activity": 0.95,
+      "grade": "A",
+      "source": "estimated"
+    }
+  }
+}

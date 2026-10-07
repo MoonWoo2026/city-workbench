@@ -304,6 +304,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         tags: [],
         cleanOnly: false,
         pm25Max: null,
+        fiscalMin: null,
         uniOnly: false,
         spec: null,
         q: '',
@@ -354,6 +355,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       tags: [],
       cleanOnly: false,
       pm25Max: null,
+      fiscalMin: null,
       uniOnly: false,
       spec: null, // 点名城市时退出专科强院模式
       q: city.name,
@@ -481,6 +483,27 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   } else if (/空气优|空气质量优|空气质量等级优/.test(text)) {
     next.pm25Max = 35
     items.push({ k: 'pm25', label: 'PM2.5', value: '只看「优」（≤35 μg/m³，近7天均值）' })
+  }
+
+  // 8.57) 公共服务保障评级：财政稳健度/福利水平/公共投入估算
+  //   触发词：公共服务/福利/财政稳健/基建/市政/公共保障/财政好
+  if (/公共服务|公共保障|福利好|福利高|财政稳健|财政好|市政好|基建好|公共投入高|社保好|教育好|医疗资源好|财政实力/.test(text)) {
+    if (/不限|取消|清除|去掉|不管|无所谓|都行|别限|不限制/.test(text)) {
+      next.fiscalMin = null
+      items.push({ k: 'fiscal', label: '公共服务保障', value: '不限' })
+    } else if (/A级|A级|保障充足|最高/.test(text)) {
+      next.fiscalMin = 'A'
+      items.push({ k: 'fiscal', label: '公共服务保障', value: '只看 A 级（保障充足）' })
+    } else if (/B级|B 级|保障良好|中等偏上/.test(text)) {
+      next.fiscalMin = 'B'
+      items.push({ k: 'fiscal', label: '公共服务保障', value: '只看 A/B 级（保障充足/良好）' })
+    } else {
+      next.fiscalMin = 'B'
+      items.push({ k: 'fiscal', label: '公共服务保障', value: '只看 A/B 级（保障充足/良好）' })
+    }
+  } else if (/公共服务差|福利差|财政差|市政差|基建差|财政吃紧|财政承压|福利不行/.test(text)) {
+    next.fiscalMin = null
+    items.push({ k: 'fiscal', label: '公共服务保障', value: '不限（已忽略差评倾向，按其他条件排序）' })
   }
 
   // 8.6) 生活成本/物价
@@ -623,6 +646,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.provinces.length > 0, run: () => { next.provinces = []; relaxed.push('限定省份没有匹配，已扩大到全国') } },
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.pm25Max, run: () => { next.pm25Max = null; relaxed.push('已自动放宽「PM2.5」限制') } },
+    { when: () => next.fiscalMin, run: () => { next.fiscalMin = null; relaxed.push('已自动放宽「公共服务保障」限制') } },
     { when: () => next.types.length > 0, run: () => { next.types = []; relaxed.push('已不限定城市类型') } },
     { when: () => next.tags.length > 0, run: () => { next.tags = []; relaxed.push('条件太多，已放宽气候标签') } },
     { when: () => next.tagExcl.length > 0, run: () => { next.tagExcl = []; relaxed.push('排除条件太苛刻，已取消标签排除') } },
@@ -661,6 +685,12 @@ export function rankResults(matched, f) {
       const w = { good: 3, moderate: 1, light: 0, medium: -1, heavy: -3, severe: -5 }[lv.key] || 0
       score += w
       if ((f.pm25Max || f.cleanOnly) && w > 0) why.push(`PM2.5 ${c.pm25.v} ${lv.label}`)
+    }
+    // 公共服务保障评级加权：A +2 / B +1 / C -1 / D -2
+    if (c.fiscal?.grade) {
+      const fw = { A: 2, B: 1, C: -1, D: -2 }[c.fiscal.grade] || 0
+      score += fw
+      if (f.fiscalMin && fw > 0) why.push(`公共保障 ${c.fiscal.grade} 级`)
     }
     if (f.uniOnly && c.uni_town) { score += 1; why.push('大学城周边') }
     for (const p of f.prefs || []) {
@@ -719,6 +749,9 @@ export function refineInterpret(rawText, currentFilters) {
     }
     if (/pm\s*2?\.?\s*5|空气(?:差|不好|糟糕)/.test(mEx[1])) {
       return { next: { ...currentFilters, pm25Max: 35 }, chip: 'PM2.5 只看优（≤35）' }
+    }
+    if (/公共(?:服务|保障)|福利|财政|市政|基建/.test(mEx[1])) {
+      return { next: { ...currentFilters, fiscalMin: 'B' }, chip: '公共服务保障 ≥ B 级' }
     }
     if (/工业|污染|雾霾|厂/.test(mEx[1])) {
       return { next: { ...currentFilters, cleanOnly: true }, chip: '排除有工业' }

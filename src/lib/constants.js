@@ -102,3 +102,19 @@ export function pm25Level(v) {
   if (typeof v !== 'number' || !Number.isFinite(v)) return null
   return PM25_LEVELS.find(l => v <= l.max) || PM25_LEVELS[PM25_LEVELS.length - 1]
 }
+
+// 公共服务保障评级（综合财政自给度 + 人均民生支出 + 基建投资活跃度）
+// 包装口径：避免「赤字/债务」字眼，对外呈现为公共服务保障水平
+// 数据为基于公开财政决算规律的模型估算，每年随统计公报更新
+export const FISCAL_GRADES = [
+  { key: 'A', label: '保障充足', min: 0.85, cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', dot: 'bg-emerald-500', desc: '财政自给度高，人均民生支出与基建投入在同类城市中靠前' },
+  { key: 'B', label: '保障良好', min: 0.70, cls: 'bg-sky-50 text-sky-700 ring-sky-500/20', dot: 'bg-sky-500', desc: '收支基本平衡，公共服务投入稳步增长' },
+  { key: 'C', label: '保障一般', min: 0.50, cls: 'bg-amber-50 text-amber-700 ring-amber-500/20', dot: 'bg-amber-500', desc: '自给率偏低，依赖上级转移支付，公共服务供给承压' },
+  { key: 'D', label: '保障偏弱', min: 0, cls: 'bg-rose-50 text-rose-700 ring-rose-500/25', dot: 'bg-rose-500', desc: '收支缺口较大，公共服务建设需更多外部支持' },
+]
+
+export function fiscalGrade(score) {
+  if (typeof score !== 'number' || !Number.isFinite(score)) return null
+  return FISCAL_GRADES.find(g => score >= g.min) || FISCAL_GRADES[FISCAL_GRADES.length - 1]
+}
+

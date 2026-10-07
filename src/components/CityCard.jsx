@@ -1,6 +1,6 @@
-import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf, ChefHat, Wind } from 'lucide-react'
+import { Heart, ShieldCheck, ShieldAlert, Flame, ChevronRight, Check, GraduationCap, Share2, Cross, Award, UtensilsCrossed, Mountain, ShieldHalf, ChefHat, Wind, Landmark } from 'lucide-react'
 import dataset from '../data/cities_full.json'
-import { CLIMATE_TAGS, pm25Level } from '../lib/constants.js'
+import { CLIMATE_TAGS, pm25Level, fiscalGrade } from '../lib/constants.js'
 import ProvinceArt from './ProvinceArt.jsx'
 
 export const TAG_ICON = Object.fromEntries(CLIMATE_TAGS.map(t => [t.key, t.icon]))
@@ -45,6 +45,22 @@ export function PM25Badge({ pm25, size = 'sm' }) {
     >
       <Wind size={size === 'xs' ? 10 : 11} />
       PM2.5 {pm25.v} · {lv.label}
+    </span>
+  )
+}
+
+export function FiscalBadge({ fiscal, size = 'sm' }) {
+  if (!fiscal?.score) return null
+  const g = fiscalGrade(fiscal.score)
+  if (!g) return null
+  const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
+  return (
+    <span
+      title={`公共服务保障 ${g.key} 级 · ${g.label}（综合分 ${(fiscal.score * 100).toFixed(0)}，模型估算，数据截至 ${fiscal.updated}）`}
+      className={`inline-flex items-center gap-1 rounded-full font-medium ring-1 ${cls} ${g.cls}`}
+    >
+      <Landmark size={size === 'xs' ? 10 : 11} />
+      公共保障 {g.key}
     </span>
   )
 }
@@ -299,6 +315,7 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
       <div className="mt-2.5 flex flex-wrap items-center gap-1">
         <CleanBadge clean={city.clean50} />
         <PM25Badge pm25={city.pm25} />
+        <FiscalBadge fiscal={city.fiscal} />
         <UniBadge uni={city.uni_town} />
         <MedBadge med={city.med} />
         <SpecBadge city={city} specKey={specKey} />
@@ -384,6 +401,7 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
         <div className="mt-1.5 flex flex-wrap gap-1">
           <CleanBadge clean={city.clean50} size="xs" />
           <PM25Badge pm25={city.pm25} size="xs" />
+          <FiscalBadge fiscal={city.fiscal} size="xs" />
           <UniBadge uni={city.uni_town} size="xs" />
           <MedBadge med={city.med} size="xs" />
           <SpecBadge city={city} specKey={specKey} size="xs" />

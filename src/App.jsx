@@ -298,6 +298,7 @@ export default function App() {
     if (filters.medExcl) chips.push({ k: 'medx', label: '排除有三甲', clear: () => patch({ medExcl: false }) })
     if (filters.borderExcl) chips.push({ k: 'bdx', label: '排除边境城市', clear: () => patch({ borderExcl: false }) })
     if (filters.pm25Max) chips.push({ k: 'pm', label: `PM2.5 ≤ ${filters.pm25Max}`, clear: () => patch({ pm25Max: null }) })
+    if (filters.fiscalMin) chips.push({ k: 'fis', label: `公共保障 ≥ ${filters.fiscalMin} 级`, clear: () => patch({ fiscalMin: null }) })
     if (filters.spec && dataset.specialties?.specs?.[filters.spec]) {
       chips.push({ k: 'spec', label: `${dataset.specialties.specs[filters.spec].name}强院城市`, clear: () => patch({ spec: null }) })
     }
@@ -330,6 +331,7 @@ export default function App() {
     if (filters.cityOnly?.length) n++
     if (filters.cleanOnly) n++
     if (filters.pm25Max) n++
+    if (filters.fiscalMin) n++
     if (filters.uniOnly) n++
     if (filters.medOnly) n++
     if (filters.spec) n++

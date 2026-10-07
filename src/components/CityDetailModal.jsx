@@ -5,13 +5,13 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind,
+  Share2, Loader2, Cross, Award, Mountain, ShieldHalf, ChefHat, ChevronDown, ChevronUp, Wind, Landmark,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
 import { useCityShare } from './useCityShare.jsx'
 import { nearestSpec, nearestSpecs, specDistanceText } from '../lib/store.js'
-import { pm25Level } from '../lib/constants.js'
+import { pm25Level, fiscalGrade } from '../lib/constants.js'
 import dataset from '../data/cities_full.json'
 
 function MiniMap({ city }) {
@@ -462,6 +462,59 @@ export default function CityDetailModal({ city, fav, comparing, specKey, onClose
             })()}
             {city.environment}
           </Block>
+
+          {city.fiscal?.score && (() => {
+            const g = fiscalGrade(city.fiscal.score)
+            return (
+              <Block
+                icon={<Landmark size={14} className="text-stone-600" />}
+                title="公共服务与财政稳健度"
+              >
+                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl bg-white px-3 py-2.5 ring-1 ring-stone-200/70">
+                  <Landmark size={18} className="text-stone-400" />
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[20px] font-bold leading-none text-stone-800">{g.key}</span>
+                      <span className="text-[11px] text-stone-400">级</span>
+                      <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${g.cls}`}>{g.label}</span>
+                    </div>
+                    <div className="mt-1 text-[10.5px] text-stone-400">
+                      公共服务保障评级 · 数据截至 {city.fiscal.updated} · 年度更新
+                    </div>
+                  </div>
+                  <span className="ml-auto hidden max-w-[45%] text-[10px] leading-4 text-stone-400 sm:block">
+                    {g.desc}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-stone-50 px-2.5 py-2 ring-1 ring-stone-200/60">
+                    <div className="text-[10px] text-stone-400">财政自给度</div>
+                    <div className="mt-0.5 text-[15px] font-semibold text-stone-800">
+                      {Math.round(city.fiscal.self_sufficiency * 100)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">%</span>
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-stone-400">收入/支出比</div>
+                  </div>
+                  <div className="rounded-lg bg-stone-50 px-2.5 py-2 ring-1 ring-stone-200/60">
+                    <div className="text-[10px] text-stone-400">人均民生支出</div>
+                    <div className="mt-0.5 text-[15px] font-semibold text-stone-800">
+                      {city.fiscal.per_capita_living}<span className="ml-0.5 text-[10px] font-normal text-stone-400">元/年</span>
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-stone-400">社保+教育+医疗+住房</div>
+                  </div>
+                  <div className="rounded-lg bg-stone-50 px-2.5 py-2 ring-1 ring-stone-200/60">
+                    <div className="text-[10px] text-stone-400">基建投资活跃度</div>
+                    <div className="mt-0.5 text-[15px] font-semibold text-stone-800">
+                      {Math.round(city.fiscal.invest_activity * 100)}<span className="ml-0.5 text-[10px] font-normal text-stone-400">/100</span>
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-stone-400">固定资产投资强度</div>
+                  </div>
+                </div>
+                <p className="mt-2 text-[10.5px] leading-5 text-stone-400">
+                  以上为基于公开财政决算规律的模型估算（{(city.fiscal.score * 100).toFixed(0)}/100 综合分），反映城市公共服务供给能力与基建投入水平的相对位次，不代表真实决算数；数据年度更新，仅供参考。
+                </p>
+              </Block>
+            )
+          })()}
 
           <Block icon={<MapPin size={14} className="text-emerald-700" />} title="推荐租房区域">
             <ul className="space-y-1.5">

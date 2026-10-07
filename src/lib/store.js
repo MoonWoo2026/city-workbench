@@ -43,6 +43,7 @@ export function defaultFilters() {
     medExcl: false,           // 排除有三甲医院的城市（AI 微调「不要三甲」）
     borderExcl: false,        // 排除陆地边境城市（「不要边境小城」）
     pm25Max: null,            // PM2.5 周均上限 μg/m³（「pm2.5低于50」→ 50），null 不限
+    fiscalMin: null,          // 公共服务保障评级下限 A/B/C/D（「公共服务好」→ 'B'），null 不限
     spec: null,               // 专科强院筛选：复旦 2023 专科声誉榜 key（如 xiaohua=消化病），只看有全国 Top10 强院的城市
     sort: 'explore',          // 默认探索模式：省份交错 + 每日轮换，首页不固定
     budget: null,             // 预算模式：{ mode:'single'|'shared', rent, food, utils, transit, other }，0=该项不限
@@ -110,6 +111,7 @@ export function encodeFilters(f) {
   if (f.medExcl) p.set('medx', '1')
   if (f.borderExcl) p.set('bdx', '1')
   if (f.pm25Max) p.set('pm', String(f.pm25Max))
+  if (f.fiscalMin) p.set('fis', f.fiscalMin)
   if (f.spec) p.set('sp', f.spec)
   if (f.uniOnly) p.set('uni', '1') // 默认开启，显式写入便于分享一致视图
   if (f.sort && f.sort !== 'explore') p.set('sort', f.sort) // explore 为默认排序，不写入 URL
@@ -135,6 +137,7 @@ export function decodeFilters(search) {
   f.medExcl = p.get('medx') === '1'
   f.borderExcl = p.get('bdx') === '1'
   f.pm25Max = p.get('pm') ? Number(p.get('pm')) : null
+  f.fiscalMin = p.get('fis') || null
   f.spec = p.get('sp') || null
   f.uniOnly = p.get('uni') === '1'
   f.sort = p.get('sort') || f.sort // 未指定时用默认（explore）
@@ -186,6 +189,7 @@ export function matchQuery(city, q) {
     city.restauranttext || '', // 本地苍蝇馆子/市井名店（店名+招牌菜，构建时注入）
     city.safetytext || '', // 边境/治安搜索文本（构建时注入）
     city.pm25text || '', // PM2.5 周均/空气质量（数值+等级，构建时注入）
+    city.fiscaltext || '', // 公共服务保障评级/财政自给度（构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)
 }
@@ -279,6 +283,7 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲
     if (f.borderExcl && c.border) return false // 排除陆地边境城市
     if (f.pm25Max && !(c.pm25 && c.pm25.v <= f.pm25Max)) return false // PM2.5 周均上限硬过滤
+    if (f.fiscalMin && !(c.fiscal && c.fiscal.grade && c.fiscal.grade <= f.fiscalMin)) return false // 公共服务保障评级下限（A<B<C<D 字典序，要求 grade ≤ fiscalMin，fiscalMin='B' 表示只看 A 或 B）
     if (f.spec && !(c.spec && c.spec.some(s => s[0] === f.spec))) return false // 专科强院所在城市（全国 Top10）
     if (f.uniOnly && !f.q && !f.budget && !f.spec && !f.cityOnly?.length && !c.uni_town) return false // 有关键词搜索/预算/专科/白名单时放开大学城限制
     if (favOnly && favs && !favs.has(c.id)) return false

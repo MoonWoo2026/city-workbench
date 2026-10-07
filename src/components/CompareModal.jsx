@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { X, ShieldCheck, XCircle, MapPin, Droplets, Thermometer, Star, GraduationCap, BusFront, Wind } from 'lucide-react'
-import { TagChip, CleanBadge, PM25Badge, yuan } from './CityCard.jsx'
+import { X, ShieldCheck, XCircle, MapPin, Droplets, Thermometer, Star, GraduationCap, BusFront, Wind, Landmark } from 'lucide-react'
+import { TagChip, CleanBadge, PM25Badge, FiscalBadge, yuan } from './CityCard.jsx'
 
 function Cell({ children, highlight = false, strong = false }) {
   return (
@@ -81,6 +81,13 @@ export default function CompareModal({ cities, onClose, onRemove }) {
       icon: <Wind size={12} className="text-teal-600" />,
       render: c => c.pm25?.v
         ? <PM25Badge pm25={c.pm25} size="xs" />
+        : <span className="text-stone-300">— 暂无数据</span>,
+    },
+    {
+      label: '公共服务保障',
+      icon: <Landmark size={12} className="text-stone-600" />,
+      render: c => c.fiscal?.score
+        ? <FiscalBadge fiscal={c.fiscal} size="xs" />
         : <span className="text-stone-300">— 暂无数据</span>,
     },
     {
