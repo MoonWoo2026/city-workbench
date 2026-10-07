@@ -489,8 +489,8 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         next.spec = specHit.key
         next.q = '' // 疾病词不作关键词二次过滤
         items.push({ k: 'spec', label: '看病需求', value: `${specHit.s.name}强院城市（复旦榜）` })
-        const top3 = specHit.s.list.slice(0, 3).map(h => `${h.short}${h.leader ? `·${h.leader.name}` : ''}（${h.city}）`).join('、')
-        items.push({ k: 'specTop', label: '全国前列', value: top3 })
+        const top3 = specHit.s.list.slice(0, 3).map(h => `${h.leader ? '★' : ''}${h.short}${h.leader ? `·${h.leader.name}` : ''}（${h.city}）`).join('、')
+        items.push({ k: 'specTop', label: '全国前列（★ 指南带头人医院）', value: top3 })
       }
     }
   }

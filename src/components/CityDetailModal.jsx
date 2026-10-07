@@ -133,6 +133,8 @@ function SpecBlock({ city, specKey }) {
     if (specKey && specs[specKey]) {
       const n = nearestSpec(city, specKey)
       if (!n) return null
+      // 最近强院恰为指南带头人所在医院时重点标注
+      const lead = (specs[specKey].list || []).find(h => h.leader && h.short === n.short)
       return (
         <Block icon={<Award size={14} className="text-amber-600" />} title={`${specs[specKey].name}强院就医参考`}>
           <p>
@@ -140,6 +142,11 @@ function SpecBlock({ city, specKey }) {
             <b className="mx-1 text-stone-700">{n.short}</b>
             （{n.city} · 全国第{n.rank}），直线距离约 <b className="text-stone-700">{Math.round(n.km)}</b> km。
           </p>
+          {lead && (
+            <p className="mt-1.5 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] text-amber-900 ring-1 ring-amber-500/25">
+              ★ <b>指南带头人</b>：{lead.leader.name}（{lead.leader.title || '学科带头人'}）在该院任学科带头人
+            </p>
+          )}
           <p className="mt-1 text-[12px] text-stone-400">{specDistanceText(n.km)}</p>
         </Block>
       )
@@ -188,8 +195,10 @@ function SpecBlock({ city, specKey }) {
                 <span className="ml-1 rounded bg-amber-50 px-1 py-px text-[11px] font-medium text-amber-800 ring-1 ring-amber-500/20">全国第{g.rank}</span>
                 <span className="ml-1 text-stone-500">{g.hosps.map(h => h.short).join('、')}</span>
                 {leaders.map(h => (
-                  <span key={h.short} title={h.leader.title || '学科带头人'} className="ml-1 rounded bg-stone-100 px-1 py-px text-[11px] text-stone-600 ring-1 ring-stone-300/40">
-                    {h.leader.name}
+                  <span key={h.short}
+                    title={`${h.leader.title || '学科带头人'}｜权威诊疗指南牵头/核心专家`}
+                    className="ml-1 inline-flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-px text-[11px] font-semibold text-amber-800 ring-1 ring-amber-400/50">
+                    ★ 指南带头人 {h.leader.name}
                   </span>
                 ))}
                 {specKey === g.key && sd?.guides?.length > 0 && (

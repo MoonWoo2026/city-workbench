@@ -64,20 +64,28 @@ export function MedBadge({ med, size = 'sm' }) {
 }
 
 // 专科强院徽标：仅当专科筛选激活且本市有该专科全国 Top10 强院时显示
+// 命中医院若为权威指南牵头/带头人所在医院 → 金底★重点标注（悬停看带头人头衔）
 export function SpecBadge({ city, specKey, size = 'sm' }) {
   if (!specKey || !city.spec) return null
   const es = city.spec.filter(s => s[0] === specKey)
   if (!es.length) return null
   const best = es.reduce((a, b) => (a[1] <= b[1] ? a : b))
-  const specName = dataset.specialties?.specs?.[specKey]?.name || ''
+  const sd = dataset.specialties?.specs?.[specKey]
+  const lead = (sd?.list || []).find(h => h.leader && h.short === best[2])
+  const specName = sd?.name || ''
   const cls = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'
   return (
     <span
-      title={`${specName}（复旦 2023 专科声誉榜）：${es.map(e => `${e[2]} 全国第${e[1]}`).join('、')}`}
-      className={`inline-flex items-center gap-1 rounded-full bg-amber-50 font-medium text-amber-800 ring-1 ring-amber-500/25 ${cls}`}
+      title={lead
+        ? `${specName}（复旦 2023 专科声誉榜）：${best[2]} 全国第${best[1]}｜学科带头人 ${lead.leader.name}（${lead.leader.title || '学科带头人'}），牵头/参与权威诊疗指南`
+        : `${specName}（复旦 2023 专科声誉榜）：${es.map(e => `${e[2]} 全国第${e[1]}`).join('、')}`}
+      className={`inline-flex items-center gap-1 rounded-full ring-1 ${cls} ${
+        lead ? 'bg-amber-200/70 font-semibold text-amber-900 ring-amber-500/50' : 'bg-amber-50 font-medium text-amber-800 ring-amber-500/25'
+      }`}
     >
       <Award size={size === 'xs' ? 10 : 11} />
       {specName}全国第{best[1]} · {best[2]}
+      {lead && <span className="text-amber-700">★带头人 {lead.leader.name}</span>}
     </span>
   )
 }
