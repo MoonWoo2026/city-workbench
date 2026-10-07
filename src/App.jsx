@@ -234,17 +234,25 @@ export default function App() {
     // 命中查询词本身（如搜「南昌」→南昌市本身）→ tier 0
     // 下辖区县（parent === '南昌市'）→ tier 1
     // 名称前缀命中（如「南昌县」对 q=南昌）→ tier 2
-    // 其他匹配 → tier 3（保持原排序）
+    // 主字段匹配（areas/tags/province 等含关键词）→ tier 3
+    // 仅次级文本匹配（医院/餐厅/习俗等关键词碰撞，如搜「中山」命中「方中山胡辣汤」「中山医院」）→ tier 4
     if (filters.q) {
       const qRaw = filters.q.trim()
       const q = qRaw.replace(/市$/, '') // 兼容「南昌市」→「南昌」
+      const kw = q.toLowerCase()
       const tier = c => {
         if (c.name === qRaw || c.name === q) return 0
         const p = c.parent || ''
         if (p === q + '市' || p === qRaw + '市') return 1
         if (p && (p.startsWith(q) || p.startsWith(qRaw))) return 1
         if (c.name.startsWith(q) || c.name.startsWith(qRaw)) return 2
-        return 3
+        // 主字段命中（城市名/拼音/省份/大区/类型/下辖区域/标签）→ tier 3
+        const mainHit = [c.name, c.pinyin, c.province, c.parent, c.region, c.type,
+          ...(c.areas || []), ...(c.tags || [])].some(f =>
+            typeof f === 'string' && f.toLowerCase().includes(kw))
+        if (mainHit) return 3
+        // 仅次级文本匹配（spectext/restauranttext/foodtext 等关键词碰撞）→ tier 4
+        return 4
       }
       list = list
         .map((c, i) => ({ c, i, t: tier(c) }))
