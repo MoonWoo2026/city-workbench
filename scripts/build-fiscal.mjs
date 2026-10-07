@@ -155,11 +155,12 @@ for (const c of cities) {
   const g = fiscalGrade(row.score)
   c.fiscaltext = [
     '公共服务保障', '财政自给度', '人均民生支出', '基建投资',
+    '财政', '预算', '税收', '福利', '保障', '财力', '债务',
     `评级 ${row.grade}`, g?.label || '',
-    row.grade === 'A' ? '公共服务好 保障充足 财政稳健 自给率高' : '',
-    row.grade === 'B' ? '保障良好 收支平衡 公共服务稳定' : '',
-    row.grade === 'C' ? '保障一般 公共服务承压' : '',
-    row.grade === 'D' ? '保障偏弱 公共服务缺口 财政承压' : '',
+    row.grade === 'A' ? '财政好 财政充裕 财政健康 财力雄厚 预算充足 政府有钱 公共服务好 保障充足 财政稳健 自给率高' : '',
+    row.grade === 'B' ? '财政良好 财政稳健 收支平衡 保障良好 公共服务稳定' : '',
+    row.grade === 'C' ? '财政一般 财政紧张 保障一般 公共服务承压' : '',
+    row.grade === 'D' ? '财政差 财政困难 财政吃紧 财政承压 保障偏弱 公共服务缺口' : '',
   ].filter(Boolean).join(' ')
   c.parent ? inherited++ : own++
 }

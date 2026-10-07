@@ -498,12 +498,12 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
   }
 
   // 8.57) 公共服务保障评级：财政稳健度/福利水平/公共投入估算
-  //   触发词：公共服务/福利/财政稳健/基建/市政/公共保障/财政好
-  if (/公共服务|公共保障|福利好|福利高|财政稳健|财政好|市政好|基建好|公共投入高|社保好|教育好|医疗资源好|财政实力/.test(text)) {
+  //   触发词：公共服务/福利/财政稳健/基建/市政/公共保障/财政好/财力/预算/税收
+  if (/公共服务|公共保障|福利好|福利高|福利完善|财政稳健|财政好|财政充裕|财政健康|财政良好|财政富裕|市政好|基建好|公共投入高|社保好|教育好|医疗资源好|财政实力|财力强|财力雄厚|预算充足|政府有钱|政府不差钱|税收好|税源充足|保障好|保障到位|保障充足|公共服务好/.test(text)) {
     if (/不限|取消|清除|去掉|不管|无所谓|都行|别限|不限制/.test(text)) {
       next.fiscalMin = null
       items.push({ k: 'fiscal', label: '公共服务保障', value: '不限' })
-    } else if (/A级|A级|保障充足|最高/.test(text)) {
+    } else if (/A级|保障充足|最高|最好|最优/.test(text)) {
       next.fiscalMin = 'A'
       items.push({ k: 'fiscal', label: '公共服务保障', value: '只看 A 级（保障充足）' })
     } else if (/B级|B 级|保障良好|中等偏上/.test(text)) {
@@ -513,9 +513,10 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       next.fiscalMin = 'B'
       items.push({ k: 'fiscal', label: '公共服务保障', value: '只看 A/B 级（保障充足/良好）' })
     }
-  } else if (/公共服务差|福利差|财政差|市政差|基建差|财政吃紧|财政承压|福利不行/.test(text)) {
-    next.fiscalMin = null
-    items.push({ k: 'fiscal', label: '公共服务保障', value: '不限（已忽略差评倾向，按其他条件排序）' })
+  } else if (/公共服务差|福利差|财政差|市政差|基建差|财政吃紧|财政承压|福利不行|财政紧张|财政困难|财政窘迫|财政赤字|赤字大|入不敷出|财力弱|财力不足|债台高筑|债务重|预算紧张|预算不足|保障差|保障不到位|保障偏弱/.test(text)) {
+    // 财政差 → 排除 C/D 级城市（只保留 A/B）
+    next.fiscalMin = 'B'
+    items.push({ k: 'fiscal', label: '公共服务保障', value: '排除财政差（只看 A/B 级）' })
   }
 
   // 8.575) 上市公司总部所在地 / 股东大会所在地筛选（职业投资人参会需求）
