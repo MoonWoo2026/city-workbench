@@ -18,7 +18,7 @@ export function getApiBase() {
   return (localStorage.getItem(LS_API) || DEFAULT_API).replace(/\/+$/, '')
 }
 
-// 模块加载即捕获 URL 里的 ?key= / ?api=（App 的筛选同步随后会重写 URL）
+// 模块加载即捕获 URL 里的 ?key= / ?api= / ?admin=1（App 的筛选同步随后会重写 URL）
 ;(function captureFromUrl() {
   try {
     const sp = new URLSearchParams(window.location.search)
@@ -26,6 +26,8 @@ export function getApiBase() {
     if (k) setKey(k.trim())
     const api = sp.get('api')
     if (api) localStorage.setItem(LS_API, api.trim())
+    // 主人模式入口：URL 带 ?admin=1 即永久激活本地 admin 标记（私人链接，仅自己用）
+    if (sp.get('admin') === '1') localStorage.setItem('cw:admin', '1')
   } catch { /* noop */ }
 })()
 
