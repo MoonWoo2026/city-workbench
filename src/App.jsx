@@ -353,8 +353,9 @@ export default function App() {
                   value={filters.q}
                   onChange={e => { patch({ q: e.target.value }); if (aiEcho) setAiEcho(null) }}
                   onKeyDown={e => { if (e.key === 'Enter') smartSearch() }}
+                  enterKeyHint="search"
                   placeholder="搜城市名，或直接说需求，回车让小助理理解"
-                  className="w-full rounded-full border border-stone-200 bg-white py-2 pl-9 pr-16 text-[13px] text-stone-700 shadow-sm outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+                  className="w-full rounded-full border border-stone-200 bg-white py-2.5 pl-9 pr-16 text-[16px] leading-none text-stone-700 shadow-sm outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 sm:py-2 sm:text-[13px] sm:leading-tight"
                 />
                 {filters.q && (
                   <button onClick={() => { patch({ q: '' }); setAiEcho(null) }} className="absolute right-9 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500">
