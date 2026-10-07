@@ -415,7 +415,7 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
       <div className="animate-fade-in absolute inset-0 bg-stone-900/45 backdrop-blur-[3px]" onClick={onClose} />
       <div className="animate-pop-in relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-paper shadow-2xl sm:rounded-3xl">
         {/* 头部 */}
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-stone-200/70 bg-white/90 px-5 py-4 backdrop-blur">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-stone-200/70 bg-white/90 px-4 py-4 backdrop-blur sm:px-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-[22px] font-bold tracking-tight text-stone-900">{city.name}</h2>
@@ -444,7 +444,7 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
         </div>
 
         {/* 内容 */}
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5">
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <PriceBox icon={<BedDouble size={12} />} label="典型主卧合租" value={city.rent_shared} />
             <PriceBox icon={<HomeIcon size={12} />} label="典型单人整租" value={city.rent_single} />

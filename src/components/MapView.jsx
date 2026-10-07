@@ -210,7 +210,7 @@ export default function MapView({ cities, onOpen, heightClass = 'h-[68vh]' }) {
             <ChevronUp size={12} className="text-stone-400" />
           </button>
         ) : (
-          <div className="w-[196px] rounded-xl bg-white/95 px-3 py-2.5 text-[11px] leading-5 text-stone-600 shadow-md ring-1 ring-stone-200/70 backdrop-blur">
+          <div className="w-[180px] max-w-[calc(100vw-1.5rem)] rounded-xl bg-white/95 px-3 py-2.5 text-[11px] leading-5 text-stone-600 shadow-md ring-1 ring-stone-200/70 backdrop-blur sm:w-[196px]">
             <div className="mb-1 flex items-center justify-between">
               <span className="font-medium text-stone-500">价位筛选</span>
               <button

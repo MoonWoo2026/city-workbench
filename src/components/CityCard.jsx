@@ -241,7 +241,7 @@ function FavButton({ fav, onToggle }) {
     <button
       onClick={e => { e.stopPropagation(); onToggle() }}
       aria-label={fav ? '取消收藏' : '收藏 / 想去'}
-      className={`flex h-8 w-8 items-center justify-center rounded-full transition
+      className={`flex h-9 w-9 items-center justify-center rounded-full transition
         ${fav ? 'bg-rose-50 text-rose-500' : 'text-stone-300 hover:bg-stone-100 hover:text-rose-400'}`}
     >
       <Heart size={17} fill={fav ? 'currentColor' : 'none'} />
@@ -284,7 +284,7 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
   return (
     <article
       onClick={() => onOpen(city.id)}
-      className="card-lift group relative flex cursor-pointer flex-col rounded-3xl border border-stone-200/60 bg-white p-5 shadow-sm"
+      className="card-lift group relative flex cursor-pointer flex-col rounded-3xl border border-stone-200/60 bg-white p-4 shadow-sm sm:p-5"
     >
       <ProvinceArt province={city.province} size={92} />
       <div className="flex items-start justify-between gap-2">
@@ -304,7 +304,7 @@ export function CityCard({ city, fav, comparing, specKey, onToggleFav, onToggleC
             onClick={e => { e.stopPropagation(); onShare(city) }}
             aria-label="生成分享图片"
             title="生成分享图片（可转发微信）"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
           >
             <Share2 size={15} />
           </button>
@@ -445,7 +445,7 @@ export function CityRow({ city, fav, comparing, specKey, onToggleFav, onToggleCo
           onClick={e => { e.stopPropagation(); onShare(city) }}
           aria-label="生成分享图片"
           title="生成分享图片（可转发微信）"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-stone-300 transition hover:bg-stone-100 hover:text-emerald-600"
         >
           <Share2 size={15} />
         </button>

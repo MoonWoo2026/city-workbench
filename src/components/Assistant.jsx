@@ -158,7 +158,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
               setOpen(true)
               setTimeout(() => inputRef.current?.focus(), 80)
             }}
-            className="absolute bottom-full right-0 mb-2.5 w-[260px] cursor-pointer rounded-2xl bg-stone-900 px-3.5 py-2.5 text-white shadow-xl ring-1 ring-stone-800 transition hover:scale-[1.02]"
+            className="absolute bottom-full right-0 mb-2.5 w-[260px] max-w-[calc(100vw-2rem)] cursor-pointer rounded-2xl bg-stone-900 px-3.5 py-2.5 text-white shadow-xl ring-1 ring-stone-800 transition hover:scale-[1.02]"
           >
             <p className="flex items-center gap-1.5 text-[13px] font-semibold">
               <Sparkles size={14} className="text-amber-300" /> 试试对我说
