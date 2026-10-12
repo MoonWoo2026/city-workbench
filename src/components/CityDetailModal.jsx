@@ -73,6 +73,72 @@ function Block({ icon, title, children, tone }) {
   )
 }
 
+// 人口结构卡：七普（2020）常住人口 / 性别比 / 年龄构成 / 10年人口增减（区县继承母城数据）
+function DemogBlock({ city }) {
+  const d = city.demog
+  if (!d) return null
+  const sexTone = d.sex_ratio == null ? 'text-stone-800'
+    : d.sex_ratio >= 110 ? 'text-sky-700'
+    : d.sex_ratio <= 100 ? 'text-rose-600' : 'text-stone-800'
+  const segs = [
+    { label: '0-14岁', v: d.age0_14, cls: 'bg-amber-300' },
+    { label: '15-59岁', v: d.age15_59, cls: 'bg-emerald-500' },
+    { label: '60岁+', v: d.age60plus, cls: 'bg-stone-400' },
+  ].filter(s => s.v != null)
+  const total = segs.reduce((s, x) => s + x.v, 0)
+  return (
+    <Block icon={<Users size={14} className="text-teal-600" />} title="人口结构">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+        <p>
+          <span className="mr-1 text-[11.5px] text-stone-400">常住人口</span>
+          <b className="text-[16px] text-stone-800">{d.pop}</b>
+          <span className="ml-0.5 text-[11px] text-stone-400">万</span>
+          {d.pop_change != null && (
+            <span className={`ml-2 rounded-full px-2 py-0.5 text-[10.5px] font-medium ring-1
+              ${d.pop_change >= 0 ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/15' : 'bg-rose-50 text-rose-600 ring-rose-500/15'}`}>
+              10年{d.pop_change >= 0 ? '+' : ''}{d.pop_change}%
+            </span>
+          )}
+        </p>
+        {d.sex_ratio != null && (
+          <p>
+            <span className="mr-1 text-[11.5px] text-stone-400">性别比</span>
+            <b className={`text-[16px] ${sexTone}`}>{d.sex_ratio}</b>
+            <span className="ml-1 text-[11px] text-stone-400">男/女×100，全国 105.1</span>
+          </p>
+        )}
+      </div>
+      {segs.length > 0 && total > 0 && (
+        <div className="mt-2.5">
+          <div className="flex h-3 w-full overflow-hidden rounded-full bg-stone-100 ring-1 ring-stone-200/70">
+            {segs.map(s => (
+              <div key={s.label} className={s.cls} style={{ width: `${(s.v / total) * 100}%` }} />
+            ))}
+          </div>
+          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-stone-500">
+            {segs.map(s => (
+              <span key={s.label} className="flex items-center gap-1">
+                <span className={`h-2 w-2 rounded-full ${s.cls}`} />{s.label} {s.v}%
+              </span>
+            ))}
+            {d.age65plus != null && <span className="text-stone-400">其中 65岁+ {d.age65plus}%</span>}
+          </div>
+        </div>
+      )}
+      {d.tags?.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {d.tags.map(t => (
+            <span key={t} className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] text-teal-700 ring-1 ring-teal-600/15">{t}</span>
+          ))}
+        </div>
+      )}
+      <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
+        数据来源：第七次全国人口普查（{d.census_year || 2020}）{d.inherited ? '，区县沿用所属地市数据' : ''}。
+      </p>
+    </Block>
+  )
+}
+
 // 地方名菜卡：展示全部名菜（县区条目继承自母城口味）
 function FoodBlock({ city }) {
   if (!city.dishes?.length) return null
@@ -592,6 +658,9 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
               </Block>
             )
           })()}
+
+          {/* 人口结构（七普 2020，区县继承母城） */}
+          <DemogBlock city={city} />
 
           <Block icon={<MapPin size={14} className="text-emerald-700" />} title="推荐租房区域">
             <ul className="space-y-1.5">
