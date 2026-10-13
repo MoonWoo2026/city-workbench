@@ -59,7 +59,8 @@ export default function MapView({ cities, onOpen, heightClass = 'h-[68vh]' }) {
   const [singleSel, setSingleSel] = useState(() => loadSel('cw:mapSingleSel', SINGLE_BANDS))
   const [sharedSel, setSharedSel] = useState(() => loadSel('cw:mapSharedSel', SHARED_BANDS))
   const [dimmed, setDimmed] = useState(false) // 拖拽/缩放地图时图例变半透明
-  const [collapsed, setCollapsed] = useState(false) // 手动收起为小胶囊
+  // 手动收起为小胶囊；移动端默认收起（小屏不遮挡地图，行业惯例：可折叠浮动控件）
+  const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches)
 
   const bands = priceMode === 'single' ? SINGLE_BANDS : SHARED_BANDS
   const sel = priceMode === 'single' ? singleSel : sharedSel
@@ -194,8 +195,8 @@ export default function MapView({ cities, onOpen, heightClass = 'h-[68vh]' }) {
         ref={containerRef}
         className={`relative z-0 ${heightClass} w-full overflow-hidden rounded-2xl border border-stone-200/70 shadow-sm`}
       />
-      {/* 价位图例（漂浮在地图上；拖拽/缩放时自动半透明，可手动收起） */}
-      <div className={`absolute bottom-4 left-3 z-[500] select-none transition-opacity duration-200 ${dimmed ? 'pointer-events-none opacity-20' : 'opacity-100'}`}>
+      {/* 价位图例（漂浮在地图上；z-20 锁定在地图层内——高于地图 z-0，但永远压不过弹窗 z-50，打开城市名片时被遮罩盖住） */}
+      <div className={`absolute bottom-4 left-3 z-20 select-none transition-opacity duration-200 ${dimmed ? 'pointer-events-none opacity-20' : 'opacity-100'}`}>
         {collapsed ? (
           <button
             onClick={() => setCollapsed(false)}
