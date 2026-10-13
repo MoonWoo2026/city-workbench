@@ -221,6 +221,7 @@ export function matchQuery(city, q) {
     city.customstext || '', // 当地习俗/注意事项（标题+描述+通用词，构建时注入）
     city.listedtext || '', // 上市公司总部所在地（公司名+代码+板块，构建时注入）
     city.demogtext || '', // 人口结构/性别比/老龄化（七普，构建时注入）
+    city.fruittext || '', // 当地应季水果（水果名+月份+「X自由」，构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)
 }

@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info,
+  Share2, Loader2, Cross, Award, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info, Citrus,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -153,6 +153,48 @@ function FoodBlock({ city }) {
       </div>
       <p className="mt-2 text-[11px] leading-4 text-stone-400">
         收录地方公认名菜与代表性小吃；可在搜索框按菜名、菜系或口味关键词（如「火锅」「面食」「宫保鸡丁」「清淡」「重口」）筛选关联城市。
+      </p>
+    </Block>
+  )
+}
+
+// 月份数组 → 紧凑文本：[5,6,7,8,9]→「5–9月」，[12,1,2,3]→「12–3月」（跨年连续弧），全年→「全年」
+function fmtMonths(ms) {
+  if (!ms?.length) return ''
+  const set = new Set(ms)
+  if (set.size >= 12) return '全年'
+  const starts = ms.filter(m => !set.has(m === 1 ? 12 : m - 1))
+  if (starts.length === 1) {
+    let end = starts[0]
+    while (set.has(end === 12 ? 1 : end + 1)) end = end === 12 ? 1 : end + 1
+    return starts[0] === end ? `${starts[0]}月` : `${starts[0]}–${end}月`
+  }
+  return [...ms].sort((a, b) => a - b).join('/') + '月'
+}
+
+// 当地应季水果卡：精编产地数据，当前月份自动标「正当季」并排在前面（区县继承母城）
+function FruitBlock({ city }) {
+  const list = city.fruits
+  if (!list?.length) return null
+  const now = new Date().getMonth() + 1
+  const inSeason = f => f.m.includes(now)
+  const sorted = [...list].sort((a, b) => (inSeason(b) ? 1 : 0) - (inSeason(a) ? 1 : 0))
+  return (
+    <Block icon={<Citrus size={14} className="text-lime-600" />} title="当地应季水果">
+      <ul className="space-y-2">
+        {sorted.map(f => (
+          <li key={f.n} className="text-[12.5px] leading-5">
+            <span className="font-medium text-stone-700">{f.n}</span>
+            <span className="ml-1.5 text-[11px] text-stone-400">{fmtMonths(f.m)}</span>
+            {inSeason(f) && (
+              <span className="ml-1.5 rounded-full bg-lime-100 px-1.5 py-px text-[10px] font-medium text-lime-700 ring-1 ring-lime-600/20">正当季</span>
+            )}
+            {f.d && <span className="ml-1.5 text-[11.5px] text-stone-500">{f.d}</span>}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
+        收录当地代表性水果与应季月份（地理标志产品、产地公开资料整理）{city.fruitsInherited ? '，区县沿用所属地市数据' : ''}。
       </p>
     </Block>
   )
@@ -722,6 +764,9 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
           {/* 地方名菜与小吃 */}
           <FoodBlock city={city} />
           <RestBlock city={city} />
+
+          {/* 当地应季水果（当前月自动高亮「正当季」） */}
+          <FruitBlock city={city} />
 
           {/* 当地习俗与注意事项（外地人可能不适应或需注意的） */}
           {city.customs && city.customs.length > 0 && (
