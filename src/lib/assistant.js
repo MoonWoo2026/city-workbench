@@ -304,6 +304,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         tags: [],
         cleanOnly: false,
         pm25Max: null,
+        demogFilter: null,
         fiscalMin: null,
         customExcl: [],
         listedMin: null,
@@ -357,6 +358,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
       tags: [],
       cleanOnly: false,
       pm25Max: null,
+      demogFilter: null,
       fiscalMin: null,
       listedMin: null,
       uniOnly: false,
@@ -581,6 +583,56 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
         }
       }
     }
+  }
+
+  // 8.576) 人口结构（七普 2020）：性别比/年龄构成/人口增减，支持「女多男少」「老龄人口超过20%」等
+  const DEMOG_RESET = /不限(?:人口|性别|老龄化|年龄)|人口(?:无所谓|都行|不限)|性别(?:无所谓|都行|不限)|老龄化(?:不限|取消|清除|去掉|不管)/.test(text)
+  if (DEMOG_RESET) {
+    next.demogFilter = null
+    items.push({ k: 'demogOff', label: '人口', value: '人口结构不限' })
+  } else {
+    const df = next.demogFilter ? { ...next.demogFilter } : {}
+    let demogTouched = false
+    // 性别比
+    if (/女多男少|女生多|女生比例高|女性多|女人多|女多于男|女比男多|性别比低|女生略多/.test(text)) {
+      df.sexMax = 100 // 性别比 ≤ 100 视为女多于男（全国基准 105.1）
+      demogTouched = true
+      items.push({ k: 'demog', label: '人口', value: '女多男少（性别比 ≤ 100）' })
+    } else if (/男多女少|男生多|男生比例高|男性多|男人多|男多于女|男比女多|性别比高|男生略多/.test(text)) {
+      df.sexMin = 108
+      demogTouched = true
+      items.push({ k: 'demog', label: '人口', value: '男多女少（性别比 ≥ 108）' })
+    }
+    // 老龄化：支持「老龄人口超过/超出/大于 N%」「老龄化 N% 以上」
+    const ageM = text.match(/(?:老龄|老年|老人|60岁|65岁|六十岁|六十五岁)(?:人口|占比|比例|以上)?(?:超过|超出|大于|高于|不少于|至少|≥)\s*(\d{1,2}(?:\.\d+)?)\s*%?/)
+      || text.match(/(\d{1,2}(?:\.\d+)?)\s*%?\s*以上(?:的)?(?:老龄化|老年人口|老龄人口|老人|60岁|65岁)/)
+    if (ageM) {
+      const n = Math.max(1, Math.min(50, Number(ageM[1])))
+      df.age65Min = n
+      demogTouched = true
+      items.push({ k: 'demog', label: '人口', value: `老龄人口超过 ${n}%` })
+    } else if (/深度老龄化|老龄化严重|老人多|老人多|养老城市|慢节奏|适合养老/.test(text)) {
+      df.age65Min = 14
+      demogTouched = true
+      items.push({ k: 'demog', label: '人口', value: '深度老龄化（65+ ≥ 14%）' })
+    } else if (/人口年轻|年轻人多|活力城市|年轻城市/.test(text)) {
+      df.age65Max = 7
+      demogTouched = true
+      items.push({ k: 'demog', label: '人口', value: '人口年轻（65+ ≤ 7%）' })
+    }
+    // 人口流入/流出
+    const flowM = text.match(/人口(?:净)?(?:流入|增长|增加|净流入)/)
+    if (flowM) {
+      demogTouched = true
+      items.push({ k: 'demogTag', label: '人口', value: '人口流入（10年正增长）' })
+      // 注入关键词到 q，让搜索接管数值过滤（demogtext 已含「人口流入」标签词）
+      if (!next.q || !/人口/.test(next.q)) next.q = (next.q ? next.q + ' ' : '') + '人口流入'
+    } else if (/人口(?:净)?(?:流出|减少|下降|净流出|收缩)/.test(text)) {
+      demogTouched = true
+      items.push({ k: 'demogTag', label: '人口', value: '人口流出（10年负增长）' })
+      if (!next.q || !/人口/.test(next.q)) next.q = (next.q ? next.q + ' ' : '') + '人口流出'
+    }
+    if (demogTouched) next.demogFilter = Object.keys(df).length ? df : null
   }
 
   // 8.6) 生活成本/物价

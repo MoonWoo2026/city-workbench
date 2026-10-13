@@ -130,11 +130,43 @@ for (const c of cities) {
   c.demog = { ...d, census_year: CENSUS_YEAR, inherited: hit.inherited || undefined }
   const tags = profile(d)
   if (tags.length) c.demog.tags = tags
+  // 口语化搜索词：标准档位关键词 + 描述性口语
+  // 命中规则：某城 65+=21.87% → haystack 含「超过20%」「超过15%」「超过10%」「超过5%」，
+  // 用户搜「老龄人口超过20%」时所有 65+>=20 的城市都命中
+  const sexWords = []
+  if (d.sex_ratio != null) {
+    const sr = d.sex_ratio
+    if (sr >= 115) sexWords.push('男多女少 男生多 女生少 男人多 性别比高 男性多 男生比例高')
+    else if (sr >= 108) sexWords.push('男略多 男多女少 男生略多 男生比例高')
+    else if (sr <= 95) sexWords.push('女多男少 女生多 男生少 女人多 性别比低 女性多 女生比例高')
+    else if (sr <= 100) sexWords.push('女略多 女多男少 女生略多 女生比例高')
+    // 性别比档位（≥100/105/110/115）
+    for (const th of [100, 105, 110, 115]) if (sr >= th) sexWords.push(`性别比超过${th}`)
+    for (const th of [100, 95, 90]) if (sr <= th) sexWords.push(`性别比低于${th}`)
+  }
+  const ageWords = []
+  if (d.age65plus != null) {
+    const v = d.age65plus
+    // 生成所有低于自身值的标准档位（每 5%），用户搜「超过X%」时批量命中
+    for (const th of [5, 10, 12, 15, 20, 25]) {
+      if (v >= th) ageWords.push(`老龄人口超过${th}% 老年人口超过${th}% 老人占比超过${th}% 65岁以上超过${th}%`)
+    }
+    if (v >= 14) ageWords.push('深度老龄化 老龄化严重 老人多 老年人多 养老城市 慢节奏')
+    else if (v >= 7) ageWords.push('老龄化 老人偏多')
+    else ageWords.push('人口年轻 年轻人多 活力城市')
+  }
+  if (d.age60plus != null) {
+    const v = d.age60plus
+    for (const th of [10, 15, 20, 25, 30]) {
+      if (v >= th) ageWords.push(`60岁以上超过${th}% 老年人口${th}%`)
+    }
+  }
   c.demogtext = [
     '人口', '常住人口', '性别比', '男女比例', '老龄化', '年龄结构', '人口结构',
     tags.join(' '),
-    d.pop_change != null && d.pop_change > 0 ? '人口流入 年轻人多 人口增长' : '',
-    d.pop_change != null && d.pop_change < 0 ? '人口流出 人口收缩 人口减少' : '',
+    ...sexWords, ...ageWords,
+    d.pop_change != null && d.pop_change > 0 ? '人口流入 年轻人多 人口增长 人口增加 净流入' : '',
+    d.pop_change != null && d.pop_change < 0 ? '人口流出 人口收缩 人口减少 人口下降 净流出' : '',
     d.age65plus != null && d.age65plus >= 12 ? '养老城市 老人多 慢节奏' : '',
     d.age65plus != null && d.age65plus <= 8 ? '年轻城市 活力' : '',
   ].filter(Boolean).join(' ')

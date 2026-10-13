@@ -43,6 +43,7 @@ export function defaultFilters() {
     medExcl: false,           // 排除有三甲医院的城市（AI 微调「不要三甲」）
     borderExcl: false,        // 排除陆地边境城市（「不要边境小城」）
     pm25Max: null,            // PM2.5 周均上限 μg/m³（「pm2.5低于50」→ 50），null 不限
+    demogFilter: null,        // 人口结构过滤：{ sexMin?: 100, sexMax?: 95, age65Min?: 20 }，null 不限
     fiscalMin: null,          // 公共服务保障评级下限 A/B/C/D（「公共服务好」→ 'B'），null 不限
     customExcl: [],           // 习俗排除关键词（「不要吃狗肉的地方」→ ['狗肉']），命中的城市被排除
     listedMin: null,          // 上市公司板块下限：「消费」「科技」「金融」任一字符串 = 只看该板块有上市公司的城市（股东大会所在地筛选），null 不限
@@ -113,6 +114,14 @@ export function encodeFilters(f) {
   if (f.medExcl) p.set('medx', '1')
   if (f.borderExcl) p.set('bdx', '1')
   if (f.pm25Max) p.set('pm', String(f.pm25Max))
+  if (f.demogFilter) {
+    const parts = []
+    if (f.demogFilter.sexMin != null) parts.push(`s>=${f.demogFilter.sexMin}`)
+    if (f.demogFilter.sexMax != null) parts.push(`s<=${f.demogFilter.sexMax}`)
+    if (f.demogFilter.age65Min != null) parts.push(`a>=${f.demogFilter.age65Min}`)
+    if (f.demogFilter.age65Max != null) parts.push(`a<=${f.demogFilter.age65Max}`)
+    if (parts.length) p.set('dmg', parts.join(','))
+  }
   if (f.fiscalMin) p.set('fis', f.fiscalMin)
   if (f.customExcl?.length) p.set('cx', f.customExcl.join(','))
   if (f.listedMin) p.set('ls', f.listedMin)
@@ -141,6 +150,19 @@ export function decodeFilters(search) {
   f.medExcl = p.get('medx') === '1'
   f.borderExcl = p.get('bdx') === '1'
   f.pm25Max = p.get('pm') ? Number(p.get('pm')) : null
+  // 人口结构过滤：s>=100,s<=95,a>=20,a<=10
+  const dmgStr = p.get('dmg')
+  if (dmgStr) {
+    const df = {}
+    for (const part of dmgStr.split(',')) {
+      const m = part.match(/^(s|a)(>=|<=)(\d+(\.\d+)?)/)
+      if (!m) continue
+      const n = Number(m[3])
+      if (m[1] === 's') m[2] === '>=' ? (df.sexMin = n) : (df.sexMax = n)
+      else m[2] === '>=' ? (df.age65Min = n) : (df.age65Max = n)
+    }
+    f.demogFilter = Object.keys(df).length ? df : null
+  }
   f.fiscalMin = p.get('fis') || null
   f.customExcl = split('cx')
   f.listedMin = p.get('ls') || null
@@ -292,6 +314,13 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲
     if (f.borderExcl && c.border) return false // 排除陆地边境城市
     if (f.pm25Max && !(c.pm25 && c.pm25.v <= f.pm25Max)) return false // PM2.5 周均上限硬过滤
+    if (f.demogFilter && c.demog) {
+      const df = f.demogFilter
+      if (df.sexMin != null && !(c.demog.sex_ratio != null && c.demog.sex_ratio >= df.sexMin)) return false
+      if (df.sexMax != null && !(c.demog.sex_ratio != null && c.demog.sex_ratio <= df.sexMax)) return false
+      if (df.age65Min != null && !(c.demog.age65plus != null && c.demog.age65plus >= df.age65Min)) return false
+      if (df.age65Max != null && !(c.demog.age65plus != null && c.demog.age65plus <= df.age65Max)) return false
+    }
     if (f.fiscalMin && !(c.fiscal && c.fiscal.grade && c.fiscal.grade <= f.fiscalMin)) return false // 公共服务保障评级下限（A<B<C<D 字典序，要求 grade ≤ fiscalMin，fiscalMin='B' 表示只看 A 或 B）
     if (f.customExcl?.length && c.customstext && f.customExcl.some(k => c.customstext.toLowerCase().includes(k.toLowerCase()))) return false // 习俗关键词排除（「不要吃狗肉的地方」→ customstext 含「狗肉」的城市排除）
     if (f.listedMin && !(c.listedsectors && c.listedsectors.includes(f.listedMin))) return false // 上市公司板块下限（「股东大会在消费龙头所在地」→ 只看 listedsectors 含该板块的城市）
