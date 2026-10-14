@@ -172,7 +172,7 @@ function fmtMonths(ms) {
   return [...ms].sort((a, b) => a - b).join('/') + '月'
 }
 
-// 当地应季水果卡：精编产地数据，当前月份自动标「正当季」并排在前面（区县继承母城）
+// 当地应季水果卡：精编产地数据，当前月份自动标「正当季」并排在前面；产自X=市内特产产区
 function FruitBlock({ city }) {
   const list = city.fruits
   if (!list?.length) return null
@@ -183,9 +183,12 @@ function FruitBlock({ city }) {
     <Block icon={<Citrus size={14} className="text-lime-600" />} title="当地应季水果">
       <ul className="space-y-2">
         {sorted.map(f => (
-          <li key={f.n} className="text-[12.5px] leading-5">
+          <li key={f.n + (f.origin || '')} className="text-[12.5px] leading-5">
             <span className="font-medium text-stone-700">{f.n}</span>
             <span className="ml-1.5 text-[11px] text-stone-400">{fmtMonths(f.m)}</span>
+            {f.origin && (
+              <span className="ml-1.5 rounded-full bg-stone-100 px-1.5 py-px text-[10px] text-stone-500 ring-1 ring-stone-200/80">产自{f.origin}</span>
+            )}
             {inSeason(f) && (
               <span className="ml-1.5 rounded-full bg-lime-100 px-1.5 py-px text-[10px] font-medium text-lime-700 ring-1 ring-lime-600/20">正当季</span>
             )}
@@ -194,7 +197,7 @@ function FruitBlock({ city }) {
         ))}
       </ul>
       <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
-        收录当地代表性水果与应季月份（地理标志产品、产地公开资料整理）{city.fruitsInherited ? '，区县沿用所属地市数据' : ''}。
+        来源：农业农村部地理标志产品、产地公开资料整理；标注「产自某县」的为市内特产产区，本县主产的排在最前{city.fruitsInherited ? '，区县数据沿用所属地市' : ''}。
       </p>
     </Block>
   )
