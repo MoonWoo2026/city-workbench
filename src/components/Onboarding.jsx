@@ -88,7 +88,7 @@ function AskCard({ onYes, onNo }) {
     <div className="fixed inset-0 z-[75] flex items-center justify-center bg-stone-900/45 px-6 backdrop-blur-[3px]">
       <div className="animate-pop-in w-full max-w-sm rounded-3xl bg-white p-7 text-center shadow-2xl">
         <img
-          src="/logo.jpg"
+          src={`${import.meta.env.BASE_URL}logo.jpg`}
           alt="去哪躺平"
           className="mx-auto mb-4 h-14 w-14 rounded-2xl object-cover shadow-sm ring-1 ring-stone-200/70"
         />

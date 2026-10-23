@@ -373,7 +373,7 @@ export default function App() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2.5">
               <img
-                src="/logo.jpg"
+                src={`${import.meta.env.BASE_URL}logo.jpg`}
                 alt="去哪躺平 logo"
                 className="h-9 w-9 flex-none rounded-full object-cover ring-1 ring-stone-200/70"
               />
