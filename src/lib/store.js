@@ -43,6 +43,8 @@ export function defaultFilters() {
     medExcl: false,           // 排除有三甲医院的城市（AI 微调「不要三甲」）
     borderExcl: false,        // 排除陆地边境城市（「不要边境小城」）
     pm25Max: null,            // PM2.5 周均上限 μg/m³（「pm2.5低于50」→ 50），null 不限
+    paybackMax: null,         // 租售比回本期上限 年（「租售比少于20年」→ 20），null 不限
+    paybackMin: null,         // 租售比回本期下限 年（「回本期大于30年」→ 30），null 不限
     demogFilter: null,        // 人口结构过滤：{ sexMin?: 100, sexMax?: 95, age65Min?: 20 }，null 不限
     fiscalMin: null,          // 公共服务保障评级下限 A/B/C/D（「公共服务好」→ 'B'），null 不限
     customExcl: [],           // 习俗排除关键词（「不要吃狗肉的地方」→ ['狗肉']），命中的城市被排除
@@ -114,6 +116,8 @@ export function encodeFilters(f) {
   if (f.medExcl) p.set('medx', '1')
   if (f.borderExcl) p.set('bdx', '1')
   if (f.pm25Max) p.set('pm', String(f.pm25Max))
+  if (f.paybackMax) p.set('pbx', String(f.paybackMax))
+  if (f.paybackMin) p.set('pbn', String(f.paybackMin))
   if (f.demogFilter) {
     const parts = []
     if (f.demogFilter.sexMin != null) parts.push(`s>=${f.demogFilter.sexMin}`)
@@ -150,6 +154,8 @@ export function decodeFilters(search) {
   f.medExcl = p.get('medx') === '1'
   f.borderExcl = p.get('bdx') === '1'
   f.pm25Max = p.get('pm') ? Number(p.get('pm')) : null
+  f.paybackMax = p.get('pbx') ? Number(p.get('pbx')) : null
+  f.paybackMin = p.get('pbn') ? Number(p.get('pbn')) : null
   // 人口结构过滤：s>=100,s<=95,a>=20,a<=10
   const dmgStr = p.get('dmg')
   if (dmgStr) {
@@ -316,6 +322,8 @@ export function applyFilters(cities, f, { favs = null, favOnly = false } = {}) {
     if (f.medExcl && c.med && (c.med.n > 0 || c.med.p > 0)) return false // 排除有三甲
     if (f.borderExcl && c.border) return false // 排除陆地边境城市
     if (f.pm25Max && !(c.pm25 && c.pm25.v <= f.pm25Max)) return false // PM2.5 周均上限硬过滤
+    if (f.paybackMax && !(c.house && c.house.back != null && c.house.back <= f.paybackMax)) return false // 租售比回本期上限（无房价数据的城市也排除）
+    if (f.paybackMin && !(c.house && c.house.back != null && c.house.back > f.paybackMin)) return false // 租售比回本期下限
     if (f.demogFilter && c.demog) {
       const df = f.demogFilter
       if (df.sexMin != null && !(c.demog.sex_ratio != null && c.demog.sex_ratio >= df.sexMin)) return false

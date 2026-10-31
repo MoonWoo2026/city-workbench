@@ -384,6 +384,32 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     items.push({ k: 'budgetOff', label: '预算', value: '已关闭预算模式' })
   }
 
+  // 4.6) 租售比回本期：「租售比少于20年」「回本20年以内」「回本期大于30年」「回本快」
+  if (/不限租售比|取消租售比|不限回本|取消回本/.test(text)) {
+    next.paybackMax = null
+    next.paybackMin = null
+    items.push({ k: 'payback', label: '回本期', value: '不限' })
+  } else {
+    const pbLess = text.match(/(?:租售比|回本期?|回本年限)[^0-9]{0,6}?(?:少于|小于|低于|不到|以内|以下|不超|不超过|内|＜|<)\s*(\d{1,2})\s*年/)
+      || text.match(/(?:少于|小于|低于|不到|以内|以下|不超过)\s*(\d{1,2})\s*年(?:的)?(?:回本|租售比)/)
+      || text.match(/(?:租售比|回本期?|回本年限)\s*(\d{1,2})\s*年(?:以内|以下|之内|内)/)
+    const pbMore = text.match(/(?:租售比|回本期?|回本年限)[^0-9]{0,6}?(?:大于|多于|超过|高于|以上|＞|>)\s*(\d{1,2})\s*年/)
+      || text.match(/(?:大于|多于|超过|高于)\s*(\d{1,2})\s*年(?:的)?(?:回本|租售比)/)
+      || text.match(/(?:租售比|回本期?|回本年限)\s*(\d{1,2})\s*年(?:以上|及以上|起)/)
+    if (pbLess) {
+      next.paybackMax = +pbLess[1]
+      next.paybackMin = null
+      items.push({ k: 'payback', label: '回本期', value: `≤${pbLess[1]} 年（租售比）` })
+    } else if (pbMore) {
+      next.paybackMin = +pbMore[1]
+      next.paybackMax = null
+      items.push({ k: 'payback', label: '回本期', value: `> ${pbMore[1]} 年（租售比）` })
+    } else if (/回本快|回本容易|租售比低|租售比划算|买房划算/.test(text)) {
+      next.paybackMax = 20
+      items.push({ k: 'payback', label: '回本期', value: '≤20 年（回本快）' })
+    }
+  }
+
   // 5) 租金预算
   const lv = findLevels(text)
   let levelTouched = false
@@ -775,6 +801,7 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     { when: () => next.provinces.length > 0, run: () => { next.provinces = []; relaxed.push('限定省份没有匹配，已扩大到全国') } },
     { when: () => next.cleanOnly, run: () => { next.cleanOnly = false; relaxed.push('已自动放宽「空气」限制') } },
     { when: () => next.pm25Max, run: () => { next.pm25Max = null; relaxed.push('已自动放宽「PM2.5」限制') } },
+    { when: () => next.paybackMax || next.paybackMin, run: () => { next.paybackMax = null; next.paybackMin = null; relaxed.push('已自动放宽「租售比回本期」限制') } },
     { when: () => next.fiscalMin, run: () => { next.fiscalMin = null; relaxed.push('已自动放宽「公共服务保障」限制') } },
     { when: () => next.listedMin, run: () => { next.listedMin = null; relaxed.push('已自动放宽「上市公司总部」限制') } },
     { when: () => next.customExcl?.length > 0, run: () => { next.customExcl = []; relaxed.push('已自动放宽「习俗排除」限制') } },
