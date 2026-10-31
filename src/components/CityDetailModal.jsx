@@ -5,7 +5,7 @@ import {
   X, Heart, BedDouble, Home as HomeIcon, Wallet, MapPin, Droplets, UtensilsCrossed,
   Thermometer, ShieldCheck, ShieldAlert, CheckCircle2, XCircle, NotebookPen, Check, Scale,
   GraduationCap, BusFront, ShoppingBasket, Wifi, Signal, Coffee, TrainFront, Plane, CarTaxiFront,
-  Share2, Loader2, Cross, Award, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info, Citrus,
+  Share2, Loader2, Cross, Award, ChefHat, ChevronDown, ChevronUp, Wind, Landmark, Users, Briefcase, Info, Citrus, Building2,
 } from 'lucide-react'
 import { TagChip, CleanBadge, yuan } from './CityCard.jsx'
 import { TILE_URL, TILE_SUBDOMAINS, LEVEL_COLORS } from './MapView.jsx'
@@ -198,6 +198,42 @@ function FruitBlock({ city }) {
       </ul>
       <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
         来源：农业农村部地理标志产品、产地公开资料整理；标注「产自某县」的为市内特产产区，本县主产的排在最前{city.fruitsInherited ? '，区县数据沿用所属地市' : ''}。
+      </p>
+    </Block>
+  )
+}
+
+// 当地买房参考卡：二手房挂牌均价 → 1/2/3室总价区间 + 租售比回本期（区县继承母城）
+function HouseBlock({ city }) {
+  const h = city.house
+  if (!h) return null
+  const rows = [
+    { label: '一居室', area: '40–60㎡', range: h.r1 },
+    { label: '两居室', area: '70–90㎡', range: h.r2 },
+    { label: '三居室', area: '100–130㎡', range: h.r3 },
+  ]
+  return (
+    <Block icon={<Building2 size={14} className="text-cyan-700" />} title="当地买房参考">
+      <div className="mb-2 flex items-baseline gap-2">
+        <span className="text-[20px] font-bold tracking-tight text-stone-800">{h.p.toLocaleString()}</span>
+        <span className="text-[11px] text-stone-400">元/㎡ · 二手房挂牌均价</span>
+        {h.back != null && (
+          <span className="ml-auto rounded-full bg-cyan-50 px-2 py-0.5 text-[11px] font-medium text-cyan-700 ring-1 ring-cyan-600/20">
+            租售比回本约 {h.back} 年
+          </span>
+        )}
+      </div>
+      <ul className="space-y-1.5">
+        {rows.map(r => (
+          <li key={r.label} className="flex items-baseline gap-2 text-[12.5px]">
+            <span className="w-12 flex-none font-medium text-stone-700">{r.label}</span>
+            <span className="text-[11px] text-stone-400">{r.area}</span>
+            <span className="ml-auto font-semibold text-stone-800">{r.range[0]}–{r.range[1]} 万</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[10.5px] leading-4 text-stone-400">
+        来源：禧泰数据·中国房价行情月度挂牌均价；总价区间 = 均价 × 常见户型面积段；回本期按一居室总价中值 ÷ 当地整租年租金估算{city.houseInherited ? '；区县数据沿用所属地市' : ''}，仅供参考。
       </p>
     </Block>
   )
@@ -718,6 +754,9 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
               ))}
             </ul>
           </Block>
+
+          {/* 当地买房参考（1/2/3室总价区间 + 租售比回本期） */}
+          <HouseBlock city={city} />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Block icon={<Droplets size={14} className="text-sky-600" />} title="水 / 电 / 燃气 / 取暖">

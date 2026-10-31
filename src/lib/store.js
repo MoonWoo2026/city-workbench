@@ -222,6 +222,7 @@ export function matchQuery(city, q) {
     city.listedtext || '', // 上市公司总部所在地（公司名+代码+板块，构建时注入）
     city.demogtext || '', // 人口结构/性别比/老龄化（七普，构建时注入）
     city.fruittext || '', // 当地应季水果（水果名+月份+「X自由」，构建时注入）
+    city.housetext || '', // 当地买房参考（均价+总价区间+回本期，构建时注入）
   ].join(' ').toLowerCase()
   return hay.includes(kw)
 }
