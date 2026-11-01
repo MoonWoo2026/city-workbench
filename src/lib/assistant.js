@@ -634,9 +634,9 @@ export function interpret(rawText, currentFilters, { favOnly = false } = {}) {
     let demogTouched = false
     // 性别比
     if (/女多男少|女生多|女生比例高|女性多|女人多|女多于男|女比男多|性别比低|女生略多/.test(text)) {
-      df.sexMax = 100 // 性别比 ≤ 100 视为女多于男（全国基准 105.1）
+      df.sexMax = 102 // 性别比 ≤ 102 视为女多于男或基本持平（七普全国基准 105.1；石家庄/长春/哈尔滨/济南/成都等省会均在 100~102 区间）
       demogTouched = true
-      items.push({ k: 'demog', label: '人口', value: '女多男少（性别比 ≤ 100）' })
+      items.push({ k: 'demog', label: '人口', value: '女多男少（性别比 ≤ 102）' })
     } else if (/男多女少|男生多|男生比例高|男性多|男人多|男多于女|男比女多|性别比高|男生略多/.test(text)) {
       df.sexMin = 108
       demogTouched = true
