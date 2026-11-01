@@ -5,6 +5,16 @@ import { applyFilters, defaultFilters, encodeFilters } from '../lib/store.js'
 
 const SEEN_TIP_KEY = 'cw:seen-assistant-tip'
 
+// 输入联想补全词库：示例话术 + 常用指令（本地匹配，输入即过滤）
+const COMPLETIONS = [...new Set([
+  ...SUGGESTIONS,
+  '回本期大于30年的地方',
+  '租售比大于25年的城市',
+  '空气好又便宜的小城',
+  '有暖气过冬舒服的地方',
+  '只要南方', '排除北方', '不要边境小城', '取消回本', '取消预算', '撤销', '重置', '帮助',
+])]
+
 // 躺平小助手：自然语言 → 自动筛选（纯前端识别）
 export default function Assistant({ cities, filters, favs, favOnly, lifted, onApplyFilters, onSetFavOnly, onReset, onOpen }) {
   const [open, setOpen] = useState(false)
@@ -23,6 +33,11 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const composing = useRef(false)
+  const [sugIdx, setSugIdx] = useState(-1) // 联想补全高亮项（-1 未选中）
+
+  // 联想补全：输入即过滤词库，最多 6 条
+  const kw = input.trim()
+  const matches = kw ? COMPLETIONS.filter(s => s !== kw && s.includes(kw)).slice(0, 6) : []
   const seq = useRef(0)
   const nextId = () => `m${++seq.current}`
 
@@ -129,10 +144,28 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
   }
 
   const onKeyDown = e => {
-    if (e.key === 'Enter' && !composing.current) {
+    if (composing.current) return
+    if (e.key === 'ArrowDown' && matches.length) {
       e.preventDefault()
-      send(input)
+      setSugIdx(i => (i + 1) % matches.length)
+    } else if (e.key === 'ArrowUp' && matches.length) {
+      e.preventDefault()
+      setSugIdx(i => (i <= 0 ? matches.length - 1 : i - 1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      // 有高亮补全项时先补全到输入框，再按一次 Enter 才发送
+      if (sugIdx >= 0 && matches[sugIdx]) { setInput(matches[sugIdx]); setSugIdx(-1) }
+      else send(input)
+    } else if (e.key === 'Escape') {
+      setSugIdx(-1)
     }
+  }
+
+  // 点选补全项：填入输入框并聚焦（不直接发送，方便继续编辑）
+  const pickCompletion = s => {
+    setInput(s)
+    setSugIdx(-1)
+    inputRef.current?.focus()
   }
 
   const chipsRow = (list, cls) => (
@@ -240,13 +273,14 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                   <div className="min-w-0 max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3.5 py-2.5 text-[13px] leading-5 text-stone-700 ring-1 ring-stone-200/70">
                     {m.kind === 'greet' && (
                       <div>
-                        <p>你好呀，我是躺平小助手 🐾</p>
+                        <p>你好呀，我是躺平小助手</p>
                         <p className="mt-1 text-stone-500">直接用大白话说需求，我帮你筛城市：</p>
                         <div className="mt-1.5 space-y-1 text-[12px] text-stone-500">
                           <p>· 省份/大区：「云南的」「东三省」「西南地区」</p>
                           <p>· 预算：「1500 以下」「月预算 2500」「每月花 2000」</p>
                           <p>· 偏好：「有温泉」「海边」「空气好」「有暖气」</p>
                           <p>· 类型：「县城小镇」「三四线」「大城市郊区」</p>
+                          <p>· 买房：「租售比少于 20 年」「回本快」</p>
                           <p>· 还可以说「过冬暖和」「最便宜」「重置」「撤销」</p>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -362,12 +396,13 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
                       <div>
                         <p>我能听懂这些说法：</p>
                         <div className="mt-1 space-y-1 text-[12px] text-stone-500">
-                          <p>📍 <b>地区</b>：云南 / 东三省 / 西南 / 不要新疆</p>
-                          <p>💰 <b>预算</b>：房租 1000 以下 / 月预算 2500（自动拆分房租餐饮杂费）/ 越便宜越好</p>
-                          <p>🌊 <b>偏好</b>：温泉 / 海边 / 避暑 / 空气好 / 有暖气 / 南方湿润</p>
-                          <p>🏘️ <b>类型</b>：县城小镇 / 三四线 / 大城市郊区 / 一二线</p>
-                          <p>☀️ <b>场景</b>：过冬暖和 / 大学城周边 / 只看收藏</p>
-                          <p>🔧 <b>操作</b>：重置 / 撤销 / 按整租价格排序</p>
+                          <p><b>地区</b>：云南 / 东三省 / 西南 / 不要新疆</p>
+                          <p><b>预算</b>：房租 1000 以下 / 月预算 2500（自动拆分房租餐饮杂费）/ 越便宜越好</p>
+                          <p><b>偏好</b>：温泉 / 海边 / 避暑 / 空气好 / 有暖气 / 南方湿润</p>
+                          <p><b>类型</b>：县城小镇 / 三四线 / 大城市郊区 / 一二线</p>
+                          <p><b>买房</b>：租售比少于 20 年 / 回本期大于 30 年 / 回本快 / 取消回本</p>
+                          <p><b>场景</b>：过冬暖和 / 大学城周边 / 只看收藏</p>
+                          <p><b>操作</b>：重置 / 撤销 / 按整租价格排序</p>
                         </div>
                         <p className="mt-1.5 text-[12px] text-stone-500">条件可以叠加着说，比如「广西的海边县城，1500 左右，空气好」。</p>
                       </div>
@@ -375,7 +410,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
 
                     {m.kind === 'unknown' && (
                       <div>
-                        <p>这句我没完全听懂 🐶 可以换个说法，或者直接点下面的例子：</p>
+                        <p>这句我没完全听懂，可以换个说法，或者直接点下面的例子：</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {SUGGESTIONS.slice(0, 4).map(s => (
                             <button key={s} onClick={() => send(s)} className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] text-emerald-700 ring-1 ring-emerald-600/15 transition hover:bg-emerald-100">
@@ -396,7 +431,7 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
 
           {/* 快捷指令 */}
           <div className="flex gap-1.5 overflow-x-auto border-t border-stone-100 bg-white px-3 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {['云南温泉', '海边小城', '过冬暖和', '空气好', '有暖气', '越便宜越好', '重置'].map(s => (
+            {['云南温泉', '海边小城', '过冬暖和', '空气好', '有暖气', '回本快', '越便宜越好', '重置'].map(s => (
               <button
                 key={s}
                 onClick={() => send(s)}
@@ -408,11 +443,26 @@ export default function Assistant({ cities, filters, favs, favOnly, lifted, onAp
           </div>
 
           {/* 输入区 */}
-          <div className="flex items-center gap-2 bg-white px-3 py-2.5">
+          <div className="relative flex items-center gap-2 bg-white px-3 py-2.5">
+            {/* 联想补全下拉（输入即出现，↑↓ 选择，Enter 补全，Esc 关闭） */}
+            {matches.length > 0 && (
+              <div className="absolute bottom-full left-3 right-3 mb-1.5 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-stone-200">
+                {matches.map((s, i) => (
+                  <button
+                    key={s}
+                    onMouseDown={e => { e.preventDefault(); pickCompletion(s) }}
+                    onMouseEnter={() => setSugIdx(i)}
+                    className={`block w-full truncate px-3.5 py-2 text-left text-[12.5px] transition ${i === sugIdx ? 'bg-emerald-50 text-emerald-800' : 'text-stone-600 hover:bg-stone-50'}`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
             <input
               ref={inputRef}
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={e => { setInput(e.target.value); setSugIdx(-1) }}
               onKeyDown={onKeyDown}
               onCompositionStart={() => { composing.current = true }}
               onCompositionEnd={() => { composing.current = false }}
