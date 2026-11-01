@@ -1,19 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, X, Send, Bot, Undo2, RotateCcw, Trophy, ExternalLink } from 'lucide-react'
-import { interpret, refineInterpret, rankResults, SUGGESTIONS } from '../lib/assistant.js'
+import { interpret, refineInterpret, rankResults, SUGGESTIONS, COMPLETIONS } from '../lib/assistant.js'
 import { applyFilters, defaultFilters, encodeFilters } from '../lib/store.js'
 
 const SEEN_TIP_KEY = 'cw:seen-assistant-tip'
-
-// 输入联想补全词库：示例话术 + 常用指令（本地匹配，输入即过滤）
-const COMPLETIONS = [...new Set([
-  ...SUGGESTIONS,
-  '回本期大于30年的地方',
-  '租售比大于25年的城市',
-  '空气好又便宜的小城',
-  '有暖气过冬舒服的地方',
-  '只要南方', '排除北方', '不要边境小城', '取消回本', '取消预算', '撤销', '重置', '帮助',
-])]
 
 // 躺平小助手：自然语言 → 自动筛选（纯前端识别）
 export default function Assistant({ cities, filters, favs, favOnly, lifted, onApplyFilters, onSetFavOnly, onReset, onOpen }) {

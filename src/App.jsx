@@ -22,7 +22,7 @@ import ShareGate from './components/ShareGate.jsx'
 import Onboarding from './components/Onboarding.jsx'
 import CursorFollower from './components/CursorFollower.jsx'
 import { budgetTotal } from './lib/store.js'
-import { interpret, refineInterpret } from './lib/assistant.js'
+import { interpret, refineInterpret, COMPLETIONS } from './lib/assistant.js'
 import { useCityShare } from './components/useCityShare.jsx'
 
 const PAGE_SIZE = 60
@@ -56,6 +56,12 @@ export default function App() {
   // 智能搜索：AI 理解后的回显（词条列表 + 撤销快照）
   const [aiEcho, setAiEcho] = useState(null) // { items, count, raw }
   const aiUndoRef = useRef(null) // AI 应用前的 filters 快照
+  // 顶部搜索框联想补全（与小助手共用 COMPLETIONS 词库）
+  const [sugIdx, setSugIdx] = useState(-1)
+  const searchInputRef = useRef(null)
+  const searchComposing = useRef(false)
+  const searchKw = filters.q.trim()
+  const searchMatches = searchKw ? COMPLETIONS.filter(s => s !== searchKw && s.includes(searchKw)).slice(0, 6) : []
 
   // ---- 云端同步（收藏/备忘录/筛选偏好 → value-invest /api/city） ----
   const applyingRemote = useRef(false)
@@ -391,13 +397,46 @@ export default function App() {
               <div className="relative">
                 <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
+                  ref={searchInputRef}
                   value={filters.q}
-                  onChange={e => { patch({ q: e.target.value }); if (aiEcho) setAiEcho(null) }}
-                  onKeyDown={e => { if (e.key === 'Enter') smartSearch() }}
+                  onChange={e => { patch({ q: e.target.value }); setSugIdx(-1); if (aiEcho) setAiEcho(null) }}
+                  onCompositionStart={() => { searchComposing.current = true }}
+                  onCompositionEnd={() => { searchComposing.current = false }}
+                  onKeyDown={e => {
+                    if (searchComposing.current) return
+                    if (e.key === 'ArrowDown' && searchMatches.length) {
+                      e.preventDefault()
+                      setSugIdx(i => (i + 1) % searchMatches.length)
+                    } else if (e.key === 'ArrowUp' && searchMatches.length) {
+                      e.preventDefault()
+                      setSugIdx(i => (i <= 0 ? searchMatches.length - 1 : i - 1))
+                    } else if (e.key === 'Enter') {
+                      // 有高亮补全项时先补全到输入框，再按一次 Enter 才让小助理理解
+                      if (sugIdx >= 0 && searchMatches[sugIdx]) { patch({ q: searchMatches[sugIdx] }); setSugIdx(-1) }
+                      else smartSearch()
+                    } else if (e.key === 'Escape') {
+                      setSugIdx(-1)
+                    }
+                  }}
                   enterKeyHint="search"
                   placeholder="搜城市名，或直接说需求，回车让小助理理解"
                   className="w-full rounded-full border border-stone-200 bg-white py-2.5 pl-9 pr-16 text-[16px] leading-none text-stone-700 shadow-sm outline-none transition placeholder:text-stone-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 sm:py-2 sm:text-[13px] sm:leading-tight"
                 />
+                {/* 联想补全下拉：输入即过滤词库，↑↓ 选择，Enter 补全 */}
+                {searchMatches.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-stone-200">
+                    {searchMatches.map((s, i) => (
+                      <button
+                        key={s}
+                        onMouseDown={e => { e.preventDefault(); patch({ q: s }); setSugIdx(-1); searchInputRef.current?.focus() }}
+                        onMouseEnter={() => setSugIdx(i)}
+                        className={`block w-full truncate px-3.5 py-2 text-left text-[12.5px] transition ${i === sugIdx ? 'bg-emerald-50 text-emerald-800' : 'text-stone-600 hover:bg-stone-50'}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {filters.q && (
                   <button onClick={() => { patch({ q: '' }); setAiEcho(null) }} className="absolute right-9 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500">
                     <X size={14} />
@@ -410,8 +449,8 @@ export default function App() {
                 >
                   <Sparkles size={15} />
                 </button>
-                {/* 无结果时的 AI 引导：搜不到的时刻恰好是需要小助理的时刻 */}
-                {filters.q.trim() && results.length === 0 && (
+                {/* 无结果时的 AI 引导：搜不到的时刻恰好是需要小助理的时刻（补全下拉展开时隐藏，避免重叠） */}
+                {filters.q.trim() && results.length === 0 && searchMatches.length === 0 && (
                   <button
                     onClick={smartSearch}
                     className="absolute left-0 top-full z-10 mt-1.5 flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] text-white shadow-md transition hover:bg-emerald-700"
