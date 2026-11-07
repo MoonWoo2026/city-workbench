@@ -684,6 +684,12 @@ export default function CityDetailModal({ city, fav, comparing, specKey, isOwner
               )
             })()}
             {city.environment}
+            {city.poll?.trim() && (
+              <div className="mt-2 flex items-start gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[12px] leading-relaxed text-rose-700 ring-1 ring-rose-200/60">
+                <ShieldAlert size={13} className="mt-0.5 shrink-0" />
+                <span>{city.poll}</span>
+              </div>
+            )}
           </Block>
 
           {city.fiscal?.score && (() => {
